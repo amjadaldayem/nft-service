@@ -1,0 +1,69 @@
+version: '3.1'
+
+networks:
+  sintra:
+
+services:
+  postgres:
+    image: postgres:13.5-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: &POSTGRES_USER postgres
+      POSTGRES_PASSWORD: &POSTGRES_PASSWORD postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.local/postgres/docker-entrypoint-initdb.d/01-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    networks:
+      - sintra
+
+  postgres-admin:
+    image: adminer
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - sintra
+    environment:
+      POSTGRES_USER: *POSTGRES_USER
+      POSTGRES_PASSWORD: *POSTGRES_PASSWORD
+
+  dynamo:
+    image: amazon/dynamodb-local:1.17.0
+    restart: always
+    ports:
+      - "8000:8000"
+    networks:
+      - sintra
+    environment:
+      AWS_REGION: &AWS_REGION us-west-2
+      AWS_ACCESS_KEY_ID: &AWS_ACCESS_KEY_ID x
+      AWS_SECRET_ACCESS_KEY: &AWS_SECRET_ACCESS_KEY x
+
+  dynamo-admin:
+    image: aaronshaf/dynamodb-admin:latest
+    restart: always
+    depends_on:
+      - dynamo
+    ports:
+      - "8001:8001"
+    networks:
+      - sintra
+    environment:
+      DYNAMO_ENDPOINT: http://dynamo:8000
+      AWS_REGION: *AWS_REGION
+      AWS_ACCESS_KEY_ID: *AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY: *AWS_SECRET_ACCESS_KEY
+
+  elasticmq:
+    image: softwaremill/elasticmq-native
+    restart: always
+    ports:
+      - "9324:9324"
+      - "9325:9325"
+    networks:
+      - sintra
+    volumes:
+      - ./.local/elasticmq/elasticmq.conf:/opt/elasticmq.conf

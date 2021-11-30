@@ -1,0 +1,2 @@
+import os
+SOLANA_RPC_ENDPOINT = os.environ['SOLANA_RPC_ENDPOINT']

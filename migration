@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+PYTHONPATH=.:$PYTHONPATH alembic -c ./app/models/alembic.ini "$@"

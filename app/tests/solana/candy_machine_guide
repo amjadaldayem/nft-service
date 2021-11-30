@@ -1,0 +1,100 @@
+# 🤔 Prerequisites
+Lerna
+`npm install --global lerna`
+
+ts-node
+`npm install --global ts-node`
+
+node-js
+`https://nodejs.org/en/download/current/`
+
+typscript
+`npm install -g typescript`
+
+# 🗂 Install CLI client
+```js
+$ git clone https://github.com/metaplex-foundation/metaplex.git
+$ cd metaplex
+//NEXT
+$ cd js
+$ yarn install
+//NEXT
+$ cd js/packages/cli
+$ yarn
+$ yarn install
+//if this is missing install
+//npm i @solana/spl-token
+$ yarn build
+
+$yarn run package:macos
+//or if that doesn't work
+$npx pkg . -d --targets node14-macos-x64 --output bin/macos/metaplex
+
+//allow use of cli
+$ sudo npm link
+```
+now you should see the metaplex cli installed
+`$ metaplex -h`
+
+//set solana environment
+solana config set -u devnet -k ~/.config/solana/id.json
+or
+solana config set -u mainnet-beta -k ~/.config/solana/id.json
+
+## Step 1
+Now navigate to the `cli` package source where we can start to run the cli tools
+```js
+cd packages/cli/src/
+```
+## Step 2
+Then upload the aforementioned (png, json) pairs to the `@ArweaveTeam`
+ network using the following. This is where our files are stored immutably on the perma-web to be accessed later Spider web
+```js
+ts-node cli upload ~/path/to/your/images -k ~/.config/solana/id.json
+
+//cli
+
+//devnet, -n means adding 20 pairs of json and png assets
+metaplex upload ~/path/to/your/images -k ~/.config/solana/id.json -e devnet -n 20
+
+//mainnet
+metaplex upload ~/path/to/your/images -k ~/.config/solana/id.json -e mainnet-beta -n 10000
+```
+NOTE: this might not always upload all your images correctly so it might need to be run several times. Keep running until you receive no errors.
+
+## Step 3
+Now to create your Candy Machine!
+
+You can specify the mint price of your NFT (in SOL) using the `-p` flag as shown: 1 = 1 SOL
+```js
+ts-node cli create_candy_machine -k ~/.config/solana/id.json -p 1
+//cli
+metaplex create_candy_machine -k ~/.config/solana/id.json -p 1
+
+
+```
+
+This should also print the PDA of your candy machine.
+
+## Step 4
+Next, we want to set the start date, after which our NFTs will be freely available for the public to mint Timer clock
+```js
+ts-node cli set_start_date -k ~/.config/solana/id.json -d "03 Sep 2021 11:23:00 GMT"
+//cli
+metaplex set_start_date -k ~/.config/solana/id.json -d "03 Sep 2021 11:23:00 GMT"
+
+or
+metaplex update_candy_machine --env devnet --keypair ~/.config/solana/id.json --price 0.5 --date "01 Sep 2021 00:00:00 GMT"
+
+## Step 5
+Here comes the fun part. Now that our Candy Machine is locked and loaded, it's time to mint Printer
+
+For example, here we are minting to our own key, however you could specify any key here to mint to.
+```js
+ts-node cli mint_one_token -k ~/.config/solana/id.json
+//cli
+metaplex mint_one_token -k ~/.config/solana/id.json
+```
+## Step 6
+Sign your mint
+metaplex sign_candy_machine_metadata -k ~/.config/solana/id.json
