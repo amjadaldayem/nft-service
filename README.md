@@ -1,6 +1,6 @@
-# sintra-indexer
+# sintra-nft-service
 
-Indexers for blockchain data
+Indexers and web services for NFT.
 
 References:
 * https://github.com/SecretDuckSociety/TwitterNFTSalesBot
