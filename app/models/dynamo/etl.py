@@ -1,6 +1,6 @@
 # Respository for DynamoDB data access
 
-class ETLRepository:
+class ETLTable:
     """
     Data repository for all ETL operations.
 

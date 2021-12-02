@@ -1,9 +1,20 @@
+from ..consts import (
+    SOLANA_MAGIC_EDEN,
+    SOLANA_ALPHA_ART,
+)
+
 METAPLEX_PUBKEY = 'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'
-MAGIC_EDEN = "Magic Eden"
-ALPHA_ART = "Alpha Art"
 MAGIC_EDEN_ADDRESS = "GUfCR9mK6azb9vcpsxgXyj7XRPAKJd4KMHTTVvtncGgp"
 ALPHA_ART_ADDRESS = "4pUQS4Jo2dsfWzt3VgHXy3H6RYnEDd11oWPiaM2rdAPw"
-### Enable this later
+# Enable this later
 # DIGITAL_EYES_ADDRESS = "F4ghBzHFNgJxV4wEQDchU5i7n4XWWMBSaq7CuswGiVsr"
 
-NUM_CREATORS = 2
+MARKET_NAME_MAP = {
+    SOLANA_MAGIC_EDEN: "Magic Eden",
+    SOLANA_ALPHA_ART: "Alpha Art",
+}
+
+MARKET_ADDRESS_MAP = {
+    SOLANA_MAGIC_EDEN: MAGIC_EDEN_ADDRESS,
+    SOLANA_ALPHA_ART: ALPHA_ART_ADDRESS
+}
