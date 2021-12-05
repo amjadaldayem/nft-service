@@ -1,0 +1,71 @@
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "blockTime": 1638512592,
+    "meta": {
+      "err": null,
+      "fee": 5000,
+      "innerInstructions": [],
+      "logMessages": [
+        "Program 7t8zVJtPCFAqog1DcnB6Ku1AVKtWfHkCiPi1cAvcJyVF invoke [1]",
+        "Program log: Lower Price",
+        "Program 7t8zVJtPCFAqog1DcnB6Ku1AVKtWfHkCiPi1cAvcJyVF consumed 7284 of 200000 compute units",
+        "Program 7t8zVJtPCFAqog1DcnB6Ku1AVKtWfHkCiPi1cAvcJyVF success"
+      ],
+      "postBalances": [
+        486517788,
+        2150640,
+        1461600,
+        1,
+        1141440
+      ],
+      "postTokenBalances": [],
+      "preBalances": [
+        486522788,
+        2150640,
+        1461600,
+        1,
+        1141440
+      ],
+      "preTokenBalances": [],
+      "rewards": [],
+      "status": {
+        "Ok": null
+      }
+    },
+    "slot": 109829007,
+    "transaction": {
+      "message": {
+        "accountKeys": [
+          "CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4",
+          "43T63esahpRLmQ8mf8NCE3XsU9dGDKW7puasiYhno6jw",
+          "CuTQhEBTtKf6TEp6kTgHRuG9an2RexW9WzUeGY2jcuzj",
+          "11111111111111111111111111111111",
+          "7t8zVJtPCFAqog1DcnB6Ku1AVKtWfHkCiPi1cAvcJyVF"
+        ],
+        "header": {
+          "numReadonlySignedAccounts": 0,
+          "numReadonlyUnsignedAccounts": 3,
+          "numRequiredSignatures": 1
+        },
+        "instructions": [
+          {
+            "accounts": [
+              0,
+              2,
+              1,
+              3
+            ],
+            "data": "16JbGYsfSvkzSN2LL7EfEo",
+            "programIdIndex": 4
+          }
+        ],
+        "recentBlockhash": "9fMSFErN2rVkbwovvpPmrvwYvefoHAde3jKFiuMSmoje"
+      },
+      "signatures": [
+        "5v3TkGX9H5ZcViGp2xzLTY1sWUKXw7MBTECArF38qMfgfKE22LAQx5jDoNdU6YnQGewzhq8YYYbpiFVTtFdjVH2L"
+      ]
+    }
+  },
+  "id": 1
+}

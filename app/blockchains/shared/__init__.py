@@ -1,0 +1,17 @@
+import dataclasses
+
+SECONDARY_MARKET_EVENT_UNKNOWN = 0
+SECONDARY_MARKET_EVENT_LISTING = 1
+SECONDARY_MARKET_EVENT_UNLISTING = 2
+SECONDARY_MARKET_EVENT_SALE = 3
+
+
+@dataclasses.dataclass
+class SecondaryMarketEvent:
+    market_id: int  # The secondary market ID, e.g. SOLANA_MAGIC_EDEN
+    timestamp: int  # Approx. unix timestamp
+    event_type: int = SECONDARY_MARKET_EVENT_UNKNOWN  # See above
+    token_key: str = ''  # Token address / Mint key
+    price: int = 0  # Listing/Sale price in the smallest UNIT. E.g., for Solana this is lamports
+    owner: str = ''  # Account that owns this piece, who liste / sells this.
+    buyer: str = ''

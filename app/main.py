@@ -4,6 +4,7 @@ import asyncclick as click
 
 import settings
 from app.slab.logging import setup_logging
+from app.tools import get_transaction
 
 sys.dont_write_bytecode = True
 
@@ -11,6 +12,8 @@ sys.dont_write_bytecode = True
 @click.group()
 async def main():
     setup_logging(settings.DEBUG)
+
+main.add_command(get_transaction)
 
 
 if __name__ == '__main__':
