@@ -1,0 +1,160 @@
+{
+  "blockTime": 1635829133,
+  "meta": {
+    "err": null,
+    "fee": 5000,
+    "innerInstructions": [
+      {
+        "index": 0,
+        "instructions": [
+          {
+            "accounts": [
+              0,
+              4
+            ],
+            "data": "3Bxs3zv5uXatEjfd",
+            "programIdIndex": 7
+          },
+          {
+            "accounts": [
+              0,
+              5
+            ],
+            "data": "3Bxs3zz3fjzUYuEP",
+            "programIdIndex": 7
+          },
+          {
+            "accounts": [
+              0,
+              2
+            ],
+            "data": "3Bxs3zwEzNYqYK3D",
+            "programIdIndex": 7
+          },
+          {
+            "accounts": [
+              1,
+              6
+            ],
+            "data": "bmayKsu9zs2LbtYhQC8RGsdKTEitQtXvQhdEkv3inRjAFy9",
+            "programIdIndex": 8
+          }
+        ]
+      }
+    ],
+    "logMessages": [
+      "Program MEisE1HzehtrDpAAT8PnLHjpSSkRYakotTuJRPjTpo8 invoke [1]",
+      "Program 11111111111111111111111111111111 invoke [2]",
+      "Program 11111111111111111111111111111111 success",
+      "Program 11111111111111111111111111111111 invoke [2]",
+      "Program 11111111111111111111111111111111 success",
+      "Program 11111111111111111111111111111111 invoke [2]",
+      "Program 11111111111111111111111111111111 success",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]",
+      "Program log: Instruction: SetAuthority",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 2028 of 167029 compute units",
+      "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+      "Program MEisE1HzehtrDpAAT8PnLHjpSSkRYakotTuJRPjTpo8 consumed 36880 of 200000 compute units",
+      "Program MEisE1HzehtrDpAAT8PnLHjpSSkRYakotTuJRPjTpo8 success"
+    ],
+    "postBalances": [
+      17132601097,
+      2039280,
+      5314366440,
+      0,
+      4036883873805,
+      82071303921,
+      125527535644,
+      1,
+      1089991680,
+      5616720,
+      1141440
+    ],
+    "postTokenBalances": [
+      {
+        "accountIndex": 1,
+        "mint": "CiF2QP7NUfz3t7ZpoTavtRvZRdWadxaUFQKZK6EA6Tjm",
+        "uiTokenAmount": {
+          "amount": "1",
+          "decimals": 0,
+          "uiAmount": 1.0,
+          "uiAmountString": "1"
+        }
+      }
+    ],
+    "preBalances": [
+      19132606097,
+      2039280,
+      3552918760,
+      1447680,
+      4036843873805,
+      81871303921,
+      125527535644,
+      1,
+      1089991680,
+      5616720,
+      1141440
+    ],
+    "preTokenBalances": [
+      {
+        "accountIndex": 1,
+        "mint": "CiF2QP7NUfz3t7ZpoTavtRvZRdWadxaUFQKZK6EA6Tjm",
+        "uiTokenAmount": {
+          "amount": "1",
+          "decimals": 0,
+          "uiAmount": 1.0,
+          "uiAmountString": "1"
+        }
+      }
+    ],
+    "rewards": [],
+    "status": {
+      "Ok": null
+    }
+  },
+  "slot": 104766656,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        "2b9MDayv83BYeuChcrD1CJuQMxzcd1ALSXiRQ6o4YgGF",
+        "H35HRxf4T9HFudWZxwVe3wZHoh7q9dBNZ6qrHpcBYD2i",
+        "39NvtAoN766KEzDrKTKWy4CUGb44cF7BPNUu4CvbYCkN",
+        "2rYRPk9PrkJBi2TnV2usvHtfcJThQcANeV13nhFWkkvq",
+        "2NZukH2TXpcuZP4htiuT8CFxcaQSWzkkR6kepSWnZ24Q",
+        "Hd8CjpMPbW4yJga6LZYEEHoNo3LRpidSbgi1Qczio5hP",
+        "GUfCR9mK6azb9vcpsxgXyj7XRPAKJd4KMHTTVvtncGgp",
+        "11111111111111111111111111111111",
+        "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "BAxxtiYAwnWNmbNgktdSTAT7QxchkAqdg8SnAqeHdtdW",
+        "MEisE1HzehtrDpAAT8PnLHjpSSkRYakotTuJRPjTpo8"
+      ],
+      "header": {
+        "numReadonlySignedAccounts": 0,
+        "numReadonlyUnsignedAccounts": 5,
+        "numRequiredSignatures": 1
+      },
+      "instructions": [
+        {
+          "accounts": [
+            0,
+            1,
+            2,
+            3,
+            6,
+            7,
+            8,
+            4,
+            9,
+            5
+          ],
+          "data": "8s5SjQsS25V",
+          "programIdIndex": 10
+        }
+      ],
+      "recentBlockhash": "4Vuqj3CFb7GTd6Z4ariyUisQroJkECkhpazCDdPo1EK9"
+    },
+    "signatures": [
+      "3moKtPWi8jQNAQzqvtBTAwBLqBgsysaRBQmETLZt3SkJ23TU2jysqFwTdquL9jWMyHgm84qKLiPVizpkeKZ5m6An"
+    ]
+  }
+}
