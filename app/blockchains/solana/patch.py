@@ -7,6 +7,7 @@ from solana.rpc.async_api import AsyncClient
 from solana.rpc.commitment import Commitment
 from solana.rpc.providers.async_http import AsyncHTTPProvider
 
+
 class CustomAsyncHTTPProvider(AsyncHTTPProvider):
 
     def __init__(self, endpoint, timeout: int):

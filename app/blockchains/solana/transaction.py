@@ -6,13 +6,13 @@ import cachetools
 from app.blockchains import (
     SOLANA_MAGIC_EDEN,
     SOLANA_ALPHA_ART,
-    SOLANA_DIGITAL_EYES,
+    SOLANA_DIGITAL_EYES, SOLANA_SOLANART,
 )
 from app.blockchains.shared import (
     SecondaryMarketEvent,
     SECONDARY_MARKET_EVENT_LISTING,
     SECONDARY_MARKET_EVENT_SALE,
-    SECONDARY_MARKET_EVENT_UNLISTING,
+    SECONDARY_MARKET_EVENT_UNLISTING, SECONDARY_MARKET_EVENT_PRICE_UPDATE,
 )
 from app.blockchains.solana import (
     MARKET_PROGRAM_ID_MAP,
@@ -73,10 +73,12 @@ class ParsedTransaction:
         # See if any secondary market account involved
         secondary_market_id = None
         account_key = None
+        # Finds the Program Account Key
         for account_key in self.account_keys:
             if account_key in MARKET_PROGRAM_ID_MAP:
                 # Grab the Blockchain ID (our own ID)
                 secondary_market_id = MARKET_PROGRAM_ID_MAP[account_key]
+                break
 
         market_authority_address = MARKET_ADDRESS_MAP[secondary_market_id]
 
@@ -84,6 +86,8 @@ class ParsedTransaction:
             return await self._parse_magic_eden(account_key, market_authority_address)
         elif secondary_market_id == SOLANA_ALPHA_ART:
             return await self._parse_alpha_art(account_key, market_authority_address)
+        elif secondary_market_id == SOLANA_SOLANART:
+            return await self._parse_solanart(account_key, market_authority_address)
         elif secondary_market_id == SOLANA_DIGITAL_EYES:
             return await self._parse_digital_eyes(account_key, market_authority_address)
 
@@ -110,11 +114,11 @@ class ParsedTransaction:
                 raise
             # For sale event
             if (pi.is_system_program_instruction
-                    and pi.function_offset == SYS_TRANSFER):
+                    and pi.get_function_offset() == SYS_TRANSFER):
                 acc_price += pi.get_int(4, 8)
             elif pi.is_token_program_instruction:
                 # Could be set new authority
-                if (pi.function_offset == TOKEN_SET_AUTHORITY
+                if (pi.get_function_offset() == TOKEN_SET_AUTHORITY
                         and pi.get_int(1, 1) == TOKEN_AUTHORITY_TYPE_ACCOUNT_OWNER):
                     if acc_price > 0:
                         # A sale event for sure, let's update the buyer info
@@ -145,6 +149,17 @@ class ParsedTransaction:
         return event
 
     async def _parse_alpha_art(self, alpha_art_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+        """
+        Unlisting event on AlphaArt is done by transferring the token back to the
+        original owner, then closing the previous token account.
+
+        Args:
+            alpha_art_program_key:
+            authority_address:
+
+        Returns:
+
+        """
         matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
             program_key=alpha_art_program_key
         )
@@ -164,9 +179,8 @@ class ParsedTransaction:
         # except:
         #     possible_token_key = None
 
-        # If the inner instruction array contains `transfer`s, this is a
-        # sale; otherwise, if the length of the array is 2, it is a listing or
-        # unlisting
+        # If the inner instruction array contains Sys`transfer`s, this is a
+        # sale;
         acc_price = 0
         token_account_to_match = None  # for finding token address.
         for ins in inner_ins_array:
@@ -176,12 +190,10 @@ class ParsedTransaction:
                 raise
             # For sale event
             if (pi.is_system_program_instruction
-                    and pi.function_offset == SYS_TRANSFER):
+                    and pi.get_function_offset() == SYS_TRANSFER):
                 acc_price += pi.get_int(4, 8)
             elif pi.is_token_program_instruction:
-                # Could be set new authority
-                if pi.function_offset == TOKEN_TRANSFER:
-
+                if pi.get_function_offset() == TOKEN_TRANSFER:
                     if acc_price > 0:
                         # A sale event for sure, let's update the buyer info
                         # In the event of sale on Alpha Art, the accounts[1]
@@ -195,7 +207,7 @@ class ParsedTransaction:
                         # accounts[0] on `matched_pi` the owner
                         event.event_type = SECONDARY_MARKET_EVENT_UNLISTING
                         event.owner = matched_pi.account_list[0]
-                elif (pi.function_offset == TOKEN_SET_AUTHORITY
+                elif (pi.get_function_offset() == TOKEN_SET_AUTHORITY
                       and pi.get_int(1, 1) == TOKEN_AUTHORITY_TYPE_ACCOUNT_OWNER):
                     # If changing authority to MagicEden address,
                     # it is a listing event otherwise it is an unlisting one
@@ -214,6 +226,82 @@ class ParsedTransaction:
         # which is a PDA from the Market Place Authority, so the balance change
         # will have to reflect on that account.
         event.token_key = self.find_token_address(token_account_to_match)
+        return event
+
+    async def _parse_solanart(self, solanart_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+        """
+        Solnart Program:
+         - u8: instruction offset
+            04 - Listing
+                - u64: listing price
+            05 - Sale:
+                - u64: sales price
+            06 - Price update
+                - u64: updated price
+         - u64:
+        Args:
+            solanart_program_key:
+            authority_address:
+
+        Returns:
+
+        """
+        matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+            program_key=solanart_program_key
+        )
+        if not matched_pi:
+            return None
+
+        price = matched_pi.get_int(1)
+        if matched_pi.get_function_offset() == 0x04:
+            event_type = SECONDARY_MARKET_EVENT_LISTING
+            owner = matched_pi.account_list[0]
+            buyer = ''
+        elif matched_pi.get_function_offset() == 0x05:
+            event_type = SECONDARY_MARKET_EVENT_SALE
+            buyer = matched_pi.account_list[0]
+            owner = ''
+        elif matched_pi.get_function_offset() == 0x06:
+            event_type = SECONDARY_MARKET_EVENT_PRICE_UPDATE
+            owner = matched_pi.account_list[0]
+            buyer = ''
+        # elif TODO: Need to figure out the Unlisting event
+        else:
+            return None
+
+        event = SecondaryMarketEvent(
+            market_id=SOLANA_SOLANART,
+            timestamp=self.block_time,
+            event_type=event_type,
+            price=price,
+            owner=owner,
+            buyer=buyer
+        )
+
+        if (event_type == SECONDARY_MARKET_EVENT_LISTING
+                or event_type == SECONDARY_MARKET_EVENT_SALE):
+            token_account_to_match = None  # for finding token address.
+            for ins in inner_ins_array:
+                pi = ParsedInstruction(ins, self.account_keys)
+                if not pi:
+                    # TODO: Capture this exception
+                    raise
+                if pi.is_token_program_instruction:
+                    if (pi.get_function_offset() == TOKEN_SET_AUTHORITY
+                            and pi.get_int(1, 1) == TOKEN_AUTHORITY_TYPE_ACCOUNT_OWNER
+                            and event_type == SECONDARY_MARKET_EVENT_LISTING):
+                        token_account_to_match = pi.account_list[0]
+                        break
+                    elif (pi.get_function_offset() == TOKEN_TRANSFER
+                          and event_type == SECONDARY_MARKET_EVENT_SALE):
+                        token_account_to_match = pi.account_list[1]
+                        break
+
+            event.token_key = self.find_token_address(token_account_to_match)
+        elif event_type == SECONDARY_MARKET_EVENT_PRICE_UPDATE:
+            event.token_key = matched_pi.account_list[-1]
+        else:
+            return None
         return event
 
     async def _parse_digital_eyes(self, program_key, authority_address) -> Optional[SecondaryMarketEvent]:

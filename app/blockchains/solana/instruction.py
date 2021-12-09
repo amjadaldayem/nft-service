@@ -59,8 +59,16 @@ class ParsedInstruction:
     def is_token_program_instruction(self):
         return self.program_account_key == TOKEN_PROGRAM_ID
 
-    @cached_property
-    def function_offset(self):
+    def get_function_offset(self, unknown_width=1):
+        """
+
+        Args:
+            unknown_width (int): The function offset width in Bytes for
+                unknown program.
+
+        Returns:
+
+        """
         self.data_decoded = self.data_decoded or base58.b58decode(self.data)  # type: bytes
         # For system program: u32; for token program: u8
         if self.is_token_program_instruction:
@@ -68,9 +76,7 @@ class ParsedInstruction:
         elif self.is_system_program_instruction:
             return int.from_bytes(self.data_decoded[:4], 'little')
         else:
-            # TODO: This need to change, tentatively use u32
-            #   for any other program?
-            return int(self.data_decoded[3::-1])
+            return int.from_bytes(self.data_decoded[:unknown_width], 'little')
 
     def get_int(self, start, length=None):
         self.data_decoded = self.data_decoded or base58.b58decode(self.data)
