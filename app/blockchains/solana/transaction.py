@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Optional, Tuple, Dict, List
 
 # Constants for type of instructions
@@ -92,6 +93,16 @@ class ParsedTransaction:
             return await self._parse_digital_eyes(account_key, market_authority_address)
 
     async def _parse_magic_eden(self, magic_eden_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+        """
+        There is no price update event for MagicEden secondary market.
+
+        Args:
+            magic_eden_program_key:
+            authority_address:
+
+        Returns:
+
+        """
         matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
             program_key=magic_eden_program_key
         )
@@ -146,7 +157,7 @@ class ParsedTransaction:
         # which is a PDA from the Market Place Authority, so the balance change
         # will have to reflect on that account.
         event.token_key = self.find_token_address(token_account_to_match)
-        return event
+        return event if event.token_key and (event.owner or event.buyer) else None
 
     async def _parse_alpha_art(self, alpha_art_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
@@ -302,12 +313,12 @@ class ParsedTransaction:
             event.token_key = matched_pi.account_list[-1]
         else:
             return None
-        return event
+        return event if event.token_key and (event.owner or event.buyer) else None
 
     async def _parse_digital_eyes(self, program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         pass
 
-    @property
+    @cached_property
     async def event(self):
         return await self._parse()
 

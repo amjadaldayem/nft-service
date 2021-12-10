@@ -1,4 +1,4 @@
-import json
+import orjson
 import os
 import unittest
 from typing import Tuple
@@ -39,7 +39,7 @@ async def load_and_parse(market_id, event_type_id, file_name) -> Tuple[Secondary
                 file_name
             ), 'rb'
     ) as c:
-        transaction_dict = json.load(c)
+        transaction_dict = orjson.loads(c.read())
     timestamp = transaction_dict['blockTime']
     pt = ParsedTransaction.from_transaction_dict(transaction_dict)
     event = await pt.event
@@ -228,7 +228,7 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_unlisting_event(self):
+    async def test_magic_eden_unlisting_event_01(self):
         event, timestamp = await load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_UNLISTING,
@@ -243,6 +243,27 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
             timestamp=timestamp
         )
         self.assertEqual(event, expected)
+
+    async def test_magic_eden_events(self):
+        with open(os.path.join(market_id_dir_map[SOLANA_MAGIC_EDEN],
+                               'txns.json'), 'rb') as fd:
+            transactions = orjson.loads(fd.read())
+
+        results = []
+
+        for transaction in transactions:
+            pt = ParsedTransaction.from_transaction_dict(transaction)
+            if pt:
+                event = await pt.event
+                if event:
+                    results.append(event)
+
+        with open(os.path.join(market_id_dir_map[SOLANA_MAGIC_EDEN],
+                               'txns-expected.json'), 'rb') as fd:
+            self.assertEqual(
+                orjson.dumps(results, option=orjson.OPT_INDENT_2),
+                fd.read()
+            )
 
 
 class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
@@ -323,6 +344,22 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
             token_key='EekTeMw2boaBjEX9PSRV9P9wz4CRZGAYEkz456M3juX2',
             price=0,
             owner_or_buyer='3iMNngRUK8W1Pfrsj3gAxbPuQXmcb3QJtHzDtdH811Qj',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_alpha_art_unlisting_event_03(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_ALPHA_ART,
+            SECONDARY_MARKET_EVENT_UNLISTING,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_ALPHA_ART,
+            SECONDARY_MARKET_EVENT_UNLISTING,
+            token_key='Fqc4ts9nN1Hp1mZR6CEx6yG7T4eZH8FN39ruAGc2fTuC',
+            price=0,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
             timestamp=timestamp
         )
         self.assertEqual(event, expected)
