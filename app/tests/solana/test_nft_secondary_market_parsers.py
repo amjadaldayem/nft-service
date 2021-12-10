@@ -66,6 +66,38 @@ def make_expected(market_id, event_type_id, token_key, price, owner_or_buyer, ti
     return evt
 
 
+async def test_events_for(test_case, market_id, generate_expected=False):
+    with open(os.path.join(market_id_dir_map[market_id],
+                           'txns.json'), 'rb') as fd:
+        transactions = orjson.loads(fd.read())
+
+    results = []
+
+    for transaction in transactions:
+        pt = ParsedTransaction.from_transaction_dict(transaction)
+        if pt:
+            event = await pt.event
+            if event:
+                results.append(event)
+
+    if generate_expected:
+        # This is for generating the expected JSON initially
+        # not really doing any assertion in this branch.
+        # Normally used to only manually set generate_expected to true
+        # only upon initial test run.
+        with open(os.path.join(market_id_dir_map[market_id],
+                               'txns-expected.json'), 'wb') as fd:
+            fd.write(orjson.dumps(results, option=orjson.OPT_INDENT_2))
+    else:
+
+        with open(os.path.join(market_id_dir_map[market_id],
+                               'txns-expected.json'), 'rb') as fd:
+            test_case.assertEqual(
+                orjson.dumps(results, option=orjson.OPT_INDENT_2),
+                fd.read()
+            )
+
+
 class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def test_magic_eden_listing_event_01(self):
@@ -245,25 +277,7 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(event, expected)
 
     async def test_magic_eden_events(self):
-        with open(os.path.join(market_id_dir_map[SOLANA_MAGIC_EDEN],
-                               'txns.json'), 'rb') as fd:
-            transactions = orjson.loads(fd.read())
-
-        results = []
-
-        for transaction in transactions:
-            pt = ParsedTransaction.from_transaction_dict(transaction)
-            if pt:
-                event = await pt.event
-                if event:
-                    results.append(event)
-
-        with open(os.path.join(market_id_dir_map[SOLANA_MAGIC_EDEN],
-                               'txns-expected.json'), 'rb') as fd:
-            self.assertEqual(
-                orjson.dumps(results, option=orjson.OPT_INDENT_2),
-                fd.read()
-            )
+        await test_events_for(self, SOLANA_MAGIC_EDEN)
 
 
 class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
@@ -395,6 +409,9 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
             timestamp=timestamp
         )
         self.assertEqual(event, expected)
+
+    async def test_alpha_art_events(self):
+        await test_events_for(self, SOLANA_ALPHA_ART)
 
 
 class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
@@ -542,3 +559,6 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
             timestamp=timestamp
         )
         self.assertEqual(event, expected)
+
+    async def test_solanart_events(self):
+        await test_events_for(self, SOLANA_SOLANART)
