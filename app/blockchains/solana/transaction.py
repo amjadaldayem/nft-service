@@ -315,8 +315,47 @@ class ParsedTransaction:
             return None
         return event if event.token_key and (event.owner or event.buyer) else None
 
-    async def _parse_digital_eyes(self, program_key, authority_address) -> Optional[SecondaryMarketEvent]:
-        pass
+    async def _parse_digital_eyes(self, digital_eyes_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+        matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+            program_key=digital_eyes_program_key
+        )
+        if not matched_pi:
+            return None
+        # For listing/ulisting event, the account[2] is the mint key
+        # For price_update event, the account[1] is the mint key
+        event_type = None
+        data = None
+        token_key = None
+        owner = None
+        price = 0
+        func_offset = matched_pi.get_function_offset(8)
+        if func_offset == 12502976635542562355:  # 0x33e685a4017f83ad
+            # if the lasts 2bytes == feff, then the price is not visible
+            # it will displayed as "contact owner"
+            event_type = SECONDARY_MARKET_EVENT_LISTING
+            token_key = matched_pi.account_list[2]
+            owner = matched_pi.account_list[0]
+            price = matched_pi.get_int(8, 8)
+        elif func_offset == 1844079875029187840:  # 0x00bd8f40e07c9719
+            event_type = SECONDARY_MARKET_EVENT_PRICE_UPDATE
+            token_key = matched_pi.account_list[1]
+            price = matched_pi.get_int(8, 8)
+            owner = matched_pi.account_list[0]
+        elif func_offset == 13753127788127181800:  # 0xe8dbdf29dbecdcbe
+            event_type = SECONDARY_MARKET_EVENT_UNLISTING
+            token_key = matched_pi.account_list[2]
+            owner = matched_pi.account_list[0]
+
+        event = SecondaryMarketEvent(
+            market_id=SOLANA_DIGITAL_EYES,
+            event_type=event_type,
+            token_key=token_key,
+            owner=owner,
+            price=price,
+            data=data,
+            timestamp=self.block_time
+        )
+        return event
 
     @cached_property
     async def event(self):

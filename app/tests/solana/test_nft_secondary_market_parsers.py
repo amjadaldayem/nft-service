@@ -12,6 +12,7 @@ from app.blockchains import (
     SECONDARY_MARKET_EVENT_UNLISTING,
     SECONDARY_MARKET_EVENT_SALE,
     SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+    SOLANA_DIGITAL_EYES,
 )
 from app.blockchains.solana import ParsedTransaction
 
@@ -21,6 +22,7 @@ market_id_dir_map = {
     SOLANA_MAGIC_EDEN: os.path.join(data_basedir, 'magic_eden'),
     SOLANA_ALPHA_ART: os.path.join(data_basedir, 'alpha_art'),
     SOLANA_SOLANART: os.path.join(data_basedir, 'solanart'),
+    SOLANA_DIGITAL_EYES: os.path.join(data_basedir, 'digital_eyes')
 }
 
 event_type_dir_map = {
@@ -562,3 +564,150 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def test_solanart_events(self):
         await test_events_for(self, SOLANA_SOLANART)
+
+
+class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
+
+    async def test_digital_eyes_listing_event_01(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='DZFnfQzVJtukamiUDaB82r95iDnkCB7uYPoxcAFyJ7Dz',
+            price=100000000,
+            owner_or_buyer='EzvdttH8j8LmrpBzx8vK73rBuYBJy3ggJ1taA1mwe69o',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_digital_eyes_listing_event_02(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='9H3ncfCp31nA9bTnaEUezkMGgtc869HCCjF5riH7iWTP',
+            price=570000000,
+            owner_or_buyer='9qAeEjpQTLtrXcbnPvFwS3nvuApiQNMUauzfYx1CxpU5',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_digital_eyes_listing_event_03(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='B3yBqWgc7krrUpkGRiZuSQJWrkPCCXpoB3JJPMVmjwC6',
+            price=690000000,
+            owner_or_buyer='CXXXajBynVVezT4GeAtmjcJojcy4QSb7XqPHYNCa6BsK',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_digital_eyes_price_update_event_01(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+            token_key='Cbvj3kCDfiqX8ZdQFch1xfZvBWKhuG7tzTX7wLAUZ4fn',
+            price=400000000,
+            owner_or_buyer='77vqf9kk2JbMAjNkGf7Au2HwQ8K9fMyi5FLEgbbQwDXD',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_digital_eyes_price_update_event_02(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+            token_key='FKEA7tLr4AFQarvDVDv378xggFyST2y1wU3gTZ8y7ute',
+            price=994000000,
+            owner_or_buyer='9ttHMahsRUDuLapa8gRJrQVyjLXfC4QUDpgWQ3g9pGkv',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_digital_eyes_price_update_event_03(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+            token_key='CuTQhEBTtKf6TEp6kTgHRuG9an2RexW9WzUeGY2jcuzj',
+            price=12000000000,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_digital_eyes_price_update_event_04(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+            '04.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+            token_key='5xMBU72azWpXC9VSvrJBBZDTd5F2h6Wztrx386pwr3Uo',
+            price=12500000000,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_digital_eyes_unlisting_event_01(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_UNLISTING,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_UNLISTING,
+            token_key='CuTQhEBTtKf6TEp6kTgHRuG9an2RexW9WzUeGY2jcuzj',
+            price=0,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_digital_eyes_unlisting_event_02(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_UNLISTING,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_UNLISTING,
+            token_key='5xMBU72azWpXC9VSvrJBBZDTd5F2h6Wztrx386pwr3Uo',
+            price=0,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)

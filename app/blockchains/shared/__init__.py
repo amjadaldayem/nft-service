@@ -16,3 +16,4 @@ class SecondaryMarketEvent:
     price: int = 0  # Listing/Sale price in the smallest UNIT. E.g., for Solana this is lamports
     owner: str = ''  # Account that owns this piece, who liste / sells this.
     buyer: str = ''
+    data: dict = None  # Extra information
