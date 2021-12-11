@@ -69,6 +69,19 @@ def make_expected(market_id, event_type_id, token_key, price, owner_or_buyer, ti
 
 
 async def test_events_for(test_case, market_id, generate_expected=False):
+    """
+    Conventions:
+        - a txns.json file containing a list of transactions under the respective
+        secondary market data directory (data/<market_name>/txns.json)
+
+    Args:
+        test_case:
+        market_id:
+        generate_expected:
+
+    Returns:
+
+    """
     with open(os.path.join(market_id_dir_map[market_id],
                            'txns.json'), 'rb') as fd:
         transactions = orjson.loads(fd.read())
@@ -711,3 +724,22 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
             timestamp=timestamp
         )
         self.assertEqual(event, expected)
+
+    async def test_digital_eyes_sale_event_01(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_SALE,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='HVqyPbQp7J1FncpshWvPuau3TspjF7ZfRHc67xVuAiFS',
+            price=190000000,
+            owner_or_buyer='GnsvipETHL3eWp1VZ8Pu9TvbtYFtiTqNQDoH61ms6dPj',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_solanart_events(self):
+        await test_events_for(self, SOLANA_DIGITAL_EYES)
