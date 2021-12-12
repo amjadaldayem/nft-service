@@ -7,12 +7,13 @@ from app.blockchains import (
     SOLANA_MAGIC_EDEN,
     SOLANA_ALPHA_ART,
     SOLANA_SOLANART,
+    SOLANA_DIGITAL_EYES,
+    SOLANA_SOLSEA,
     SecondaryMarketEvent,
     SECONDARY_MARKET_EVENT_LISTING,
-    SECONDARY_MARKET_EVENT_UNLISTING,
+    SECONDARY_MARKET_EVENT_DELISTING,
     SECONDARY_MARKET_EVENT_SALE,
     SECONDARY_MARKET_EVENT_PRICE_UPDATE,
-    SOLANA_DIGITAL_EYES,
 )
 from app.blockchains.solana import ParsedTransaction
 
@@ -22,12 +23,13 @@ market_id_dir_map = {
     SOLANA_MAGIC_EDEN: os.path.join(data_basedir, 'magic_eden'),
     SOLANA_ALPHA_ART: os.path.join(data_basedir, 'alpha_art'),
     SOLANA_SOLANART: os.path.join(data_basedir, 'solanart'),
-    SOLANA_DIGITAL_EYES: os.path.join(data_basedir, 'digital_eyes')
+    SOLANA_DIGITAL_EYES: os.path.join(data_basedir, 'digital_eyes'),
+    SOLANA_SOLSEA: os.path.join(data_basedir, 'solsea'),
 }
 
 event_type_dir_map = {
     SECONDARY_MARKET_EVENT_LISTING: 'listing',
-    SECONDARY_MARKET_EVENT_UNLISTING: 'unlisting',
+    SECONDARY_MARKET_EVENT_DELISTING: 'delisting',
     SECONDARY_MARKET_EVENT_SALE: 'sale',
     SECONDARY_MARKET_EVENT_PRICE_UPDATE: 'price_update',
 }
@@ -63,7 +65,7 @@ def make_expected(market_id, event_type_id, token_key, price, owner_or_buyer, ti
         evt.owner = owner_or_buyer
         evt.price = price
     else:
-        # Unlisting
+        # Delisting
         evt.owner = owner_or_buyer
     return evt
 
@@ -275,15 +277,15 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_unlisting_event_01(self):
+    async def test_magic_eden_delisting_event_01(self):
         event, timestamp = await load_and_parse(
             SOLANA_MAGIC_EDEN,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             '01.json'
         )
         expected = make_expected(
             SOLANA_MAGIC_EDEN,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             token_key='rp9gXpW4zAetpWBvJY62uTSw1bRwqNd39b2f3hzaNwk',
             price=0,
             owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
@@ -345,15 +347,15 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_alpha_art_unlisting_event_01(self):
+    async def test_alpha_art_delisting_event_01(self):
         event, timestamp = await load_and_parse(
             SOLANA_ALPHA_ART,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             '01.json'
         )
         expected = make_expected(
             SOLANA_ALPHA_ART,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             token_key='2Pw69uefPXeqD2PvLjDMD3CohKWFixKVwkf5yJSzAu5K',
             price=0,
             owner_or_buyer='okkVSrkBXGfMHvEfKGUW73XmJYbP4ojPbWsBXbYjvZf',
@@ -361,15 +363,15 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_alpha_art_unlisting_event_02(self):
+    async def test_alpha_art_delisting_event_02(self):
         event, timestamp = await load_and_parse(
             SOLANA_ALPHA_ART,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             '02.json'
         )
         expected = make_expected(
             SOLANA_ALPHA_ART,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             token_key='EekTeMw2boaBjEX9PSRV9P9wz4CRZGAYEkz456M3juX2',
             price=0,
             owner_or_buyer='3iMNngRUK8W1Pfrsj3gAxbPuQXmcb3QJtHzDtdH811Qj',
@@ -377,15 +379,15 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_alpha_art_unlisting_event_03(self):
+    async def test_alpha_art_delisting_event_03(self):
         event, timestamp = await load_and_parse(
             SOLANA_ALPHA_ART,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             '03.json'
         )
         expected = make_expected(
             SOLANA_ALPHA_ART,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             token_key='Fqc4ts9nN1Hp1mZR6CEx6yG7T4eZH8FN39ruAGc2fTuC',
             price=0,
             owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
@@ -693,15 +695,15 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_unlisting_event_01(self):
+    async def test_digital_eyes_delisting_event_01(self):
         event, timestamp = await load_and_parse(
             SOLANA_DIGITAL_EYES,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             '01.json'
         )
         expected = make_expected(
             SOLANA_DIGITAL_EYES,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             token_key='CuTQhEBTtKf6TEp6kTgHRuG9an2RexW9WzUeGY2jcuzj',
             price=0,
             owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
@@ -709,15 +711,15 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_unlisting_event_02(self):
+    async def test_digital_eyes_delisting_event_02(self):
         event, timestamp = await load_and_parse(
             SOLANA_DIGITAL_EYES,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             '02.json'
         )
         expected = make_expected(
             SOLANA_DIGITAL_EYES,
-            SECONDARY_MARKET_EVENT_UNLISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
             token_key='5xMBU72azWpXC9VSvrJBBZDTd5F2h6Wztrx386pwr3Uo',
             price=0,
             owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
@@ -741,5 +743,91 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solanart_events(self):
+    async def test_digital_eyes_events(self):
         await test_events_for(self, SOLANA_DIGITAL_EYES)
+
+
+class SolseaTestCase(unittest.IsolatedAsyncioTestCase):
+
+    async def test_solsea_listing_event_01(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_SOLSEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_SOLSEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='kBxi6eRWQ6Dpep3RWmLKMqr31hZ2PqQYeSCB6RhyzmH',
+            price=20000000000,
+            owner_or_buyer='BsQCB43M56mqevXEXFFijgt97dv9BeDwEK1yHyV8z1H6',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_solsea_listing_event_02(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_SOLSEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_SOLSEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='39oQZUjoLJXjW8EbNvFFnydLjsCmChsB66YvnnxGxYpe',
+            price=200000000000,
+            owner_or_buyer='9u9AyWvf3q7PUYNV7dxQ5SSSTJbFP9LtH574wrGW7s2V',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_solsea_listing_event_03(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_SOLSEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_SOLSEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='HB7szWRJB9VjvgPCq6o4DNyhZp9dytKodYBMqEQdU7df',
+            price=35000000000,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_solsea_sale_event_01(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_SOLSEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_SOLSEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='39oQZUjoLJXjW8EbNvFFnydLjsCmChsB66YvnnxGxYpe',
+            price=80000000,
+            owner_or_buyer='9u9AyWvf3q7PUYNV7dxQ5SSSTJbFP9LtH574wrGW7s2V',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_solsea_delisting_event_01(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_SOLSEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_SOLSEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='HB7szWRJB9VjvgPCq6o4DNyhZp9dytKodYBMqEQdU7df',
+            price=0,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
+    async def test_solsea_events(self):
+        await test_events_for(self, SOLANA_SOLSEA)

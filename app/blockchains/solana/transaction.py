@@ -8,13 +8,13 @@ from app.blockchains import (
     SOLANA_MAGIC_EDEN,
     SOLANA_ALPHA_ART,
     SOLANA_DIGITAL_EYES,
-    SOLANA_SOLANART,
+    SOLANA_SOLANART, SOLANA_SOLSEA,
 )
 from app.blockchains.shared import (
     SecondaryMarketEvent,
     SECONDARY_MARKET_EVENT_LISTING,
     SECONDARY_MARKET_EVENT_SALE,
-    SECONDARY_MARKET_EVENT_UNLISTING,
+    SECONDARY_MARKET_EVENT_DELISTING,
     SECONDARY_MARKET_EVENT_PRICE_UPDATE,
     EMPTY_PUBLIC_KEY,
 )
@@ -95,6 +95,8 @@ class ParsedTransaction:
             return await self._parse_solanart(account_key, market_authority_address)
         elif secondary_market_id == SOLANA_DIGITAL_EYES:
             return await self._parse_digital_eyes(account_key, market_authority_address)
+        elif secondary_market_id == SOLANA_SOLSEA:
+            return await self._parse_solsea(account_key, market_authority_address)
 
     async def _parse_magic_eden(self, magic_eden_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
@@ -119,7 +121,7 @@ class ParsedTransaction:
         )
         # If the inner instruction array contains `transfer`s, this is a
         # sale; otherwise, if the length of the array is 2, it is a listing or
-        # unlisting
+        # delisting
         acc_price = 0
         token_account_to_match = None  # for finding token address.
         for ins in inner_ins_array:
@@ -142,7 +144,7 @@ class ParsedTransaction:
                         event.price = acc_price
                     else:
                         # If changing authority to MagicEden address,
-                        # it is a listing event otherwise it is an unlisting one
+                        # it is a listing event otherwise it is an delisting one
                         new_owner_key = pi.get_str(3, length=None, b58encode=True)
                         if new_owner_key == authority_address:
                             # Gets the listing price from the outer matche ParsedInstruction
@@ -153,7 +155,7 @@ class ParsedTransaction:
 
                             token_account_to_match = pi.account_list[0]
                         else:
-                            event.event_type = SECONDARY_MARKET_EVENT_UNLISTING
+                            event.event_type = SECONDARY_MARKET_EVENT_DELISTING
                             event.owner = new_owner_key
                             token_account_to_match = pi.account_list[0]
         # Lastly, try find the mint key (token address)
@@ -165,7 +167,7 @@ class ParsedTransaction:
 
     async def _parse_alpha_art(self, alpha_art_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
-        Unlisting event on AlphaArt is done by transferring the token back to the
+        Delisting event on AlphaArt is done by transferring the token back to the
         original owner, then closing the previous token account.
 
         Args:
@@ -217,15 +219,15 @@ class ParsedTransaction:
                         event.buyer = matched_pi.account_list[0]
                         event.price = acc_price
                     else:
-                        # Unlisting event
-                        # in the event of Unlisting for Alpha Art,
+                        # Delisting event
+                        # in the event of delisting for Alpha Art,
                         # accounts[0] on `matched_pi` the owner
-                        event.event_type = SECONDARY_MARKET_EVENT_UNLISTING
+                        event.event_type = SECONDARY_MARKET_EVENT_DELISTING
                         event.owner = matched_pi.account_list[0]
                 elif (pi.get_function_offset() == TOKEN_SET_AUTHORITY
                       and pi.get_int(1, 1) == TOKEN_AUTHORITY_TYPE_ACCOUNT_OWNER):
                     # If changing authority to MagicEden address,
-                    # it is a listing event otherwise it is an unlisting one
+                    # it is a listing event otherwise it is an delisting one
                     new_owner_key = pi.get_str(3, length=None, b58encode=True)
                     if new_owner_key == authority_address:
                         # Gets the listing price from the outer matche ParsedInstruction
@@ -280,7 +282,7 @@ class ParsedTransaction:
             event_type = SECONDARY_MARKET_EVENT_PRICE_UPDATE
             owner = matched_pi.account_list[0]
             buyer = ''
-        # elif TODO: Need to figure out the Unlisting event
+        # elif TODO: Need to figure out the delisting event
         else:
             return None
 
@@ -353,7 +355,7 @@ class ParsedTransaction:
                     if (pii.is_system_program_instruction
                             and pii.get_function_offset() == SYS_TRANSFER):
                         acc_price += pii.get_int(4, 8)
-                price = int(round(acc_price, 4))
+                price = int(round(acc_price, 3))
                 buyer = matched_pi.account_list[0]
                 token_key = self.find_token_address(None)
                 if price > 0:
@@ -377,7 +379,7 @@ class ParsedTransaction:
                 price = matched_pi.get_int(8, 8)
                 owner = matched_pi.account_list[0]
             elif func_offset == 13753127788127181800:  # 0xe8dbdf29dbecdcbe
-                event_type = SECONDARY_MARKET_EVENT_UNLISTING
+                event_type = SECONDARY_MARKET_EVENT_DELISTING
                 token_key = matched_pi.account_list[2]
                 owner = matched_pi.account_list[0]
 
@@ -392,6 +394,76 @@ class ParsedTransaction:
             timestamp=self.block_time
         )
         return event if event_type else None
+
+    async def _parse_solsea(self, solsea_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+        """
+        There is no price update events for Solsea either.
+        Args:
+            solsea_program_key:
+            authority_address:
+
+        Returns:
+
+        """
+        matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+            program_key=solsea_program_key
+        )
+        if not matched_pi:
+            return None
+        owner, buyer = EMPTY_PUBLIC_KEY, EMPTY_PUBLIC_KEY
+        price = 0
+        token_key = None
+        func_offset = matched_pi.get_function_offset(1)
+        if func_offset == 0x00:
+            # Listing
+            event_type = SECONDARY_MARKET_EVENT_LISTING
+            price = matched_pi.get_int(1, 8)
+            token_key = matched_pi.account_list[2]
+            for ins in inner_ins_array:
+                pii = ParsedInstruction.from_instruction_dict(ins, self.account_keys)
+                if (pii.is_token_program_instruction
+                    and pii.get_function_offset()) == TOKEN_TRANSFER:
+                    owner = pii.account_list[2]
+                    break
+        elif func_offset == 0x01:
+            # Delisting
+            event_type = SECONDARY_MARKET_EVENT_DELISTING
+            # Iterate through the postBalance and find the entry with
+            # `amount` == 1
+            post_token_balances = self.post_token_balances
+            for balance in post_token_balances:
+                if balance['uiTokenAmount']['amount'] == '1':
+                    owner = balance['owner']
+                    token_key = balance['mint']
+                    break
+        elif func_offset == 0x02:
+            # Sale
+            event_type = SECONDARY_MARKET_EVENT_SALE
+            for ins in inner_ins_array:
+                pii = ParsedInstruction.from_instruction_dict(ins, self.account_keys)
+                if (pii.is_system_program_instruction
+                        and pii.get_function_offset() == SYS_TRANSFER):
+                    price += pii.get_int(4, 8)
+                    if not buyer:
+                        # The buyer is the one transferring out from.
+                        buyer = pii.account_list[0]
+            price = round(price, 3)
+            token_key = self.find_token_address(buyer)
+        else:
+            event_type = None
+        if event_type and token_key:
+            event = SecondaryMarketEvent(
+                event_type=event_type,
+                market_id=SOLANA_SOLSEA,
+                owner=owner,
+                buyer=buyer,
+                price=price,
+                timestamp=self.block_time,
+                token_key=token_key,
+            )
+        else:
+            event = None
+        return event
 
     @cached_property
     async def event(self):
@@ -415,6 +487,7 @@ class ParsedTransaction:
             matched = (
                     token_account_to_match is None
                     or self.account_keys[idx] == token_account_to_match
+                    or balance['owner'] == token_account_to_match
             )
             if matched and balance['uiTokenAmount']['amount'] == '1':
                 return balance['mint']
