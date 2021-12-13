@@ -1,8 +1,8 @@
-"""Added NFT tables
+"""NFT collections
 
-Revision ID: 883765db3be1
-Revises: 8fdef4b583c0
-Create Date: 2021-12-01 20:53:14.840486
+Revision ID: 3a01bc1b59d9
+Revises: 03d2816b6313
+Create Date: 2021-12-12 16:21:24.772455
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '883765db3be1'
-down_revision = '8fdef4b583c0'
+revision = '3a01bc1b59d9'
+down_revision = '03d2816b6313'
 branch_labels = None
 depends_on = None
 
@@ -40,11 +40,13 @@ def upgrade():
     sa.Column('creators', postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment='In format: [{"creator": <>, "share": <>}, ...].\n        Can be overridden by individual NFT.\n        '),
     sa.Column('created_at', postgresql.TIMESTAMP(), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', postgresql.TIMESTAMP(), server_default=sa.text('now()'), nullable=True),
+    sa.Column('nsfw', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_nft_collection_blockchain'), 'nft_collection', ['blockchain'], unique=False)
     op.create_index(op.f('ix_nft_collection_family'), 'nft_collection', ['family'], unique=False)
     op.create_index(op.f('ix_nft_collection_name'), 'nft_collection', ['name'], unique=False)
+    op.create_index(op.f('ix_nft_collection_nsfw'), 'nft_collection', ['nsfw'], unique=False)
     op.create_index(op.f('ix_nft_collection_slug'), 'nft_collection', ['slug'], unique=False)
     op.create_index(op.f('ix_nft_collection_update_authority'), 'nft_collection', ['update_authority'], unique=False)
     op.create_table('nft',
@@ -96,6 +98,7 @@ def downgrade():
     op.drop_table('nft')
     op.drop_index(op.f('ix_nft_collection_update_authority'), table_name='nft_collection')
     op.drop_index(op.f('ix_nft_collection_slug'), table_name='nft_collection')
+    op.drop_index(op.f('ix_nft_collection_nsfw'), table_name='nft_collection')
     op.drop_index(op.f('ix_nft_collection_name'), table_name='nft_collection')
     op.drop_index(op.f('ix_nft_collection_family'), table_name='nft_collection')
     op.drop_index(op.f('ix_nft_collection_blockchain'), table_name='nft_collection')

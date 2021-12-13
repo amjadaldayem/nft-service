@@ -12,7 +12,9 @@ dotenv_path = os.path.join(
 )
 dotenv.load_dotenv(dotenv_path)
 DEBUG = os.getenv('DEBUG', 0)
-#
+
+# DEPLOYMENT_ENV, choices: prod, staging, dev, local
+DEPLOYMENT_ENV = os.getenv('DEPLOYMENT_ENV', 'prod')
 LOGGING_LEVEL = os.getenv('LOGGING_LEVEL', logging.INFO)
 POSTGRES_HOST = os.environ['POSTGRES_HOST']
 POSTGRES_USER = os.environ['POSTGRES_USER']

@@ -22,11 +22,11 @@
   {
     "market_id": 3,
     "timestamp": 1639114413,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "Ezjz3G4Zaddy2kkL4VbWDjdh7LjG2gmGojCACS3jcWg7",
     "price": 0,
-    "owner": "",
-    "buyer": "JEHRVGhFvGazZgwRBFwZFwmDNdajK2DuuSYU6gSFMdnN",
+    "owner": "JEHRVGhFvGazZgwRBFwZFwmDNdajK2DuuSYU6gSFMdnN",
+    "buyer": "",
     "data": null
   },
   {
@@ -262,11 +262,11 @@
   {
     "market_id": 3,
     "timestamp": 1639114099,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "HwK3cGWfkDmJWXKVYq1Q9yABcT5HdLL31CtTFK8raeF",
     "price": 0,
-    "owner": "",
-    "buyer": "89X8PzqjjqckNfqL651onurateL6dKDXc7EC8YBBjXKh",
+    "owner": "89X8PzqjjqckNfqL651onurateL6dKDXc7EC8YBBjXKh",
+    "buyer": "",
     "data": null
   },
   {
@@ -482,11 +482,11 @@
   {
     "market_id": 3,
     "timestamp": 1639113873,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "DuDR42msNWcqNLUD9y9wXSUykB4oMvFbdTHMohgGtmKe",
     "price": 0,
-    "owner": "",
-    "buyer": "3ZA5QQRxqPCGkRne64eT3kM6rbxm6jkB1UiS73yPp3je",
+    "owner": "3ZA5QQRxqPCGkRne64eT3kM6rbxm6jkB1UiS73yPp3je",
+    "buyer": "",
     "data": null
   },
   {
@@ -972,11 +972,11 @@
   {
     "market_id": 3,
     "timestamp": 1639113223,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "CfECJUboUKv5cbcxN61fweRFcxbZZmt99QYPP8sXzAbn",
     "price": 0,
-    "owner": "",
-    "buyer": "F46XyQjf81dAeeMg8m4XwqUqch2m79dwrv92UL5X9xry",
+    "owner": "F46XyQjf81dAeeMg8m4XwqUqch2m79dwrv92UL5X9xry",
+    "buyer": "",
     "data": null
   },
   {
@@ -1042,11 +1042,11 @@
   {
     "market_id": 3,
     "timestamp": 1639113111,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "CzXfQaGf6yaR6NBdZUb2xCxqByumnByE2EjNYHGSRzbZ",
     "price": 0,
-    "owner": "",
-    "buyer": "CQaWsvDocm61KZrUFciSwxgKMrMP5JJ1qnJxpczNpe5S",
+    "owner": "CQaWsvDocm61KZrUFciSwxgKMrMP5JJ1qnJxpczNpe5S",
+    "buyer": "",
     "data": null
   },
   {
@@ -1062,11 +1062,11 @@
   {
     "market_id": 3,
     "timestamp": 1639113101,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "8ihbwLoffAH695raVmbYK7kNfwHdqGY7h9RYgXziZKcY",
     "price": 0,
-    "owner": "",
-    "buyer": "eKy1sr12g8b7ToHQBQE65PTC7oUahAMBmC4hRPWfKL2",
+    "owner": "eKy1sr12g8b7ToHQBQE65PTC7oUahAMBmC4hRPWfKL2",
+    "buyer": "",
     "data": null
   },
   {
@@ -1082,11 +1082,11 @@
   {
     "market_id": 3,
     "timestamp": 1639113072,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "915VPEwAS4RRCfyPrk4ujuCCgYLAnTtECT5dDKGZJrab",
     "price": 0,
-    "owner": "",
-    "buyer": "rXtVRUXQJAmGGYSmpuMnLVYndRKEzQ3vX4aef7GNBKB",
+    "owner": "rXtVRUXQJAmGGYSmpuMnLVYndRKEzQ3vX4aef7GNBKB",
+    "buyer": "",
     "data": null
   },
   {
@@ -1152,11 +1152,11 @@
   {
     "market_id": 3,
     "timestamp": 1639113019,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "J8kEfLM5SJBY48ZkuXJhVweLWvFmBZS4VcNbaaxuzkMZ",
     "price": 0,
-    "owner": "",
-    "buyer": "5wcMayhcRXfvJh2jMQohR5FL9UJ8MQo6zgDhRacLo8oB",
+    "owner": "5wcMayhcRXfvJh2jMQohR5FL9UJ8MQo6zgDhRacLo8oB",
+    "buyer": "",
     "data": null
   },
   {
@@ -1202,11 +1202,11 @@
   {
     "market_id": 3,
     "timestamp": 1639112993,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "HnTQfzDWJgu7eebbhCtL76zaTaUsefvXahH6K1KkJ2Az",
     "price": 0,
-    "owner": "",
-    "buyer": "AWRLQZTfi57c36iCbFy2wNh31mAHA2A76Bu5BpNiUgmc",
+    "owner": "AWRLQZTfi57c36iCbFy2wNh31mAHA2A76Bu5BpNiUgmc",
+    "buyer": "",
     "data": null
   },
   {
@@ -1302,11 +1302,11 @@
   {
     "market_id": 3,
     "timestamp": 1639112909,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "Hjxp2SJcxnoRfTJptDsELeeERj59TfbLfQ5P95hvmwQR",
     "price": 0,
-    "owner": "",
-    "buyer": "Hj5kfcERmWRWKzGoiqxMeyAKfe4NRfBKrB5SL2Tjtsfx",
+    "owner": "Hj5kfcERmWRWKzGoiqxMeyAKfe4NRfBKrB5SL2Tjtsfx",
+    "buyer": "",
     "data": null
   },
   {
@@ -1382,21 +1382,21 @@
   {
     "market_id": 3,
     "timestamp": 1639112772,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "E5pfw5tGwGis59zuPaUhJZ78Xw7daeSPouyDBT7wG5BT",
     "price": 0,
-    "owner": "",
-    "buyer": "HniqxsvTpP9TTCJHk1xRvpDmy48SoEqNWVGLAXcwY14k",
+    "owner": "HniqxsvTpP9TTCJHk1xRvpDmy48SoEqNWVGLAXcwY14k",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112766,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "DvuksP6yhNhhC2QPnFWWqaigqjXZtzBW6u5czudSf9ep",
     "price": 0,
-    "owner": "",
-    "buyer": "3wKjqy7UJrHbFQW9xJmEdBoCk9Zt9tqnmZubSTtChZ3U",
+    "owner": "3wKjqy7UJrHbFQW9xJmEdBoCk9Zt9tqnmZubSTtChZ3U",
+    "buyer": "",
     "data": null
   },
   {
@@ -1452,21 +1452,21 @@
   {
     "market_id": 3,
     "timestamp": 1639112695,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "GJYhb9wLSeFbkyh8VBMjiZCN3NcxquaHFAGyzSunGFN",
     "price": 0,
-    "owner": "",
-    "buyer": "6LHAgJZLj6AvpsMuboM2qJBRBTpHxwJXNN2emjZWe4st",
+    "owner": "6LHAgJZLj6AvpsMuboM2qJBRBTpHxwJXNN2emjZWe4st",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112694,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "twKqfkrcqGfYZD7rraUwmApEF3mdnKzbUSumLn8isW6",
     "price": 0,
-    "owner": "",
-    "buyer": "CjEZDoEvJCKC6LsnX5UmyWvotsw6aD1VYncYtdGsirQu",
+    "owner": "CjEZDoEvJCKC6LsnX5UmyWvotsw6aD1VYncYtdGsirQu",
+    "buyer": "",
     "data": null
   },
   {
@@ -1492,21 +1492,21 @@
   {
     "market_id": 3,
     "timestamp": 1639112670,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "Hw1arTbuVj7JjHFwdCJbMY2EVortUPRjPugW89dGqWS6",
     "price": 0,
-    "owner": "",
-    "buyer": "3DRJhnRVRsmu1fZWQSiEUHJZzLeBESRpmTNNQyXj7Z8F",
+    "owner": "3DRJhnRVRsmu1fZWQSiEUHJZzLeBESRpmTNNQyXj7Z8F",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112664,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "HQDcEKeN16KaHLL7t2465hB1Xhzd65foCBsm2AMy8bSn",
     "price": 0,
-    "owner": "",
-    "buyer": "CjEZDoEvJCKC6LsnX5UmyWvotsw6aD1VYncYtdGsirQu",
+    "owner": "CjEZDoEvJCKC6LsnX5UmyWvotsw6aD1VYncYtdGsirQu",
+    "buyer": "",
     "data": null
   },
   {
@@ -1542,31 +1542,31 @@
   {
     "market_id": 3,
     "timestamp": 1639112628,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "4y5dKZQnDQbpt7ZbasLJStKPM4PGkhTrjiTEsVfQqLpf",
     "price": 0,
-    "owner": "",
-    "buyer": "CRY4uUEmugtDssbZeEdzFtVVPFYNoHfjUaNXJo2o8bAW",
+    "owner": "CRY4uUEmugtDssbZeEdzFtVVPFYNoHfjUaNXJo2o8bAW",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112623,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "8vzNBDtYVp9kMy3ystSaH29oRNLEysptTFcxynSJY64R",
     "price": 0,
-    "owner": "",
-    "buyer": "AWwpPN1AUxJFCr5JjEYSzKTvTtgf3nCJYfnqxiWPG8af",
+    "owner": "AWwpPN1AUxJFCr5JjEYSzKTvTtgf3nCJYfnqxiWPG8af",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112618,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "AndUKP4RUZhiKvrdv1C46CmzYpfoZ3PCgwAuWnfCPkMe",
     "price": 0,
-    "owner": "",
-    "buyer": "CjEZDoEvJCKC6LsnX5UmyWvotsw6aD1VYncYtdGsirQu",
+    "owner": "CjEZDoEvJCKC6LsnX5UmyWvotsw6aD1VYncYtdGsirQu",
+    "buyer": "",
     "data": null
   },
   {
@@ -1702,21 +1702,21 @@
   {
     "market_id": 3,
     "timestamp": 1639112462,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "7cWHTYoLVVDQuauBy3WH6qcAJPA6ZHsY8qJVZHyrHLja",
     "price": 0,
-    "owner": "",
-    "buyer": "AwazkwcMxsfVdfZJ4n9DJfqUhizuspiqWh7Rjx371xwy",
+    "owner": "AwazkwcMxsfVdfZJ4n9DJfqUhizuspiqWh7Rjx371xwy",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112459,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "DztXTseSAKqwxWirvKSb6uUWfYBX6X7MKpu1RQX1zeZu",
     "price": 0,
-    "owner": "",
-    "buyer": "Fj1Aqk3T43UfHbYXE1JfTFg9hoAks3r8yvPX4CH7u691",
+    "owner": "Fj1Aqk3T43UfHbYXE1JfTFg9hoAks3r8yvPX4CH7u691",
+    "buyer": "",
     "data": null
   },
   {
@@ -1742,11 +1742,11 @@
   {
     "market_id": 3,
     "timestamp": 1639112452,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "CLEmMauoCS2abbHVFaPraz41To4uLvesCGgJYv1RqL3F",
     "price": 0,
-    "owner": "",
-    "buyer": "8FzFDySbA76L124uorANevoDT85Tu4MNPwcGWRA5Loug",
+    "owner": "8FzFDySbA76L124uorANevoDT85Tu4MNPwcGWRA5Loug",
+    "buyer": "",
     "data": null
   },
   {
@@ -1852,31 +1852,31 @@
   {
     "market_id": 3,
     "timestamp": 1639112325,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "fDitfT7swk6DCcTanzN3KgTHDwthw9gH9MrJ4e6Xjzz",
     "price": 0,
-    "owner": "",
-    "buyer": "53YMpk5mkcvXriHK69zk1Ha2mq7QDKGMPz9BjuycXnam",
+    "owner": "53YMpk5mkcvXriHK69zk1Ha2mq7QDKGMPz9BjuycXnam",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112309,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "3XocKw3N4Hnsg2DCaX8zxjZUph2vLrLZop5fwKv9DUAY",
     "price": 0,
-    "owner": "",
-    "buyer": "FJSCMqMgzvsZJ3YBCE4BBE6Cv2aVDnyE1aYD1WfdmBhp",
+    "owner": "FJSCMqMgzvsZJ3YBCE4BBE6Cv2aVDnyE1aYD1WfdmBhp",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112299,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "HrtFxpvKqwCAHsozeU8mVZ1rnt8LnJRqvswbHgwcMRvW",
     "price": 0,
-    "owner": "",
-    "buyer": "53YMpk5mkcvXriHK69zk1Ha2mq7QDKGMPz9BjuycXnam",
+    "owner": "53YMpk5mkcvXriHK69zk1Ha2mq7QDKGMPz9BjuycXnam",
+    "buyer": "",
     "data": null
   },
   {
@@ -1962,51 +1962,51 @@
   {
     "market_id": 3,
     "timestamp": 1639112070,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "CPkDrNUnZDXfF3sT8FsqHEwrLf12zWo8MVv7kR7cKR3e",
     "price": 0,
-    "owner": "",
-    "buyer": "BDVUVBDgBmkKKzuY8trDeCUt3WK7budDfJJwJvArcDLx",
+    "owner": "BDVUVBDgBmkKKzuY8trDeCUt3WK7budDfJJwJvArcDLx",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112069,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "9k2ocHYHZc4juip2hG1TVKJ3Ez6wiwBAg5hGEfP8jdn3",
     "price": 0,
-    "owner": "",
-    "buyer": "4NxopMdTa8FwG968Ab1UaSaP9RvmALv2BgJ2hSqqMbaF",
+    "owner": "4NxopMdTa8FwG968Ab1UaSaP9RvmALv2BgJ2hSqqMbaF",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112064,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "EPH3TAH59yVWceTXaQcwL29TkTP96zPw9opnWjNwmcmy",
     "price": 0,
-    "owner": "",
-    "buyer": "4NxopMdTa8FwG968Ab1UaSaP9RvmALv2BgJ2hSqqMbaF",
+    "owner": "4NxopMdTa8FwG968Ab1UaSaP9RvmALv2BgJ2hSqqMbaF",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112057,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "AqHyqgnqy56qzSFDgFPtf1iieVqD5VvxDiSzPbcwr7ub",
     "price": 0,
-    "owner": "",
-    "buyer": "4NxopMdTa8FwG968Ab1UaSaP9RvmALv2BgJ2hSqqMbaF",
+    "owner": "4NxopMdTa8FwG968Ab1UaSaP9RvmALv2BgJ2hSqqMbaF",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639112054,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "7zMN4xcdkHrHtgpgaoswjhdQuvBKNG9VWuc87nM7UrTh",
     "price": 0,
-    "owner": "",
-    "buyer": "4NxopMdTa8FwG968Ab1UaSaP9RvmALv2BgJ2hSqqMbaF",
+    "owner": "4NxopMdTa8FwG968Ab1UaSaP9RvmALv2BgJ2hSqqMbaF",
+    "buyer": "",
     "data": null
   },
   {
@@ -2032,11 +2032,11 @@
   {
     "market_id": 3,
     "timestamp": 1639111963,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "EjfM8rCsp5z2vAKvWQDYaBs3MDewLsfa869ZZ2Wiz9YF",
     "price": 0,
-    "owner": "",
-    "buyer": "9KV8CE2vxgX4qPEf5QTqpT68Kcgu5yY6Ks1ZBWSPoZsu",
+    "owner": "9KV8CE2vxgX4qPEf5QTqpT68Kcgu5yY6Ks1ZBWSPoZsu",
+    "buyer": "",
     "data": null
   },
   {
@@ -2412,11 +2412,11 @@
   {
     "market_id": 3,
     "timestamp": 1639111415,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "8bF1JbchzPku7GDYQynDhmeBXX9NuQJbuABKY2vdTusZ",
     "price": 0,
-    "owner": "",
-    "buyer": "9bzrFCnBpVSM51Addyfpi4gSTfkKj73xparG95n7pRY4",
+    "owner": "9bzrFCnBpVSM51Addyfpi4gSTfkKj73xparG95n7pRY4",
+    "buyer": "",
     "data": null
   },
   {
@@ -2502,11 +2502,11 @@
   {
     "market_id": 3,
     "timestamp": 1639111287,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "HWVS3j8o1GvJSqhrYfo49Q11c4q9aLXxgKszfNRYeALe",
     "price": 0,
-    "owner": "",
-    "buyer": "8XJeuDNK9S3fHwPoTP54Bh1QKsFexPdq68yncNGAz6bT",
+    "owner": "8XJeuDNK9S3fHwPoTP54Bh1QKsFexPdq68yncNGAz6bT",
+    "buyer": "",
     "data": null
   },
   {
@@ -2602,11 +2602,11 @@
   {
     "market_id": 3,
     "timestamp": 1639111189,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "4vyc9f8agih7oPSMhtVr5XkjDcsEFxbWTZHYYKyCADRL",
     "price": 0,
-    "owner": "",
-    "buyer": "FaCYAWVZeSwCbtRcMQmxwmsXQb88ech6AJaTM7Hy3ZSJ",
+    "owner": "FaCYAWVZeSwCbtRcMQmxwmsXQb88ech6AJaTM7Hy3ZSJ",
+    "buyer": "",
     "data": null
   },
   {
@@ -2642,11 +2642,11 @@
   {
     "market_id": 3,
     "timestamp": 1639111163,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "AyxV2riL7e7BXLa8E2b37BUZwzyjnLjDNdvJvDUAmDna",
     "price": 0,
-    "owner": "",
-    "buyer": "BoVbmhV6DrAmw83XkdCfwCnJyLF3TFY1jtafjm4Y2G8a",
+    "owner": "BoVbmhV6DrAmw83XkdCfwCnJyLF3TFY1jtafjm4Y2G8a",
+    "buyer": "",
     "data": null
   },
   {
@@ -2702,11 +2702,11 @@
   {
     "market_id": 3,
     "timestamp": 1639111112,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "8GjUL48gmUeYW6YBYwmyP3r8b6BfVxst8sFeshGqYGpP",
     "price": 0,
-    "owner": "",
-    "buyer": "Ahi9Cj4SdonTGGv3u4BM1oxK9gcrxpebNFfBGUmPbRFM",
+    "owner": "Ahi9Cj4SdonTGGv3u4BM1oxK9gcrxpebNFfBGUmPbRFM",
+    "buyer": "",
     "data": null
   },
   {
@@ -2762,11 +2762,11 @@
   {
     "market_id": 3,
     "timestamp": 1639111038,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "4Hgi37m9hQXLDzhBFezuwGwqi8TLxXxfzHnTsUUqFcsm",
     "price": 0,
-    "owner": "",
-    "buyer": "GmPvAw2ryzLSDejhjFeRnPc8tDbeK2kDtRwbBX4Sc7of",
+    "owner": "GmPvAw2ryzLSDejhjFeRnPc8tDbeK2kDtRwbBX4Sc7of",
+    "buyer": "",
     "data": null
   },
   {
@@ -2822,11 +2822,11 @@
   {
     "market_id": 3,
     "timestamp": 1639110915,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "863kXNqAK9sBNrNrt6mr5Rrzx3rtwKXanfZdHEfduXxQ",
     "price": 0,
-    "owner": "",
-    "buyer": "CWHMYyyH8c2VG5DAMX5Mq1jGVK6cFaY6o9EuZ4akai5Y",
+    "owner": "CWHMYyyH8c2VG5DAMX5Mq1jGVK6cFaY6o9EuZ4akai5Y",
+    "buyer": "",
     "data": null
   },
   {
@@ -2892,11 +2892,11 @@
   {
     "market_id": 3,
     "timestamp": 1639110833,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "6YUb6CL6QWqz1FNPRMhfGDsEAHCfqbyrGNqVVaYgzeW6",
     "price": 0,
-    "owner": "",
-    "buyer": "4Sr6FKPEWiFitA5cB57hKErfqrC6CojFQZUb8Am8Dzwv",
+    "owner": "4Sr6FKPEWiFitA5cB57hKErfqrC6CojFQZUb8Am8Dzwv",
+    "buyer": "",
     "data": null
   },
   {
@@ -2912,11 +2912,11 @@
   {
     "market_id": 3,
     "timestamp": 1639110807,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "8wqziePokrZCCwkh9RpD56KHMYrMWrzjXjRZ2XZPNS7S",
     "price": 0,
-    "owner": "",
-    "buyer": "5zTeFc6j2emP9mgrjYBdv9LjjkMxAo1cfMRPD8bwnKQ5",
+    "owner": "5zTeFc6j2emP9mgrjYBdv9LjjkMxAo1cfMRPD8bwnKQ5",
+    "buyer": "",
     "data": null
   },
   {
@@ -2982,11 +2982,11 @@
   {
     "market_id": 3,
     "timestamp": 1639110670,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "EqNVFu3zDibAewFLeYvY47e9VFXzJSkL5PVUw1sEFxZ3",
     "price": 0,
-    "owner": "",
-    "buyer": "Anu1LNc9oXXbpddoaaQtTA8s5AfD362JtUzUUoowLDCL",
+    "owner": "Anu1LNc9oXXbpddoaaQtTA8s5AfD362JtUzUUoowLDCL",
+    "buyer": "",
     "data": null
   },
   {
@@ -3022,11 +3022,11 @@
   {
     "market_id": 3,
     "timestamp": 1639110579,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "4LEm3uE2yWpKzMqtgZMbDy8eEjbUTvjQLmu7y2wTwVNT",
     "price": 0,
-    "owner": "",
-    "buyer": "AVTXK4N1AxabamzB8BgaejUPkwEdQUWV5NLY9MrhcDeC",
+    "owner": "AVTXK4N1AxabamzB8BgaejUPkwEdQUWV5NLY9MrhcDeC",
+    "buyer": "",
     "data": null
   },
   {
@@ -3092,11 +3092,11 @@
   {
     "market_id": 3,
     "timestamp": 1639110414,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "2bGpfEQ1NDbYUiJAP55DstSU4zZL47cecqBk2JzSbJdK",
     "price": 0,
-    "owner": "",
-    "buyer": "AM1pvxP6Xcc1ZbPD3YvjbuKZAtKTyL87ea6rRTq6uVPD",
+    "owner": "AM1pvxP6Xcc1ZbPD3YvjbuKZAtKTyL87ea6rRTq6uVPD",
+    "buyer": "",
     "data": null
   },
   {
@@ -3152,21 +3152,21 @@
   {
     "market_id": 3,
     "timestamp": 1639110300,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "4CYnk7dbzf6AgfobcquTV5Gsneh8o88awNhVQrMB1UAe",
     "price": 0,
-    "owner": "",
-    "buyer": "4NxopMdTa8FwG968Ab1UaSaP9RvmALv2BgJ2hSqqMbaF",
+    "owner": "4NxopMdTa8FwG968Ab1UaSaP9RvmALv2BgJ2hSqqMbaF",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639110283,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "GDcaVRSoFrSmaKattFi6zpqTJdp6Ze3xn1k9pcuSfa9G",
     "price": 0,
-    "owner": "",
-    "buyer": "48upYxKhgs5VXKLTcztCWAHEwJcjHBzhhNgNo6WnuEyg",
+    "owner": "48upYxKhgs5VXKLTcztCWAHEwJcjHBzhhNgNo6WnuEyg",
+    "buyer": "",
     "data": null
   },
   {
@@ -3252,31 +3252,31 @@
   {
     "market_id": 3,
     "timestamp": 1639110160,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "3ksB4mV9ESnbDqk7N2Byk2Pkyo6NTKboEjCLnBFiiiA4",
     "price": 0,
-    "owner": "",
-    "buyer": "HgmZemhqRo7RihFU4MyfqGE81jPDJqRJspumktN21Y8p",
+    "owner": "HgmZemhqRo7RihFU4MyfqGE81jPDJqRJspumktN21Y8p",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639110154,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "FsxXzf4QeE2NTywgKnHicMcya3PeCrPdzHDtzjSMXbMk",
     "price": 0,
-    "owner": "",
-    "buyer": "HgmZemhqRo7RihFU4MyfqGE81jPDJqRJspumktN21Y8p",
+    "owner": "HgmZemhqRo7RihFU4MyfqGE81jPDJqRJspumktN21Y8p",
+    "buyer": "",
     "data": null
   },
   {
     "market_id": 3,
     "timestamp": 1639110149,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "HDYoJ5LUrHhPQnhZTfpkDhsgTtoM173m9k31bYLiUrtj",
     "price": 0,
-    "owner": "",
-    "buyer": "HgmZemhqRo7RihFU4MyfqGE81jPDJqRJspumktN21Y8p",
+    "owner": "HgmZemhqRo7RihFU4MyfqGE81jPDJqRJspumktN21Y8p",
+    "buyer": "",
     "data": null
   },
   {
@@ -3322,11 +3322,11 @@
   {
     "market_id": 3,
     "timestamp": 1639109992,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "DPcsMJn95VXxmTrP9UzqeweqKSVu4ec1gvwvUgBHMFVx",
     "price": 0,
-    "owner": "",
-    "buyer": "DpGbyQ1owfHWmbN6XGXnDD9sad8cH1YXzJe9RUfzVEvV",
+    "owner": "DpGbyQ1owfHWmbN6XGXnDD9sad8cH1YXzJe9RUfzVEvV",
+    "buyer": "",
     "data": null
   },
   {
@@ -3342,11 +3342,11 @@
   {
     "market_id": 3,
     "timestamp": 1639109989,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "3dPy7e2FkBK5A7qgq85ne8DS5Ln9LNa3Qkn9H2qFHEtY",
     "price": 0,
-    "owner": "",
-    "buyer": "499wfsr1oBHAwMApiaWPitXsyzmiJRsGhJ4Ft5AZpMqf",
+    "owner": "499wfsr1oBHAwMApiaWPitXsyzmiJRsGhJ4Ft5AZpMqf",
+    "buyer": "",
     "data": null
   },
   {
@@ -3392,11 +3392,11 @@
   {
     "market_id": 3,
     "timestamp": 1639109897,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "4TWtgGvtm7FoeTuDcqbj9eZtmb6vJPMhiy9RTLFPxytL",
     "price": 0,
-    "owner": "",
-    "buyer": "EUfwPwnrrUVCszMWSu8NZx2jz6VhRQ2rgENuXkvMz2k6",
+    "owner": "EUfwPwnrrUVCszMWSu8NZx2jz6VhRQ2rgENuXkvMz2k6",
+    "buyer": "",
     "data": null
   },
   {
@@ -3442,11 +3442,11 @@
   {
     "market_id": 3,
     "timestamp": 1639109767,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "6fBxWRqmxuQHxmvxhPCqqmrbXCZGqCCuBT1ARRh8dY8Q",
     "price": 0,
-    "owner": "",
-    "buyer": "FfXpDpZLibLcX4YEdxy7kt7JdjciGszdeUBpkwDwrqAP",
+    "owner": "FfXpDpZLibLcX4YEdxy7kt7JdjciGszdeUBpkwDwrqAP",
+    "buyer": "",
     "data": null
   },
   {
@@ -3552,11 +3552,11 @@
   {
     "market_id": 3,
     "timestamp": 1639109602,
-    "event_type": 3,
+    "event_type": 2,
     "token_key": "gQQsd99VzJPYVMF6s4H54tGNVHxukCSRkSea5n9tHe4",
     "price": 0,
-    "owner": "",
-    "buyer": "A6xVeX22jAcecd1f7ZFztAbjrYcb59HBkZXLiXfWy6PG",
+    "owner": "A6xVeX22jAcecd1f7ZFztAbjrYcb59HBkZXLiXfWy6PG",
+    "buyer": "",
     "data": null
   }
 ]

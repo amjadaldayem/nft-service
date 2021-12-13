@@ -42,9 +42,6 @@ def setup_logging(debug=0, include_noisy=None, disable_existing=True):
                 if module not in include_noisy:
                     logging.getLogger(module).setLevel(logging.CRITICAL)
 
-    def log_format(x):
-        return ['%({0:s})'.format(i) for i in x]
-
     handler = logging.StreamHandler()
     log_format = (
         '[%(levelname)s] [%(asctime)s] [%(processName)s - '

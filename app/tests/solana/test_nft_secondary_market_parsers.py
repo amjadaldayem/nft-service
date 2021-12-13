@@ -449,6 +449,22 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
+    async def test_solanart_delisting_event_01(self):
+        event, timestamp = await load_and_parse(
+            SOLANA_SOLANART,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_SOLANART,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='5xMBU72azWpXC9VSvrJBBZDTd5F2h6Wztrx386pwr3Uo',
+            price=0,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp
+        )
+        self.assertEqual(event, expected)
+
     async def test_solanart_sale_event_01(self):
         event, timestamp = await load_and_parse(
             SOLANA_SOLANART,

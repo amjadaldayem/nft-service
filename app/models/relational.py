@@ -24,7 +24,7 @@ class NFTCollection(Base):
     description = Column(Text, default="")
     update_authority = Column(String(length=127), index=True, default="")
     seller_fee_basis_points = Column(
-        Integer,
+        Integer(),
         default=0,
         comment="Unit in 1/10000th, can be overridden by individual NFT."
     )
@@ -44,6 +44,13 @@ class NFTCollection(Base):
         server_onupdate=func.now(),
         onupdate=func.now()
     )
+    nsfw = Column(
+        Boolean(),
+        default=False,
+        nullable=False,
+        index=True
+    )
+
     nfts = relationship("NFT", backref="nft_collection")
 
 

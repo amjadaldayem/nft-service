@@ -251,8 +251,8 @@ class ParsedTransaction:
          - u8: instruction offset
             04 - Listing
                 - u64: listing price
-            05 - Sale:
-                - u64: sales price
+            05 - Sale/delisting:
+                - u64: sales price. If 0, it is delisting
             06 - Price update
                 - u64: updated price
          - u64:
@@ -268,20 +268,22 @@ class ParsedTransaction:
         )
         if not matched_pi:
             return None
-
+        owner, buyer = EMPTY_PUBLIC_KEY, EMPTY_PUBLIC_KEY
         price = matched_pi.get_int(1)
         if matched_pi.get_function_offset() == 0x04:
             event_type = SECONDARY_MARKET_EVENT_LISTING
             owner = matched_pi.account_list[0]
-            buyer = ''
         elif matched_pi.get_function_offset() == 0x05:
-            event_type = SECONDARY_MARKET_EVENT_SALE
-            buyer = matched_pi.account_list[0]
-            owner = ''
+            if price:
+                event_type = SECONDARY_MARKET_EVENT_SALE
+                buyer = matched_pi.account_list[0]
+            else:
+                # Price == 0, delisting
+                event_type = SECONDARY_MARKET_EVENT_DELISTING
+                owner = matched_pi.account_list[0]
         elif matched_pi.get_function_offset() == 0x06:
             event_type = SECONDARY_MARKET_EVENT_PRICE_UPDATE
             owner = matched_pi.account_list[0]
-            buyer = ''
         # elif TODO: Need to figure out the delisting event
         else:
             return None
@@ -317,6 +319,8 @@ class ParsedTransaction:
             event.token_key = self.find_token_address(token_account_to_match)
         elif event_type == SECONDARY_MARKET_EVENT_PRICE_UPDATE:
             event.token_key = matched_pi.account_list[-1]
+        elif event_type == SECONDARY_MARKET_EVENT_DELISTING:
+            event.token_key = self.find_token_address(owner)
         else:
             return None
         return event if event.token_key and (event.owner or event.buyer) else None
