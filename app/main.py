@@ -3,8 +3,8 @@ import sys
 import asyncclick as click
 
 import settings
-from app.slab.logging import setup_logging
-from app.slab.errors import setup_error_handler
+from slab.logging import setup_logging
+from slab.errors import setup_error_handler
 from app.tools import (
     txn,
 )

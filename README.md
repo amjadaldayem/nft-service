@@ -25,7 +25,13 @@ Admin Ports
 ## Postgres Migration Commands
 
 ```shell
-$ alembic revision --autogenerate -m "<comment>"
+$ ./migration revision --autogenerate -m "<comment>"
 ...
-$ alembic upgrade <hash>
+$ ./migration upgrade <hash> | HEAD
+```
+
+To downgrade,
+
+```shell
+$ ./migration downgrade -1
 ```
