@@ -8,6 +8,7 @@ from solana.rpc.api import Client
 
 from app import settings
 from app.blockchains.solana import CustomAsyncClient
+from app.blockchains.solana.client import fetch_transactions_for_pubkey_para
 
 
 @click.group()
@@ -32,11 +33,6 @@ async def get_transaction(signature, filename):
         c.write(orjson.dumps(resp['result'], option=orjson.OPT_INDENT_2))
 
 
-async def _get_transaction_with_index(client: CustomAsyncClient, idx, sig):
-    resp = await client.get_confirmed_transaction(sig)
-    return idx, resp['result']
-
-
 @click.command(name='for')
 @click.argument('public_key')
 @click.argument('filename')
@@ -53,34 +49,15 @@ async def get_transactions_for(public_key, filename, limit, before, until):
     """
     batch_size = 50
 
-    c = Client(settings.SOLANA_RPC_ENDPOINT)
-    resp = c.get_confirmed_signature_for_address2(
-        public_key,
-        before=before,
-        until=until,
-        limit=limit
-    )
-    signatures = [s['signature'] for s in resp['result']]
-
-    async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT) as c:
-        size = len(signatures)
-        start = 0
-        all_result = []
-
-        while start < size:
-            segment = signatures[start: start + batch_size]
-            tasks = [
-                # asyncio.ensure_future(
-                _get_transaction_with_index(c, i, signature)
-                for i, signature in enumerate(segment)
-                # )
-            ]
-            segment_result = list(await asyncio.gather(*tasks))
-            segment_result.sort()
-            _, events = zip(*segment_result)
-            all_result.extend(events)
-            start += batch_size
-            time.sleep(0.1)
+    async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT, timeout=60) as c:
+        all_result = await fetch_transactions_for_pubkey_para(
+            c,
+            public_key,
+            before=before,
+            until=until,
+            limit=limit,
+            batch_size=batch_size
+        )
 
         dir_name = os.path.dirname(filename)
         if dir_name and not os.path.exists(dir_name):

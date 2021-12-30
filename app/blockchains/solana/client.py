@@ -1,14 +1,17 @@
+import asyncio
 import base64
 import dataclasses
 import struct
 import logging
+import time
 from collections import namedtuple
-from typing import Optional, List, Mapping, Union, Iterable
+from typing import Optional, List, Mapping, Union, Iterable, Dict
 
 import base58
 from solana.publickey import PublicKey
 from solana.rpc import commitment
 from solana.rpc.api import MemcmpOpt
+from solana.rpc.async_api import AsyncClient
 
 from app import settings
 from app.blockchains.solana import consts
@@ -276,21 +279,54 @@ async def nft_get_metadata_pda_key_by_token_key(token_key: str) -> PublicKey:
     )[0]
 
 
-
-
 # TODO:
 #   Fetch transactions related to the Candy Machine
 #   E.g., 3LUbx4G9YZjiN4HYCL7pm5Wzng6Hy87Z4x1cvYUsD55aszuWimhTVVytC6bhYDbKCNCuUa1Wnuwq7Xr4eGV3SGms
 #   The 2nd parameter (the wallet) is the update_authority for InitializeCandyMachine instruction
 #   The could be use to fetch the new collection.
-#
-# async def get_transactions_for(address: str,
-#                                until: Optional[str] = None,
-#                                before: Optional[str] = None) -> Iterable[Transaction]:
-#     """
-#
-#     :param address:
-#     :param before:
-#     :param until:
-#     :return:
-#     """
+
+async def _get_transaction_with_index(client: AsyncClient, idx, sig):
+    resp = await client.get_confirmed_transaction(sig)
+    return idx, resp['result']
+
+
+async def fetch_transactions_for_pubkey_para(
+        async_client: AsyncClient,
+        public_key: str,
+        before: Optional[str] = None,
+        until: Optional[str] = None,
+        limit: int = 500,
+        batch_size: int = 50
+) -> List[Dict]:
+    """
+    Helper function to fetch transactions for the specified PubKey in parallel.
+    The resulting transactions are sorted in the descending order (from most recent
+    to the oldest).
+    """
+    await async_client.is_connected()
+    resp = await async_client.get_confirmed_signature_for_address2(
+        public_key,
+        before=before,
+        until=until,
+        limit=limit
+    )
+    signatures = [s['signature'] for s in resp['result']]
+
+    size = len(signatures)
+    start = 0
+    all_result = []
+
+    while start < size:
+        segment = signatures[start: start + batch_size]
+        tasks = [
+            _get_transaction_with_index(async_client, i, signature)
+            for i, signature in enumerate(segment)
+        ]
+        segment_result = list(await asyncio.gather(*tasks))
+        segment_result.sort()
+        _, events = zip(*segment_result)
+        all_result.extend(events)
+        start += batch_size
+        time.sleep(0.1)
+
+    return all_result

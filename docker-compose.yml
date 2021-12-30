@@ -77,7 +77,7 @@ services:
     build: .local/moto
     restart: always
     ports:
-      - "5001:5001"
+      - "5050:5050"
     networks:
       - sintra
 

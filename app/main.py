@@ -4,12 +4,12 @@ import asyncclick as click
 import boto3
 
 import settings
+
 from app.models.dynamo import NFTRepository
 from slab.logging import setup_logging
 from slab.errors import setup_error_handler
-from app.tools import (
-    solana,
-)
+from app.tools import tk
+from app.indexers import indexers
 
 sys.dont_write_bytecode = True
 
@@ -23,17 +23,18 @@ def stderr_error_notify(e, metadata):
 
 
 def initialize():
-    # Initialize
-    dynamodb_endpoint = settings.DYNAMODB_ENDPOINT
-    region_name = settings.AWS_REGION
-    env = settings.DEPLOYMENT_ENV
-    table_name = f"{env}_nft"
-    dynamodb_resource = boto3.resource(
-        'dynamodb',
-        endpoint_url=dynamodb_endpoint,
-        region_name=region_name
-    )
-    # NFTRepository.initialize(table_name)
+    # # Initialize
+    # dynamodb_endpoint = settings.DYNAMODB_ENDPOINT
+    # region_name = settings.AWS_REGION
+    # env = settings.DEPLOYMENT_ENV
+    # table_name = f"{env}_nft"
+    # dynamodb_resource = boto3.resource(
+    #     'dynamodb',
+    #     endpoint_url=dynamodb_endpoint,
+    #     region_name=region_name
+    # )
+    # # NFTRepository.initialize(table_name)
+    pass
 
 
 @click.group()
@@ -47,7 +48,8 @@ async def main():
     initialize()
 
 
-main.add_command(solana)
+main.add_command(tk)
+main.add_command(indexers)
 
 if __name__ == '__main__':
     main(_anyio_backend='asyncio')

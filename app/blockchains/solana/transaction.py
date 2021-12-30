@@ -68,6 +68,7 @@ class ParsedTransaction:
         self.inner_instructions = meta['innerInstructions']
         self.block_time = block_time
         self.transaction = transaction
+        self.signature = self.transaction['signatures'][0]
         message = transaction['message']
         self.account_keys = message['accountKeys']
         self.instructions = message['instructions']
@@ -118,7 +119,8 @@ class ParsedTransaction:
             blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_MAGIC_EDEN,
             timestamp=self.block_time,
-            event_type=SECONDARY_MARKET_EVENT_SALE
+            event_type=SECONDARY_MARKET_EVENT_SALE,
+            transaction_hash=self.signature
         )
         # If the inner instruction array contains `transfer`s, this is a
         # sale; otherwise, if the length of the array is 2, it is a listing or
@@ -187,7 +189,8 @@ class ParsedTransaction:
             blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_ALPHA_ART,
             timestamp=self.block_time,
-            event_type=SECONDARY_MARKET_EVENT_SALE
+            event_type=SECONDARY_MARKET_EVENT_SALE,
+            transaction_hash=self.signature
         )
 
         # in the event of sale, the 8th account in the `matched_pi` is the
@@ -297,7 +300,8 @@ class ParsedTransaction:
             event_type=event_type,
             price=price,
             owner=owner,
-            buyer=buyer
+            buyer=buyer,
+            transaction_hash=self.signature
         )
 
         if (event_type == SECONDARY_MARKET_EVENT_LISTING
@@ -399,7 +403,8 @@ class ParsedTransaction:
             buyer=buyer,
             price=price,
             data=data,
-            timestamp=self.block_time
+            timestamp=self.block_time,
+            transaction_hash=self.signature
         )
         return event if event_type else None
 
@@ -469,6 +474,7 @@ class ParsedTransaction:
                 price=price,
                 timestamp=self.block_time,
                 token_key=token_key,
+                transaction_hash=self.signature
             )
         else:
             event = None

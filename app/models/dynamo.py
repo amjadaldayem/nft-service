@@ -7,7 +7,7 @@ class NFTRepository:
     """
         * For NFT transactions
 
-        Input:
+        Input (SecondaryMarketEvent model):
           {
             "market_id": 4,
             "timestamp": 1639352756,

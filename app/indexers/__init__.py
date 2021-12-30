@@ -1,10 +1,14 @@
 import asyncclick as click
+from .solana import solana
 
 
 @click.group()
 async def indexers():
     """
-    Indexers group command.
+    Indexers command.
 
     """
     return
+
+
+indexers.add_command(solana)

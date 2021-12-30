@@ -14,9 +14,20 @@ Notes:
 
 https://solscan.io/tx/5mJkcez9QgCMRVtFH9GqtrogLi3asMBWyQWjPc4uKBfBpeS6b2oJmJuW14L2LXWXdRF6VMHy2HzJyBPTYJddVWTq
 
-## Local Dev Notes:
+## Local Dev Notes
 
-Admin Ports - Postgres: 8080 - DynamoDB: 8001 - SQS: 9325
+### Ports
+
+Postgres: 5432
+Postgres Dashboard: 8080
+DynamoDB: 8000
+DynamoDB Dashboard: 8001
+SQS: 9324
+SQS Dashboard: 9325
+OpenSearch: 9200 (HTTPS!)
+OpenSearch Dashboard: 9600
+
+All other AWS Services: 5050
 
 ## Postgres Migration Commands
 
