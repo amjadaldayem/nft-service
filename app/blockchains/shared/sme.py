@@ -14,6 +14,8 @@ EMPTY_PUBLIC_KEY = ''
 
 @dataclasses.dataclass
 class SecondaryMarketEvent:
+    # TODO: Redo the tests
+    blockchain_id: int  # The Index for the blockchain
     market_id: int  # The secondary market ID, e.g. SOLANA_MAGIC_EDEN
     timestamp: int  # Approx. unix timestamp
     event_type: int = SECONDARY_MARKET_EVENT_UNKNOWN  # See above

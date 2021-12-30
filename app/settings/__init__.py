@@ -24,5 +24,12 @@ POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5432)
 DYNAMODB_ENDPOINT = os.getenv('DYNAMODB_ENDPOINT')
 SQS_ENDPOINT = os.getenv('SQS_ENDPOINT')
 
+AWS_REGION = os.getenv('AWS_REGION', 'us-west-2')
+
+# For testing, when AWS_REGION is not set, falls back to this
+# fictional default region.
+os.environ["MOTO_ALLOW_NONEXISTENT_REGION"] = '1'
+os.environ["AWS_DEFAULT_REGION"] = 'neverland'
+
 # Per blockchain basic configurations
 from .solana import *  # noqa

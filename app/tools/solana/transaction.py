@@ -47,6 +47,9 @@ async def get_transactions_for(public_key, filename, limit, before, until):
     """
     Get transactions for a public_key and stores them to `file_name`
 
+    The `before` transaction and `until` transaction are not included in the
+    result, only transactions within.
+
     """
     batch_size = 50
 
@@ -80,7 +83,7 @@ async def get_transactions_for(public_key, filename, limit, before, until):
             time.sleep(0.1)
 
         dir_name = os.path.dirname(filename)
-        if not os.path.exists(dir_name):
+        if dir_name and not os.path.exists(dir_name):
             os.makedirs(dir_name, exist_ok=True)
 
         with open(filename, 'wb') as fd:

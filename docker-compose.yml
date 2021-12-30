@@ -5,7 +5,7 @@ networks:
 
 services:
   postgres:
-    image: postgres:13.5-alpine
+    image: postgres:10.14-alpine
     restart: always
     environment:
       POSTGRES_USER: &POSTGRES_USER postgres
@@ -41,6 +41,8 @@ services:
       AWS_REGION: &AWS_REGION us-west-2
       AWS_ACCESS_KEY_ID: &AWS_ACCESS_KEY_ID x
       AWS_SECRET_ACCESS_KEY: &AWS_SECRET_ACCESS_KEY x
+      AWS_SECURITY_TOKEN: &AWS_SECURITY_TOKEN x
+      AWS_SESSION_TOKEN: &AWS_SESSION_TOKEN x
 
   dynamo-admin:
     image: aaronshaf/dynamodb-admin:latest
@@ -56,7 +58,9 @@ services:
       AWS_REGION: *AWS_REGION
       AWS_ACCESS_KEY_ID: *AWS_ACCESS_KEY_ID
       AWS_SECRET_ACCESS_KEY: *AWS_SECRET_ACCESS_KEY
-
+      AWS_SECURITY_TOKEN: *AWS_SECURITY_TOKEN
+      AWS_SESSION_TOKEN: *AWS_SESSION_TOKEN
+  # SQS
   elasticmq:
     image: softwaremill/elasticmq-native
     restart: always
@@ -67,3 +71,33 @@ services:
       - sintra
     volumes:
       - ./.local/elasticmq/elasticmq.conf:/opt/elasticmq.conf
+
+  # Other AWS services
+  aws-services:
+    build: .local/moto
+    restart: always
+    ports:
+      - "5001:5001"
+    networks:
+      - sintra
+
+  # ES (OpenSearch 1.0, >= 7.7 compatibility)
+  opensearch:
+    image: opensearchproject/opensearch:1.0.0
+    restart: always
+    ports:
+      - "9200:9200"
+    networks:
+      - sintra
+    environment:
+      discovery.type: single-node
+
+  opensearch-dashboard:
+    image: opensearchproject/opensearch-dashboards:1.0.0
+    restart: always
+    ports:
+      - "5601:5601"
+    networks:
+      - sintra
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch:9200"]'

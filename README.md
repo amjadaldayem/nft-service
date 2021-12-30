@@ -1,6 +1,6 @@
-# sintra-data-service
+# sintra-nft-service
 
-Indexers and other tools for data ingestion and transformations.
+Indexers and other tools for NFT data ingestion and APIs.
 
 References:
 

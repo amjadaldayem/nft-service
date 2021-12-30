@@ -14,6 +14,7 @@ from app.blockchains import (
     SECONDARY_MARKET_EVENT_DELISTING,
     SECONDARY_MARKET_EVENT_SALE,
     SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+    BLOCKCHAIN_SOLANA,
 )
 from app.blockchains.solana import ParsedTransaction
 
@@ -52,6 +53,7 @@ async def load_and_parse(market_id, event_type_id, file_name) -> Tuple[Secondary
 
 def make_expected(market_id, event_type_id, token_key, price, owner_or_buyer, timestamp):
     evt = SecondaryMarketEvent(
+        blockchain_id=BLOCKCHAIN_SOLANA,
         market_id=market_id,
         event_type=event_type_id,
         timestamp=timestamp,

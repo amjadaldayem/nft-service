@@ -8,7 +8,7 @@ from app.blockchains import (
     SOLANA_MAGIC_EDEN,
     SOLANA_ALPHA_ART,
     SOLANA_DIGITAL_EYES,
-    SOLANA_SOLANART, SOLANA_SOLSEA,
+    SOLANA_SOLANART, SOLANA_SOLSEA, BLOCKCHAIN_SOLANA,
 )
 from app.blockchains.shared import (
     SecondaryMarketEvent,
@@ -115,6 +115,7 @@ class ParsedTransaction:
         if not matched_pi or not inner_ins_array:
             return None
         event = SecondaryMarketEvent(
+            blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_MAGIC_EDEN,
             timestamp=self.block_time,
             event_type=SECONDARY_MARKET_EVENT_SALE
@@ -183,6 +184,7 @@ class ParsedTransaction:
         if not matched_pi or not inner_ins_array:
             return None
         event = SecondaryMarketEvent(
+            blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_ALPHA_ART,
             timestamp=self.block_time,
             event_type=SECONDARY_MARKET_EVENT_SALE
@@ -289,6 +291,7 @@ class ParsedTransaction:
             return None
 
         event = SecondaryMarketEvent(
+            blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_SOLANART,
             timestamp=self.block_time,
             event_type=event_type,
@@ -388,6 +391,7 @@ class ParsedTransaction:
                 owner = matched_pi.account_list[0]
 
         event = SecondaryMarketEvent(
+            blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_DIGITAL_EYES,
             event_type=event_type,
             token_key=token_key,
@@ -457,6 +461,7 @@ class ParsedTransaction:
             event_type = None
         if event_type and token_key:
             event = SecondaryMarketEvent(
+                blockchain_id=BLOCKCHAIN_SOLANA,
                 event_type=event_type,
                 market_id=SOLANA_SOLSEA,
                 owner=owner,
