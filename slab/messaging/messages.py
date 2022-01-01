@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import datetime
+import functools
 import logging
+import pickle
 import signal
 import threading
 import time
+from functools import cached_property
 from operator import attrgetter
-from typing import List, Tuple, Optional
+from typing import Tuple, Optional, Mapping, Iterable
 
 import boto3
-import msgpack as msgpack
 import orjson
+import pybase64 as base64
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +48,7 @@ class CMessage(object):
 
     def __init__(self, sqs_message):
         self._message = sqs_message
-        self._body = msgpack.loads(self._message.body)
+        self._body = pickle.loads(base64.b64decode(self._message.body, validate=True))
         # Sender Id
         # For an IAM user, returns the IAM user ID,
         #   for example ABCDEFGHI1JKLMNOPQ23R
@@ -92,6 +96,10 @@ class CMessage(object):
             dict: the content of the message
         """
         return self._body
+
+    @property
+    def message_attributes(self):
+        return self._message.message_attributes
 
     @property
     def id(self):
@@ -148,6 +156,10 @@ class CQueue(object):
         self._name = name
         self._priority = priority
 
+    @cached_property
+    def attributes(self):
+        return self._queue.attributes
+
     def receive_one_message(self, visibility_timeout=None, poll_wait=0):
         """
 
@@ -161,7 +173,7 @@ class CQueue(object):
             'AttributeNames': ['SenderId',
                                'SentTimestamp',
                                'ApproximateReceiveCount'],
-            'MessageAttributeNames': ['all'],
+            'MessageAttributeNames': ['All'],
             'MaxNumberOfMessages': 1,
             'WaitTimeSeconds': poll_wait,
         }
@@ -178,12 +190,15 @@ class CQueue(object):
 
         return CMessage(sqs_messages[0]) if sqs_messages else None
 
-    def send_message_dict(self, message_dict, delay=0):
+    def send_message_dict(self, message_dict, message_attributes: Optional[Mapping] = None, delay=0):
         """
         Sends a dict message body.
+
+
         Args:
             message_dict (dict):
                 Message body, a dict.
+            message_attributes:
             delay (int):
                 Seconds to delay.
         Returns:
@@ -194,10 +209,13 @@ class CQueue(object):
                     'SequenceNumber': 'string'
                   }
         """
-        return self._queue.send_message(
-            MessageBody=msgpack.dumps(message_dict),
-            DelaySeconds=delay
-        )
+        kwargs = {
+            'MessageBody': base64.b64encode(pickle.dumps(message_dict)).decode('utf8'),
+            'DelaySeconds': delay,
+        }
+        if message_attributes:
+            kwargs['MessageAttributes'] = message_attributes
+        return self._queue.send_message(**kwargs)
 
     @property
     def priority(self):
@@ -319,7 +337,7 @@ async def single_loop(poller, handler_func, worker_type):
                  message.id,
                  str(message.body))
 
-    f = handler_func(chosen_queue, message, worker_type)
+    f = await handler_func(chosen_queue, message, worker_type)
 
     msg_processed = 1
 
@@ -330,11 +348,12 @@ async def single_loop(poller, handler_func, worker_type):
     return msg_received, msg_processed
 
 
-async def message_loop(queues: List[CQueue],
+async def message_loop(queues: Iterable[CQueue],
                        handler_func: callable,
                        poll_policy_class=StrictPriorityPolicy,
                        shutdown: threading.Event = None,
-                       worker_type: str = None):
+                       worker_type: str = None,
+                       max_messages_to_receive=None):
     """
     Starts a message loop and call related handler functions.
 
@@ -372,6 +391,8 @@ async def message_loop(queues: List[CQueue],
         poll_policy_class (StrictPriorityPolicy | WeightedPolicy):
         shutdown (threading.Event): a threading.Event() to signal shutdown.
         worker_type: (str)
+        max_messages_to_receive: Receives this number of messages then exit.
+            If None, will poll forever.
     Returns:
 
     """
@@ -399,6 +420,14 @@ async def message_loop(queues: List[CQueue],
 
         msgs_received += msg_received
         msgs_processed += msg_processed
+        if (max_messages_to_receive is not None
+                and msgs_received >= max_messages_to_receive):
+            logger.info(
+                "Maximum messages %s/%s received. Shutting down...",
+                msgs_received,
+                max_messages_to_receive
+            )
+            break
 
     return msgs_received, msgs_processed
 
@@ -414,6 +443,7 @@ async def shutdown_on(signals):
         threading.Event
     """
     shutdown = threading.Event()
+    loop = asyncio.get_running_loop()
 
     def cancel_execution(signum, frame):  # noqa
         signame = SIGNAL_NAMES.get(signum, signum)
@@ -422,6 +452,10 @@ async def shutdown_on(signals):
         shutdown.set()
 
     for s in signals:
+        loop.add_signal_handler(
+            s,
+            functools.partial(cancel_execution, s, None)
+        )
         signal.signal(s, cancel_execution)
 
     return shutdown
