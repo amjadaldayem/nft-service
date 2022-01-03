@@ -32,13 +32,17 @@ All other AWS Services: 5050
 ## Postgres Migration Commands
 
 ```shell
-$ ./migration revision --autogenerate -m "<comment>"
+$ ./migration <db_alias> revision --autogenerate -m "<comment>"
 ...
-$ ./migration upgrade <hash> | HEAD
+$ ./migration <db_alias> upgrade <hash> | HEAD
 ```
+
 
 To downgrade,
 
 ```shell
-$ ./migration downgrade -1
+$ ./migration <db_alias> downgrade -1
 ```
+
+Where the `db_alias` is the db alias as defined as the keys in the 
+`settings.DATABASES`.

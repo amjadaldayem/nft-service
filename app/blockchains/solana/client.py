@@ -165,6 +165,7 @@ async def nft_get_collection_pdas(update_authority) -> List[NftMetadataProgramAc
             timeout=60
     ) as client:
         await client.is_connected()
+        # This is darn expensive ...
         resp = await client.get_program_accounts(
             PublicKey(consts.METAPLEX_PUBKEY),
             encoding='base64',

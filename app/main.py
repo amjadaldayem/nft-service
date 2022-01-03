@@ -1,24 +1,21 @@
+import logging
 import sys
 
 import asyncclick as click
-import boto3
+import orjson
 
 import settings
-
-from app.models.dynamo import NFTRepository
-from slab.logging import setup_logging
-from slab.errors import setup_error_handler
 from app.tools import tk
-from app.indexers import indexers
+from app.worker import worker
+from slab.errors import setup_error_handler, full_stacktrace
+from slab.logging import setup_logging
 
 sys.dont_write_bytecode = True
 
-
-def sentry_error_notify(e, metadata):
-    pass
+logger = logging.getLogger(__name__)
 
 
-def stderr_error_notify(e, metadata):
+async def sentry_error_notify(e, metadata):
     pass
 
 
@@ -40,16 +37,13 @@ def initialize():
 @click.group()
 async def main():
     setup_logging(settings.DEBUG)
-    setup_error_handler(
-        stderr_error_notify
-        if settings.DEPLOYMENT_ENV == 'local'
-        else sentry_error_notify
-    )
+    if settings.DEPLOYMENT_ENV not in ('local', 'test'):
+        setup_error_handler(sentry_error_notify)
     initialize()
 
 
 main.add_command(tk)
-main.add_command(indexers)
+main.add_command(worker)
 
 if __name__ == '__main__':
     main(_anyio_backend='asyncio')

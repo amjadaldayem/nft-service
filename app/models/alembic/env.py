@@ -5,10 +5,10 @@ from alembic import context
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
-from app.models.helpers import (
-    pg_create_async_engine,
-    pg_create_engine
-)
+from sqlalchemy import engine_from_config, pool
+
+from app import settings
+from app.models.manager import DBManager
 from app.models.models import Base
 
 config = context.config
@@ -24,11 +24,29 @@ fileConfig(config.config_file_name)
 target_metadata = Base.metadata
 
 
+def parse_db_alias(section_name) -> str:
+    """
+
+    Args:
+        section_name:
+
+    Returns:
+        The actual db name.
+    """
+    section = config.get_section(config.config_ini_section)
+    if not section:
+        raise ValueError(f"Section {section_name} not found.")
+    db_alias = section_name.rsplit('-', 1)[-1]
+    if db_alias not in settings.DATABASES:
+        raise ValueError(f"Database alias {db_alias} not found.")
+    db = settings.DATABASES[db_alias]['name']
+    return db
+
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
@@ -49,8 +67,11 @@ def run_migrations_offline():
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
-    engine = pg_create_engine()
-    with engine.connect() as connection:
+    # Overrides DB name from command line (-x) -xdb=nft
+    db = context.get_x_argument(as_dictionary=True).get('db')
+    manager = DBManager.create(db)
+    connectable = manager.engine
+    with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():
             context.run_migrations()
@@ -63,20 +84,24 @@ def do_run_migrations(connection):
         context.run_migrations()
 
 
-async def run_migrations_online():
+def run_migrations_online():
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
     """
-    connectable = await pg_create_async_engine()
+    # Extract the db name from the section name
+    # e.g. database-nft -> nft
+    db = parse_db_alias(config.config_ini_section)
+    manager = DBManager.create(db)
+    connectable = manager.engine
 
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
+    with connectable.connect() as connection:
+        do_run_migrations(connection)
 
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    asyncio.run(run_migrations_online())
+    run_migrations_online()

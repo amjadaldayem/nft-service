@@ -12,13 +12,17 @@ class NFTCollection(Base):
     __tablename__ = 'nft_collection'
 
     # Constants
-    INACTIVE = 0
-    ACTIVE = 1
-    DELETED = 2
+    STATUS_INACTIVE = 0
+    STATUS_ACTIVE = 1
+    STATUS_DELETED = 2
+
+    DATA_STATUS_UPDATING = 0  # Data related to this collection are being populated still
+    DATA_STATUS_DONE = 1  # Data ready
+    DATA_STATUS_FAILED = 2  # Something worth manually checking into.
 
     pk = Column("id", UUID(), primary_key=True, server_default=func.uuid_generate_v4())
     blockchain_id = Column(
-        SmallInteger(),
+        Integer(),
         index=True,
         nullable=False,
         default=BLOCKCHAIN_SOLANA
@@ -27,11 +31,22 @@ class NFTCollection(Base):
     family = Column(String(length=100), index=True, default="")
     slug = Column(String(length=127), index=True, default="")
     description = Column(Text, default="")
-    update_authority = Column(String(length=127), index=True, default="")
+    # For different chains, this will be the ID that can help uniquely identify
+    # this collection. E.g., for Solana, this will be the `update_authority`.
+    onchain_id = Column(String(length=127), index=True, default="")
     seller_fee_basis_points = Column(
         Integer(),
         default=0,
         comment="Unit in 1/10000th, can be overridden by individual NFT."
+    )
+    verified = Column(
+        Boolean(),
+        default=False,
+    )
+    data_status = Column(
+        SmallInteger(),
+        default=DATA_STATUS_UPDATING,
+        comment="For storing the data update information for ingesting."
     )
     creators = Column(
         JSONB,
@@ -58,7 +73,7 @@ class NFTCollection(Base):
     status = Column(
         SmallInteger(),
         index=True,
-        default=INACTIVE,
+        default=STATUS_INACTIVE,
         nullable=False
     )
     # The date (roughly) that this collection is launched.
@@ -122,7 +137,7 @@ class NFT(Base):
 class NFTAttributeDef(Base):
     __tablename__ = 'nft_attribute_def'
 
-    pk = Column("id", UUID(), primary_key=True, server_default=func.uuid_generate_v4())
+    pk = Column("id", Integer(), primary_key=True, autoincrement=True)
     # Which collection is this attribute definition for?
     nft_collection_id = Column(UUID(), ForeignKey("nft_collection.id"), index=True)
     name = Column(String(64), index=True, default='', nullable=False)
@@ -144,6 +159,8 @@ class NFTAttributeDef(Base):
 class NFTAttributes(Base):
     __tablename__ = 'nft_attributes'
 
+    pk = Column(BigInteger(), autoincrement=True, primary_key=True)
+
     nft_id = Column(UUID(), ForeignKey("nft.id"), index=True)
     # nad = NFTAttributeDef
     nad_id = Column(Integer(), ForeignKey("nft_attribute_def.id"), index=True)
@@ -163,9 +180,10 @@ class NFTCollectionSubscriptions(Base):
     )
     user_id = Column(
         UUID(),
-        ForeignKey('nft_user_permissions.user_id'),
         index=True,
-        nullable=False
+        nullable=False,
+        comment="Weak ref to User ID. This should be provided from external "
+                "services such as User Service."
     )
     nft_collection_id = Column(
         UUID(),
@@ -199,14 +217,15 @@ class NFTUserPermissions(Base):
     """
     __tablename__ = 'nft_user_permissions'
     __table_args__ = (
-        UniqueConstraint('user_id', 'blockchain_id'),
+        UniqueConstraint('user_id', 'blockchain_id', name='user_blockchain_uniq'),
     )
-    # Weak ref to the User ID, this should be provided via the
-    # User Service / Admin tool if any
+    pk = Column(BigInteger(), autoincrement=True, primary_key=True)
     user_id = Column(
         UUID(),
         index=True,
-        nullable=False
+        nullable=False,
+        comment="Weak ref to User ID. This should be provided from external "
+                "services such as User Service."
     )
     blockchain_id = Column(
         SmallInteger(),
@@ -232,4 +251,3 @@ class NFTUserPermissions(Base):
 #             "pk": S -> "m#<market_id>",
 #             "sk": N -> "timestamp" (descending),
 #             }
-# To get the

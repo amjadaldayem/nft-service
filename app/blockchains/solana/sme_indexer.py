@@ -14,6 +14,7 @@ async def sme_get_last_indexed_transaction_hash() -> Optional[str]:
 async def sme_save_last_indexed_transaction_hash(latest_transaction_hash):
     pass
 
+
 async def sme_parse_transactions():
     pass
 
