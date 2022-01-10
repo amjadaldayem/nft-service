@@ -11,12 +11,12 @@ import orjson
 logger = logging.getLogger(__name__)
 
 
-async def stderr_error_notify(e, metadata):
+def stderr_error_notify(e, metadata):
     logger.error(
         "error=%s, metadata=%s, stacktrace=\n%s",
         str(e),
         orjson.dumps(metadata).decode(),
-        await full_stacktrace()
+        full_stacktrace()
     )
 
 
@@ -28,18 +28,18 @@ def setup_error_handler(fn):
     _fn = fn
 
 
-async def notify_error(e: Union[str, Exception], metadata=None):
+def notify_error(e: Union[str, Exception], metadata=None):
     metadata = metadata or {}
     if _fn:
         try:
-            await _fn(e, metadata)
+            _fn(e, metadata)
         except Exception as e:
             raise
     else:
         logger.error(str(e))
 
 
-async def full_stacktrace():
+def full_stacktrace():
     exc = sys.exc_info()[0]
     stack = traceback.extract_stack()[:-1]  # last one would be full_stack()
     if exc is not None:  # i.e. an exception is present

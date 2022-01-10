@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-import asyncio
 import datetime
-import functools
 import logging
 import pickle
 import signal
@@ -11,7 +9,6 @@ from functools import cached_property
 from operator import attrgetter
 from typing import Tuple, Optional, Mapping, Iterable
 
-import boto3
 import orjson
 import pybase64 as base64
 
@@ -180,8 +177,6 @@ class CQueue(object):
         if visibility_timeout is not None:
             kwargs['VisibilityTimeout'] = visibility_timeout
 
-        # meta_data = {"queue": {"name": self.name, "url": self._queue_url}}
-
         sqs_messages = self._queue.receive_messages(**kwargs)
 
         if visibility_timeout == 0:
@@ -276,11 +271,7 @@ class CQueue(object):
         """
 
     def __str__(self):
-        return self.__unicode__()
-
-    def __unicode__(self):
-        return u'Queue={name} Priority={priority} Url={url};'.format(
-            name=self.name, priority=self.priority, url=self._queue_url)
+        return f'Queue={self.name};Url={self.url};Priority={self.priority};'
 
 
 class PolicyBase(object):
@@ -320,7 +311,7 @@ class WeightedPolicy(PolicyBase):
 
 # Public API
 
-async def single_loop(poller, handler_func, worker_type):
+def single_loop(sqs, poller, handler_func, worker_type):
     chosen_queue, message = poller.next_queue_and_message()
     msg_received = 0
     msg_processed = 0
@@ -337,7 +328,7 @@ async def single_loop(poller, handler_func, worker_type):
                  message.id,
                  str(message.body))
 
-    f = await handler_func(chosen_queue, message, worker_type)
+    f = handler_func(chosen_queue, message, worker_type)
 
     msg_processed = 1
 
@@ -348,12 +339,12 @@ async def single_loop(poller, handler_func, worker_type):
     return msg_received, msg_processed
 
 
-async def message_loop(queues: Iterable[CQueue],
-                       handler_func: callable,
-                       poll_policy_class=StrictPriorityPolicy,
-                       shutdown: threading.Event = None,
-                       worker_type: str = None,
-                       max_messages_to_receive=None):
+def message_loop(queues: Iterable[CQueue],
+                 handler_func: callable,
+                 poll_policy_class=StrictPriorityPolicy,
+                 shutdown: threading.Event = None,
+                 worker_type: str = None,
+                 max_messages_to_receive=None):
     """
     Starts a message loop and call related handler functions.
 
@@ -371,13 +362,13 @@ async def message_loop(queues: Iterable[CQueue],
                 handler_func=foo),
         ]
 
-
-        shutdown = await shutdown_on([
+        shutdown = shutdown_on([
             signal.SIGINT,
             signal.SIGTERM,
         ])
 
-        await message_loop(
+        message_loop(
+            sqs=sqs
             queues=queues,
             shutdown=shutdown,
             handler_func=foo,
@@ -412,7 +403,8 @@ async def message_loop(queues: Iterable[CQueue],
             break
 
         loop_counter += 1
-        msg_received, msg_processed = await single_loop(
+        msg_received, msg_processed = single_loop(
+            sqs,
             poll_policy_instance,
             handler_func,
             worker_type
@@ -432,7 +424,7 @@ async def message_loop(queues: Iterable[CQueue],
     return msgs_received, msgs_processed
 
 
-async def shutdown_on(signals):
+def shutdown_on(signals):
     """Returns a threading.Event() that will get set when any of the given
     signals are triggered.
 
@@ -443,7 +435,6 @@ async def shutdown_on(signals):
         threading.Event
     """
     shutdown = threading.Event()
-    loop = asyncio.get_running_loop()
 
     def cancel_execution(signum, frame):  # noqa
         signame = SIGNAL_NAMES.get(signum, signum)
@@ -452,10 +443,6 @@ async def shutdown_on(signals):
         shutdown.set()
 
     for s in signals:
-        loop.add_signal_handler(
-            s,
-            functools.partial(cancel_execution, s, None)
-        )
         signal.signal(s, cancel_execution)
 
     return shutdown

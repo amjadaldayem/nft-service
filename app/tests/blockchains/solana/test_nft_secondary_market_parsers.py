@@ -36,7 +36,7 @@ event_type_dir_map = {
 }
 
 
-async def load_and_parse(market_id, event_type_id, file_name) -> Tuple[SecondaryMarketEvent, int, str]:
+def load_and_parse(market_id, event_type_id, file_name) -> Tuple[SecondaryMarketEvent, int, str]:
     with open(
             os.path.join(
                 market_id_dir_map[market_id],
@@ -47,11 +47,11 @@ async def load_and_parse(market_id, event_type_id, file_name) -> Tuple[Secondary
         transaction_dict = orjson.loads(c.read())
     timestamp = transaction_dict['blockTime']
     pt = ParsedTransaction.from_transaction_dict(transaction_dict)
-    event = await pt.event
+    event = pt.event
     return event, timestamp, pt.signature
 
 
-async def make_expected(market_id, event_type_id, token_key, price, owner_or_buyer, timestamp, signature):
+def make_expected(market_id, event_type_id, token_key, price, owner_or_buyer, timestamp, signature):
     evt = SecondaryMarketEvent(
         blockchain_id=BLOCKCHAIN_SOLANA,
         market_id=market_id,
@@ -73,7 +73,7 @@ async def make_expected(market_id, event_type_id, token_key, price, owner_or_buy
     return evt
 
 
-async def test_events_for(test_case, market_id, generate_expected=False):
+def assert_events_for(test_case, market_id, generate_expected=False):
     """
     Conventions:
         - a txns.json file containing a list of transactions under the respective
@@ -96,7 +96,7 @@ async def test_events_for(test_case, market_id, generate_expected=False):
     for transaction in transactions:
         pt = ParsedTransaction.from_transaction_dict(transaction)
         if pt:
-            event = await pt.event
+            event = pt.event
             if event:
                 results.append(event)
 
@@ -118,15 +118,15 @@ async def test_events_for(test_case, market_id, generate_expected=False):
             )
 
 
-class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
+class MagicEdenTestCase(unittest.TestCase):
 
-    async def test_magic_eden_listing_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_magic_eden_listing_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='rp9gXpW4zAetpWBvJY62uTSw1bRwqNd39b2f3hzaNwk',
@@ -137,13 +137,13 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_listing_event_02(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_magic_eden_listing_event_02(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
             '02.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='6NUbZ3cDbf2jMcbhZC6spNgD4TgMkh9g93Vmot5Rx1u7',
@@ -154,13 +154,13 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_listing_event_03(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_magic_eden_listing_event_03(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
             '03.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='ELZfkWWG6R2LzYPj7Ei7z2ui2dS732xbEexf1SRVnFoY',
@@ -171,13 +171,13 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_listing_event_04(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_magic_eden_listing_event_04(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
             '04.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='CiF2QP7NUfz3t7ZpoTavtRvZRdWadxaUFQKZK6EA6Tjm',
@@ -188,13 +188,13 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_listing_event_05(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_magic_eden_listing_event_05(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
             '05.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='5jcY8Ekvi8frZVPy9rHTtaNBzDvKNb94L9xH7bGJR68b',
@@ -205,13 +205,13 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_sale_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_magic_eden_sale_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_SALE,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='8ag4raw8snR6GbM6znQYv9k4845zs5NYrDZdoxnxaNwK',
@@ -222,13 +222,13 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_sale_event_02(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_magic_eden_sale_event_02(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_SALE,
             '02.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='CiF2QP7NUfz3t7ZpoTavtRvZRdWadxaUFQKZK6EA6Tjm',
@@ -239,13 +239,13 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_sale_event_03(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_magic_eden_sale_event_03(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_SALE,
             '03.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='5jcY8Ekvi8frZVPy9rHTtaNBzDvKNb94L9xH7bGJR68b',
@@ -256,13 +256,13 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_sale_event_04(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_magic_eden_sale_event_04(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_SALE,
             '04.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='AF5i9bGy8f7bwfidwEPxjfB6qTzpWzGh3kqxwJpSAirH',
@@ -273,13 +273,13 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_sale_event_05(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_magic_eden_sale_event_05(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_SALE,
             '05.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='AddspwH8RRsS8Z3r3gzzPWw2YeYjC5rRk9cnzxfajcGX',
@@ -290,13 +290,13 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_delisting_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_magic_eden_delisting_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_DELISTING,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_DELISTING,
             token_key='rp9gXpW4zAetpWBvJY62uTSw1bRwqNd39b2f3hzaNwk',
@@ -307,19 +307,19 @@ class MagicEdenTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_magic_eden_events(self):
-        await test_events_for(self, SOLANA_MAGIC_EDEN)
+    def test_magic_eden_events(self):
+        assert_events_for(self, SOLANA_MAGIC_EDEN)
 
 
-class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
+class AlphaArtTestCase(unittest.TestCase):
 
-    async def test_alpha_art_listing_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_alpha_art_listing_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_LISTING,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='2Pw69uefPXeqD2PvLjDMD3CohKWFixKVwkf5yJSzAu5K',
@@ -330,13 +330,13 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_alpha_art_listing_event_02(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_alpha_art_listing_event_02(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_LISTING,
             '02.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='9FFa3TxK27TfsU5D2iLHt4uT6PM3G3z72NQ48bQ2KT1A',
@@ -347,13 +347,13 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_alpha_art_listing_event_03(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_alpha_art_listing_event_03(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_LISTING,
             '03.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='DXnyp6qLf5bBj1vHedTCJPDVQ1fvcAPYWGB6BGNU6oSz',
@@ -364,13 +364,13 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_alpha_art_delisting_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_alpha_art_delisting_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_DELISTING,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_DELISTING,
             token_key='2Pw69uefPXeqD2PvLjDMD3CohKWFixKVwkf5yJSzAu5K',
@@ -381,13 +381,13 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_alpha_art_delisting_event_02(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_alpha_art_delisting_event_02(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_DELISTING,
             '02.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_DELISTING,
             token_key='EekTeMw2boaBjEX9PSRV9P9wz4CRZGAYEkz456M3juX2',
@@ -398,13 +398,13 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_alpha_art_delisting_event_03(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_alpha_art_delisting_event_03(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_DELISTING,
             '03.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_DELISTING,
             token_key='Fqc4ts9nN1Hp1mZR6CEx6yG7T4eZH8FN39ruAGc2fTuC',
@@ -415,13 +415,13 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_alpha_art_sale_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_alpha_art_sale_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_SALE,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='Fqc4ts9nN1Hp1mZR6CEx6yG7T4eZH8FN39ruAGc2fTuC',
@@ -432,13 +432,13 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_alpha_art_sale_event_02(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_alpha_art_sale_event_02(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_SALE,
             '02.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_ALPHA_ART,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='EFyoruiPbLG2YdKDAd3Hrtcm7cWGbMf2yutZq86Sovvz',
@@ -449,19 +449,19 @@ class AlphaArtTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_alpha_art_events(self):
-        await test_events_for(self, SOLANA_ALPHA_ART)
+    def test_alpha_art_events(self):
+        assert_events_for(self, SOLANA_ALPHA_ART)
 
 
-class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
+class SolanartTestCase(unittest.TestCase):
 
-    async def test_solanart_listing_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solanart_listing_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_LISTING,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='CjpknwfKuLnJGELurHgioq4FSw1WoBJzZh8rfKtJaMnA',
@@ -472,13 +472,13 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solanart_delisting_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solanart_delisting_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_DELISTING,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_DELISTING,
             token_key='5xMBU72azWpXC9VSvrJBBZDTd5F2h6Wztrx386pwr3Uo',
@@ -489,13 +489,13 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solanart_sale_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solanart_sale_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='2Pw69uefPXeqD2PvLjDMD3CohKWFixKVwkf5yJSzAu5K',
@@ -506,13 +506,13 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solanart_sale_event_02(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solanart_sale_event_02(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
             '02.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='nnsyke25QR3yJAmAuQhjESEHHjs93iyUqKaKPhGWtQh',
@@ -523,13 +523,13 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solanart_sale_event_03(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solanart_sale_event_03(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
             '03.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='5m4HCYXN4E7hCc8i5ojMRhYAwyv91WQQX58vv3Fggop6',
@@ -540,13 +540,13 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solanart_sale_event_04(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solanart_sale_event_04(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
             '04.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='CqkUbXgnYhwxfzJRqPVJGparRRsrzMJKGGUuL59Gsajj',
@@ -557,13 +557,13 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solanart_sale_event_05(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solanart_sale_event_05(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
             '05.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='CjpknwfKuLnJGELurHgioq4FSw1WoBJzZh8rfKtJaMnA',
@@ -574,13 +574,13 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solanart_price_update_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solanart_price_update_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             token_key='CjpknwfKuLnJGELurHgioq4FSw1WoBJzZh8rfKtJaMnA',
@@ -591,13 +591,13 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solanart_price_update_event_02(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solanart_price_update_event_02(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             '02.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             token_key='CjpknwfKuLnJGELurHgioq4FSw1WoBJzZh8rfKtJaMnA',
@@ -608,13 +608,13 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solanart_price_update_event_03(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solanart_price_update_event_03(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             '03.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             token_key='CjpknwfKuLnJGELurHgioq4FSw1WoBJzZh8rfKtJaMnA',
@@ -625,19 +625,19 @@ class SolanartTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solanart_events(self):
-        await test_events_for(self, SOLANA_SOLANART)
+    def test_solanart_events(self):
+        assert_events_for(self, SOLANA_SOLANART)
 
 
-class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
+class DigitalEyesTestCase(unittest.TestCase):
 
-    async def test_digital_eyes_listing_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_digital_eyes_listing_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_LISTING,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='DZFnfQzVJtukamiUDaB82r95iDnkCB7uYPoxcAFyJ7Dz',
@@ -648,13 +648,13 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_listing_event_02(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_digital_eyes_listing_event_02(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_LISTING,
             '02.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='9H3ncfCp31nA9bTnaEUezkMGgtc869HCCjF5riH7iWTP',
@@ -665,13 +665,13 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_listing_event_03(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_digital_eyes_listing_event_03(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_LISTING,
             '03.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='B3yBqWgc7krrUpkGRiZuSQJWrkPCCXpoB3JJPMVmjwC6',
@@ -682,13 +682,13 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_price_update_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_digital_eyes_price_update_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             token_key='Cbvj3kCDfiqX8ZdQFch1xfZvBWKhuG7tzTX7wLAUZ4fn',
@@ -699,13 +699,13 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_price_update_event_02(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_digital_eyes_price_update_event_02(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             '02.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             token_key='FKEA7tLr4AFQarvDVDv378xggFyST2y1wU3gTZ8y7ute',
@@ -716,13 +716,13 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_price_update_event_03(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_digital_eyes_price_update_event_03(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             '03.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             token_key='CuTQhEBTtKf6TEp6kTgHRuG9an2RexW9WzUeGY2jcuzj',
@@ -733,13 +733,13 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_price_update_event_04(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_digital_eyes_price_update_event_04(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             '04.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
             token_key='5xMBU72azWpXC9VSvrJBBZDTd5F2h6Wztrx386pwr3Uo',
@@ -750,13 +750,13 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_delisting_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_digital_eyes_delisting_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_DELISTING,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_DELISTING,
             token_key='CuTQhEBTtKf6TEp6kTgHRuG9an2RexW9WzUeGY2jcuzj',
@@ -767,13 +767,13 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_delisting_event_02(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_digital_eyes_delisting_event_02(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_DELISTING,
             '02.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_DELISTING,
             token_key='5xMBU72azWpXC9VSvrJBBZDTd5F2h6Wztrx386pwr3Uo',
@@ -784,13 +784,13 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_sale_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_digital_eyes_sale_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_SALE,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='HVqyPbQp7J1FncpshWvPuau3TspjF7ZfRHc67xVuAiFS',
@@ -801,19 +801,19 @@ class DigitalEyesTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_digital_eyes_events(self):
-        await test_events_for(self, SOLANA_DIGITAL_EYES)
+    def test_digital_eyes_events(self):
+        assert_events_for(self, SOLANA_DIGITAL_EYES)
 
 
-class SolseaTestCase(unittest.IsolatedAsyncioTestCase):
+class SolseaTestCase(unittest.TestCase):
 
-    async def test_solsea_listing_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solsea_listing_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLSEA,
             SECONDARY_MARKET_EVENT_LISTING,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLSEA,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='kBxi6eRWQ6Dpep3RWmLKMqr31hZ2PqQYeSCB6RhyzmH',
@@ -824,13 +824,13 @@ class SolseaTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solsea_listing_event_02(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solsea_listing_event_02(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLSEA,
             SECONDARY_MARKET_EVENT_LISTING,
             '02.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLSEA,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='39oQZUjoLJXjW8EbNvFFnydLjsCmChsB66YvnnxGxYpe',
@@ -841,13 +841,13 @@ class SolseaTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solsea_listing_event_03(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solsea_listing_event_03(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLSEA,
             SECONDARY_MARKET_EVENT_LISTING,
             '03.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLSEA,
             SECONDARY_MARKET_EVENT_LISTING,
             token_key='HB7szWRJB9VjvgPCq6o4DNyhZp9dytKodYBMqEQdU7df',
@@ -858,13 +858,13 @@ class SolseaTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solsea_sale_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solsea_sale_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLSEA,
             SECONDARY_MARKET_EVENT_SALE,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLSEA,
             SECONDARY_MARKET_EVENT_SALE,
             token_key='39oQZUjoLJXjW8EbNvFFnydLjsCmChsB66YvnnxGxYpe',
@@ -875,13 +875,13 @@ class SolseaTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solsea_delisting_event_01(self):
-        event, timestamp, signature = await load_and_parse(
+    def test_solsea_delisting_event_01(self):
+        event, timestamp, signature = load_and_parse(
             SOLANA_SOLSEA,
             SECONDARY_MARKET_EVENT_DELISTING,
             '01.json'
         )
-        expected = await make_expected(
+        expected = make_expected(
             SOLANA_SOLSEA,
             SECONDARY_MARKET_EVENT_DELISTING,
             token_key='HB7szWRJB9VjvgPCq6o4DNyhZp9dytKodYBMqEQdU7df',
@@ -892,5 +892,5 @@ class SolseaTestCase(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(event, expected)
 
-    async def test_solsea_events(self):
-        await test_events_for(self, SOLANA_SOLSEA)
+    def test_solsea_events(self):
+        assert_events_for(self, SOLANA_SOLSEA)

@@ -1,21 +1,23 @@
 import logging
+import os
 import sys
 
-import asyncclick as click
-import orjson
+import click
 
 import settings
 from app.tools import tk
 from app.worker import worker
-from slab.errors import setup_error_handler, full_stacktrace
+from app.worker.indexers.solana.nft_indexer import NftCollectionDRoutine as SolanaNftCollectionDRoutine
+from slab.errors import setup_error_handler
 from slab.logging import setup_logging
+from slab.messaging import map_droutines_to_queue, CQueue
 
 sys.dont_write_bytecode = True
 
 logger = logging.getLogger(__name__)
 
 
-async def sentry_error_notify(e, metadata):
+def sentry_error_notify(e, metadata):
     pass
 
 
@@ -31,11 +33,13 @@ def initialize():
     #     region_name=region_name
     # )
     # # NFTRepository.initialize(table_name)
-    pass
+    map_droutines_to_queue(
+        SolanaNftCollectionDRoutine
+    )
 
 
 @click.group()
-async def main():
+def main():
     setup_logging(settings.DEBUG)
     if settings.DEPLOYMENT_ENV not in ('local', 'test'):
         setup_error_handler(sentry_error_notify)
@@ -46,4 +50,4 @@ main.add_command(tk)
 main.add_command(worker)
 
 if __name__ == '__main__':
-    main(_anyio_backend='asyncio')
+    main()

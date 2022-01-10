@@ -21,16 +21,16 @@ logger = logging.getLogger(__name__)
 
 METADATA_PROGRAM_ID = PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 
-NftCollectionInput = namedtuple(
-    'NftCollectionInput',
+NFTCollectionInput = namedtuple(
+    'NFTCollectionInput',
     [
         'update_authority',  # For fetching all mints
         'num_creators',
     ]
 )
 
-NftMetadataProgramAccount = namedtuple(
-    'NftMetadataProgramAccount',
+NFTMetadataProgramAccount = namedtuple(
+    'NFTMetadataProgramAccount',
     [
         'public_key',
         'data',
@@ -40,7 +40,7 @@ NftMetadataProgramAccount = namedtuple(
 
 
 @dataclasses.dataclass
-class NftMetaData:
+class NFTMetaData:
     """
     The metadata of an NFT, note that to retrieve the actual content of the
     metadata, we need to issue HTTP GET against the `uri` field again. This
@@ -60,6 +60,27 @@ class NftMetaData:
     verified: List[str]
     share: List[str]
     ext_data: Mapping = dataclasses.field(default_factory=dict)
+
+    @property
+    def creators_info(self) -> List[Mapping]:
+        creators = self.creators
+        verified = self.verified
+        share = self.share
+        lc = len(creators)
+        lv = len(verified)
+        ls = len(share)
+
+        if not (lc == lv == ls):
+            return []
+
+        return [
+            {
+                'creator': creators[i],
+                'share': share[i],
+                'verified': verified[i],
+            }
+            for i in range(lc)
+        ]
 
 
 class RPCHelper:
@@ -142,7 +163,7 @@ class RPCHelper:
         primary_sale_happened = bool(data[i])
         i += 1
         is_mutable = bool(data[i])
-        metadata = NftMetaData(
+        metadata = NFTMetaData(
             update_authority=bytes(source_account).decode('utf-8'),
             mint_key=bytes(mint_account).decode('utf-8'),
             primary_sale_happened=primary_sale_happened,
@@ -158,15 +179,15 @@ class RPCHelper:
         return metadata
 
 
-async def nft_get_collection_pdas(update_authority) -> List[NftMetadataProgramAccount]:
-    async with CustomAsyncClient(
+def nft_get_collection_pdas(update_authority) -> List[NFTMetadataProgramAccount]:
+    with CustomAsyncClient(
             settings.SOLANA_RPC_ENDPOINT,
             commitment=commitment.Confirmed,
             timeout=60
     ) as client:
-        await client.is_connected()
+        client.is_connected()
         # This is darn expensive ...
-        resp = await client.get_program_accounts(
+        resp = client.get_program_accounts(
             PublicKey(consts.METAPLEX_PUBKEY),
             encoding='base64',
             commitment=commitment.Confirmed,
@@ -178,7 +199,7 @@ async def nft_get_collection_pdas(update_authority) -> List[NftMetadataProgramAc
         for r in resp['result']:
             data, encoding = r['account']['data']
             result.append(
-                NftMetadataProgramAccount(
+                NFTMetadataProgramAccount(
                     public_key=r['pubkey'],
                     data=data,
                     encoding=encoding
@@ -187,11 +208,11 @@ async def nft_get_collection_pdas(update_authority) -> List[NftMetadataProgramAc
         return result
 
 
-async def nft_get_metadata(pda: NftMetadataProgramAccount) -> Optional[NftMetaData]:
+def nft_get_metadata(pda: NFTMetadataProgramAccount) -> Optional[NFTMetaData]:
     """
 
     Args:
-        pda: The namedtuple `NftMetadataProgramAccount`, usually from the result
+        pda: The namedtuple `NFTMetadataProgramAccount`, usually from the result
             of a call to the `nft_get_collection_pdas` function.
 
     Returns:
@@ -210,7 +231,7 @@ async def nft_get_metadata(pda: NftMetadataProgramAccount) -> Optional[NftMetaDa
         return None
 
 
-async def nft_get_metadata_by_pda_key(pda_key: Union[str, PublicKey]) -> Optional[NftMetaData]:
+def nft_get_metadata_by_pda_key(pda_key: Union[str, PublicKey]) -> Optional[NFTMetaData]:
     """
     Gets the NFT metadata by the `update_authority` key.
 
@@ -221,21 +242,21 @@ async def nft_get_metadata_by_pda_key(pda_key: Union[str, PublicKey]) -> Optiona
     Returns:
 
     """
-    async with CustomAsyncClient(
+    with CustomAsyncClient(
             settings.SOLANA_RPC_ENDPOINT,
             commitment=commitment.Confirmed,
             timeout=15
     ) as client:
-        await client.is_connected()
-        resp = await client.get_account_info(pda_key)
+        client.is_connected()
+        resp = client.get_account_info(pda_key)
 
         value = resp['result']['value']
         if not value:
             return None
         data_field = value['data']
         data, encoding = data_field
-        return await nft_get_metadata(
-            NftMetadataProgramAccount(
+        return nft_get_metadata(
+            NFTMetadataProgramAccount(
                 public_key=pda_key,
                 data=data,
                 encoding=encoding
@@ -243,7 +264,7 @@ async def nft_get_metadata_by_pda_key(pda_key: Union[str, PublicKey]) -> Optiona
         )
 
 
-async def nft_get_metadata_by_token_key(token_key: str) -> NftMetaData:
+def nft_get_metadata_by_token_key(token_key: str) -> NFTMetaData:
     """
     Gets the NFT metadata by the Token key (address).
 
@@ -253,11 +274,11 @@ async def nft_get_metadata_by_token_key(token_key: str) -> NftMetaData:
     Returns:
 
     """
-    metadata_pda_key = await nft_get_metadata_pda_key_by_token_key(token_key)
-    return await nft_get_metadata_by_pda_key(metadata_pda_key)
+    metadata_pda_key = nft_get_metadata_pda_key_by_token_key(token_key)
+    return nft_get_metadata_by_pda_key(metadata_pda_key)
 
 
-async def nft_get_metadata_pda_key_by_token_key(token_key: str) -> PublicKey:
+def nft_get_metadata_pda_key_by_token_key(token_key: str) -> PublicKey:
     """
     Finds the `update_authority` key from the given token key.
 
@@ -286,12 +307,12 @@ async def nft_get_metadata_pda_key_by_token_key(token_key: str) -> PublicKey:
 #   The 2nd parameter (the wallet) is the update_authority for InitializeCandyMachine instruction
 #   The could be use to fetch the new collection.
 
-async def _get_transaction_with_index(client: AsyncClient, idx, sig):
-    resp = await client.get_confirmed_transaction(sig)
+def _get_transaction_with_index(client: AsyncClient, idx, sig):
+    resp = client.get_confirmed_transaction(sig)
     return idx, resp['result']
 
 
-async def fetch_transactions_for_pubkey_para(
+def fetch_transactions_for_pubkey_para(
         async_client: AsyncClient,
         public_key: str,
         before: Optional[str] = None,
@@ -304,8 +325,8 @@ async def fetch_transactions_for_pubkey_para(
     The resulting transactions are sorted in the descending order (from most recent
     to the oldest).
     """
-    await async_client.is_connected()
-    resp = await async_client.get_confirmed_signature_for_address2(
+    async_client.is_connected()
+    resp = async_client.get_confirmed_signature_for_address2(
         public_key,
         before=before,
         until=until,
@@ -323,7 +344,7 @@ async def fetch_transactions_for_pubkey_para(
             _get_transaction_with_index(async_client, i, signature)
             for i, signature in enumerate(segment)
         ]
-        segment_result = list(await asyncio.gather(*tasks))
+        segment_result = list(asyncio.gather(*tasks))
         segment_result.sort()
         _, events = zip(*segment_result)
         all_result.extend(events)

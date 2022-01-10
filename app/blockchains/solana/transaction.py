@@ -75,7 +75,7 @@ class ParsedTransaction:
         self.post_token_balances = meta[T_KEY_POST_TOKEN_BALANCES]
 
     @cachetools.cached(cache={})
-    async def _parse(self) -> Optional[SecondaryMarketEvent]:
+    def _parse(self) -> Optional[SecondaryMarketEvent]:
         # See if any secondary market account involved
         secondary_market_id = None
         account_key = None
@@ -89,17 +89,17 @@ class ParsedTransaction:
         market_authority_address = MARKET_ADDRESS_MAP[secondary_market_id]
 
         if secondary_market_id == SOLANA_MAGIC_EDEN:
-            return await self._parse_magic_eden(account_key, market_authority_address)
+            return self._parse_magic_eden(account_key, market_authority_address)
         elif secondary_market_id == SOLANA_ALPHA_ART:
-            return await self._parse_alpha_art(account_key, market_authority_address)
+            return self._parse_alpha_art(account_key, market_authority_address)
         elif secondary_market_id == SOLANA_SOLANART:
-            return await self._parse_solanart(account_key, market_authority_address)
+            return self._parse_solanart(account_key, market_authority_address)
         elif secondary_market_id == SOLANA_DIGITAL_EYES:
-            return await self._parse_digital_eyes(account_key, market_authority_address)
+            return self._parse_digital_eyes(account_key, market_authority_address)
         elif secondary_market_id == SOLANA_SOLSEA:
-            return await self._parse_solsea(account_key, market_authority_address)
+            return self._parse_solsea(account_key, market_authority_address)
 
-    async def _parse_magic_eden(self, magic_eden_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+    def _parse_magic_eden(self, magic_eden_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
         There is no price update event for MagicEden secondary market.
 
@@ -168,7 +168,7 @@ class ParsedTransaction:
         event.token_key = self.find_token_address(token_account_to_match)
         return event if event.token_key and (event.owner or event.buyer) else None
 
-    async def _parse_alpha_art(self, alpha_art_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+    def _parse_alpha_art(self, alpha_art_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
         Delisting event on AlphaArt is done by transferring the token back to the
         original owner, then closing the previous token account.
@@ -250,7 +250,7 @@ class ParsedTransaction:
         event.token_key = self.find_token_address(token_account_to_match)
         return event
 
-    async def _parse_solanart(self, solanart_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+    def _parse_solanart(self, solanart_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
         Solnart Program:
          - u8: instruction offset
@@ -332,7 +332,7 @@ class ParsedTransaction:
             return None
         return event if event.token_key and (event.owner or event.buyer) else None
 
-    async def _parse_digital_eyes(self, digital_eyes_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+    def _parse_digital_eyes(self, digital_eyes_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
         DigitalEyes has two program account, one for listing/delisting/price-update
         and the other for sale.
@@ -408,7 +408,7 @@ class ParsedTransaction:
         )
         return event if event_type else None
 
-    async def _parse_solsea(self, solsea_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+    def _parse_solsea(self, solsea_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
         There is no price update events for Solsea either.
         Args:
@@ -481,8 +481,8 @@ class ParsedTransaction:
         return event
 
     @cached_property
-    async def event(self):
-        return await self._parse()
+    def event(self):
+        return self._parse()
 
     def find_token_address(self, token_account_to_match: Optional[str]):
         """

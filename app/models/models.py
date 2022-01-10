@@ -16,10 +16,6 @@ class NFTCollection(Base):
     STATUS_ACTIVE = 1
     STATUS_DELETED = 2
 
-    DATA_STATUS_UPDATING = 0  # Data related to this collection are being populated still
-    DATA_STATUS_DONE = 1  # Data ready
-    DATA_STATUS_FAILED = 2  # Something worth manually checking into.
-
     pk = Column("id", UUID(), primary_key=True, server_default=func.uuid_generate_v4())
     blockchain_id = Column(
         Integer(),
@@ -33,7 +29,15 @@ class NFTCollection(Base):
     description = Column(Text, default="")
     # For different chains, this will be the ID that can help uniquely identify
     # this collection. E.g., for Solana, this will be the `update_authority`.
-    onchain_id = Column(String(length=127), index=True, default="")
+    onchain_id = Column(
+        String(length=127),
+        index=True,
+        default="",
+        comment="""On chain token address or pubkey etc.
+        Depending on the specific blockchain. E.g., in Solana this would be
+        the `update_authority`.
+        """
+    )
     seller_fee_basis_points = Column(
         Integer(),
         default=0,
@@ -43,15 +47,10 @@ class NFTCollection(Base):
         Boolean(),
         default=False,
     )
-    data_status = Column(
-        SmallInteger(),
-        default=DATA_STATUS_UPDATING,
-        comment="For storing the data update information for ingesting."
-    )
     creators = Column(
         JSONB,
         nullable=True,
-        comment="""In format: [{"creator": <>, "share": <>}, ...].
+        comment="""In format: [{"creator": <>, "share": <>, "verified": <>}, ...].
         Can be overridden by individual NFT.
         """
     )
@@ -84,7 +83,9 @@ class NFTCollection(Base):
         default=None
     )
 
-    nfts = relationship("NFT", backref="nft_collection")
+    # Note that we have to use `selectin` or `joined` here
+    # for the loading options because we are using AsyncEngine.
+    nfts = relationship("NFT", backref="nft_collection", lazy='joined')
 
 
 class NFT(Base):
@@ -92,7 +93,10 @@ class NFT(Base):
 
     pk = Column("id", UUID(), primary_key=True, server_default=func.uuid_generate_v4())
     nft_collection_id = Column(UUID(), ForeignKey("nft_collection.id"), index=True)
-    token_address = Column(String(length=127), index=True, default="")
+    onchain_id = Column(
+        String(length=127), index=True, default="",
+        comment="On chain token address or pubkey etc. Depending on the specific blockchain."
+    )
     name = Column(String(length=100), index=True, nullable=True, default="")
     slug = Column(String(length=127), index=True, default="")
     is_mutable = Column(Boolean(), default=True, nullable=False)
@@ -239,15 +243,3 @@ class NFTUserPermissions(Base):
         nullable=True,
         default={}
     )
-
-
-## TODO Use Postgres to store the Crawler info
-#         * For transaction crawlers,
-#
-#         Data to store:
-#             {
-#             "h": "transaction_hash",
-#             # composite data
-#             "pk": S -> "m#<market_id>",
-#             "sk": N -> "timestamp" (descending),
-#             }

@@ -2,7 +2,7 @@ import asyncio
 import os.path
 import time
 
-import asyncclick as click
+import click
 import orjson
 from solana.rpc.api import Client
 
@@ -12,7 +12,7 @@ from app.blockchains.solana.client import fetch_transactions_for_pubkey_para
 
 
 @click.group()
-async def txn():
+def txn():
     """
     Transaction related commands
 
@@ -23,7 +23,7 @@ async def txn():
 @click.command(name='get')
 @click.argument('signature')
 @click.argument('filename')
-async def get_transaction(signature, filename):
+def get_transaction(signature, filename):
     c = Client(settings.SOLANA_RPC_ENDPOINT)
     resp = c.get_confirmed_transaction(signature)
     dir_name = os.path.dirname(filename)
@@ -39,7 +39,7 @@ async def get_transaction(signature, filename):
 @click.option('-l', '--limit', required=False, default=50, type=int)
 @click.option('-b', '--before', required=False, default=None)
 @click.option('-u', '--until', required=False, default=None)
-async def get_transactions_for(public_key, filename, limit, before, until):
+def get_transactions_for(public_key, filename, limit, before, until):
     """
     Get transactions for a public_key and stores them to `file_name`
 
@@ -49,8 +49,8 @@ async def get_transactions_for(public_key, filename, limit, before, until):
     """
     batch_size = 50
 
-    async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT, timeout=60) as c:
-        all_result = await fetch_transactions_for_pubkey_para(
+    with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT, timeout=60) as c:
+        all_result = fetch_transactions_for_pubkey_para(
             c,
             public_key,
             before=before,

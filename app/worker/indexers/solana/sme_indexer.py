@@ -12,8 +12,8 @@ class SMETransactionSignatures(DRoutineBaseParams):
 class SMEIndexerDRoutine(DRoutine):
     params_class = SMETransactionSignatures
 
-    async def run(self, params: SMETransactionSignatures) -> Union[int, float]:
+    def run(self, params: SMETransactionSignatures) -> Union[int, float]:
         return OK
 
-    async def on_timeout(self, timeout) -> Union[int, float]:
+    def on_timeout(self, timeout) -> Union[int, float]:
         return OK

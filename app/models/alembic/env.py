@@ -8,7 +8,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app import settings
-from app.models.manager import DBManager
+from app.models.manager import SQLDBManager
 from app.models.models import Base
 
 config = context.config
@@ -69,7 +69,7 @@ def run_migrations_offline():
     )
     # Overrides DB name from command line (-x) -xdb=nft
     db = context.get_x_argument(as_dictionary=True).get('db')
-    manager = DBManager.create(db)
+    manager = SQLDBManager.create(db)
     connectable = manager.engine
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
@@ -94,7 +94,7 @@ def run_migrations_online():
     # Extract the db name from the section name
     # e.g. database-nft -> nft
     db = parse_db_alias(config.config_ini_section)
-    manager = DBManager.create(db)
+    manager = SQLDBManager.create(db)
     connectable = manager.engine
 
     with connectable.connect() as connection:

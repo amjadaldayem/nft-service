@@ -1,9 +1,9 @@
-import asyncclick as click
+import click
 from .solana import solana  # noqa
 
 
 @click.group()
-async def tk():
+def tk():
     """
     Toolkit - Useful tools for exploring blockchains
 

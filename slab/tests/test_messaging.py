@@ -24,10 +24,10 @@ class FooDRoutine(DRoutine):
     TIMEOUT = 2
     params_class = FooDRoutineParams
 
-    async def run(self, params: FooDRoutineParams) -> Union[int, float]:
+    def run(self, params: FooDRoutineParams) -> Union[int, float]:
         return OK
 
-    async def on_timeout(self, timeout) -> Union[int, float]:
+    def on_timeout(self, timeout) -> Union[int, float]:
         return OK
 
 
@@ -35,14 +35,40 @@ class BarDRoutine(DRoutine):
     TIMEOUT = 2
     params_class = None
 
-    async def run(self, params=None) -> Union[int, float]:
+    def run(self, params=None) -> Union[int, float]:
         return OK
 
-    async def on_timeout(self, timeout) -> Union[int, float]:
+    def on_timeout(self, timeout) -> Union[int, float]:
         return OK
 
 
-class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
+class MessagesTestCase(unittest.TestCase):
+
+    def asyncSetUp(self) -> None:
+        self.mock_sqs = moto.mock_sqs()
+        self.mock_sqs.start()
+        sqs = boto3.resource('sqs')
+        sqs_client = sqs.meta.client
+        # Creates a few queues
+        resp = sqs_client.create_queue(
+            QueueName="DefaultQueue",
+            Attributes={
+                'VisibilityTimeout': '5'
+            }
+        )
+        self.default_queue = messaging.CQueue(
+            url=resp.get('QueueUrl'),
+            name='default'
+        )
+
+    def asyncTearDown(self) -> None:
+        self.mock_sqs.stop()
+
+    def test_send_message(self):
+        pass
+
+
+class DRoutineTestCase(unittest.TestCase):
 
     async def asyncSetUp(self) -> None:
         self.mock_sqs = moto.mock_sqs()
@@ -80,7 +106,7 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
         mock_run.return_value = OK
         mock_on_timeout.return_value = OK
         with self.assertRaises(TypeError):
-            await FooDRoutine()()
+            FooDRoutine()()
 
     # @mock.patch('slab.messaging.droutine.notify_error')
     # @mock.patch.object(FooDRoutine, 'on_timeout')
@@ -89,8 +115,8 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
     #     mock_run.return_value = OK
     #     mock_on_timeout.return_value = OK
     #     with self.assertRaises(TypeError):
-    #         await FooDRoutine()()
-    #     await droutine_worker_start(
+    #         FooDRoutine()()
+    #     droutine_worker_start(
     #         queues=[self.default_queue],
     #         max_messages_to_receive=1,
     #         worker_type='default'
@@ -109,8 +135,8 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
 
         args = FooDRoutineParams(bar=20)
 
-        await FooDRoutine()(params=args)
-        await droutine_worker_start(
+        FooDRoutine()(params=args)
+        droutine_worker_start(
             queues=[self.default_queue],
             max_messages_to_receive=1,
             worker_type='default'
@@ -128,8 +154,8 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
 
         params = FooDRoutineParams()
 
-        await FooDRoutine()(params=params)
-        await droutine_worker_start(
+        FooDRoutine()(params=params)
+        droutine_worker_start(
             queues=[self.default_queue],
             max_messages_to_receive=1,
             worker_type='default'
@@ -155,8 +181,8 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
         mock_run.side_effect = raise_during_run
 
         params = FooDRoutineParams()
-        await FooDRoutine()(params=params)
-        await droutine_worker_start(
+        FooDRoutine()(params=params)
+        droutine_worker_start(
             queues=[self.default_queue],
             max_messages_to_receive=1,
             worker_type='default'
@@ -166,7 +192,7 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
         mock_on_timeout.assert_not_called()
         mock_notify_error.assert_called_once()
         # Ensures that the message is popped back to the queue (it should)
-        await asyncio.sleep(FooDRoutine.TIMEOUT + FooDRoutine.VTT + 1)
+        asyncio.sleep(FooDRoutine.TIMEOUT + FooDRoutine.VTT + 1)
         self.assertEqual(self.default_queue.messages_in_queue, 1)
         mock_on_timeout.assert_not_called()
 
@@ -174,7 +200,7 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
     @mock.patch.object(FooDRoutine, 'run')
     async def test_fire_task_timeout_delete_message(self, mock_run, mock_on_timeout):
         async def timeout_during_run(params):
-            await asyncio.sleep(FooDRoutine.TIMEOUT + 1)
+            asyncio.sleep(FooDRoutine.TIMEOUT + 1)
             return OK
 
         mock_run.side_effect = timeout_during_run
@@ -182,8 +208,8 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
 
         params = FooDRoutineParams()
 
-        await FooDRoutine()(params=params)
-        await droutine_worker_start(
+        FooDRoutine()(params=params)
+        droutine_worker_start(
             queues=[self.default_queue],
             max_messages_to_receive=1,
             worker_type='default'
@@ -191,7 +217,7 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
 
         mock_run.assert_called_once_with(params)
         mock_on_timeout.assert_called_once_with(FooDRoutine.TIMEOUT)
-        await asyncio.sleep(0.1)
+        asyncio.sleep(0.1)
         # The message got deleted because `on_timeout` returns < 0
         self.assertEqual(self.default_queue.messages_in_queue, 0)
 
@@ -199,7 +225,7 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
     @mock.patch.object(FooDRoutine, 'run')
     async def test_fire_task_timeout_no_delete_message(self, mock_run, mock_on_timeout):
         async def timeout_during_run(params):
-            await asyncio.sleep(FooDRoutine.TIMEOUT + 1)
+            asyncio.sleep(FooDRoutine.TIMEOUT + 1)
             return OK
 
         mock_run.side_effect = timeout_during_run
@@ -207,8 +233,8 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
 
         params = FooDRoutineParams()
 
-        await FooDRoutine()(params=params)
-        await droutine_worker_start(
+        FooDRoutine()(params=params)
+        droutine_worker_start(
             queues=[self.default_queue],
             max_messages_to_receive=1,
             worker_type='default'
@@ -216,7 +242,7 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
 
         mock_run.assert_called_once_with(params)
         mock_on_timeout.assert_called_once_with(FooDRoutine.TIMEOUT)
-        await asyncio.sleep(0.1)
+        asyncio.sleep(0.1)
         self.assertEqual(self.default_queue.messages_in_queue, 1)
 
     @mock.patch.object(BarDRoutine, 'on_timeout')
@@ -225,8 +251,8 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
         mock_run.return_value = OK
         mock_on_timeout.return_value = OK
 
-        await BarDRoutine()()
-        await droutine_worker_start(
+        BarDRoutine()()
+        droutine_worker_start(
             queues=[self.default_queue],
             max_messages_to_receive=1,
             worker_type='default'
@@ -251,11 +277,11 @@ class DRoutineTestCase(unittest.IsolatedAsyncioTestCase):
         mock_bar_on_timeout.return_value = OK
 
         params = FooDRoutineParams()
-        await asyncio.gather(
+        asyncio.gather(
             FooDRoutine()(params=params),
             BarDRoutine()()
         )
-        await droutine_worker_start(
+        droutine_worker_start(
             queues=[self.default_queue],
             max_messages_to_receive=2,
             worker_type='default'

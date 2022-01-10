@@ -24,6 +24,7 @@ SQS_ENDPOINT = os.getenv('SQS_ENDPOINT')
 
 AWS_REGION = os.getenv('AWS_REGION', 'us-west-2')
 
+# For PostgreSQL databases
 DATABASES = {
     # Make sure you have a section named `database-<db_alias>`
     # in the alembic.ini where the `version_locations` are specified
@@ -51,3 +52,4 @@ os.environ["AWS_DEFAULT_REGION"] = 'neverland'
 
 # Per blockchain basic configurations
 from .solana import *  # noqa
+from .queues import *  # noqa

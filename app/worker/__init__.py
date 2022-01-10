@@ -1,9 +1,9 @@
-import asyncclick as click
+import click
 from .entry import start
 
 
 @click.group()
-async def worker():
+def worker():
     """
     Indexers command.
 

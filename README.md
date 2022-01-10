@@ -18,12 +18,7 @@ https://solscan.io/tx/5mJkcez9QgCMRVtFH9GqtrogLi3asMBWyQWjPc4uKBfBpeS6b2oJmJuW14
 
 ### Ports
 
-Postgres: 5432
-Postgres Dashboard: 8080
-DynamoDB: 8000
-DynamoDB Dashboard: 8001
-SQS: 9324
-SQS Dashboard: 9325
+Postgres: 5432 Postgres Dashboard: 8080 DynamoDB: 8000 DynamoDB Dashboard: 8001 SQS: 9324 SQS Dashboard: 9325
 OpenSearch: 9200 (HTTPS!)
 OpenSearch Dashboard: 9600
 
@@ -34,9 +29,8 @@ All other AWS Services: 5050
 ```shell
 $ ./migration <db_alias> revision --autogenerate -m "<comment>"
 ...
-$ ./migration <db_alias> upgrade <hash> | HEAD
+$ ./migration <db_alias> upgrade <hash> (or `head`)
 ```
-
 
 To downgrade,
 
@@ -44,5 +38,20 @@ To downgrade,
 $ ./migration <db_alias> downgrade -1
 ```
 
-Where the `db_alias` is the db alias as defined as the keys in the 
-`settings.DATABASES`.
+or
+
+```shell
+$ ./migration <db_alias> downgrade <revision_hash_to_revert_to>
+```
+
+Where the `db_alias` is the db alias as defined as the keys in the
+`settings.DATABASES`. You have to make sure there is a section in
+`alembic.ini` that maps to the db alias,
+
+E.g.,
+
+```
+[database-nft]
+script_location = app/models/alembic
+version_locations = app/models/alembic/versions/nft
+```

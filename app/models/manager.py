@@ -5,20 +5,16 @@ from functools import cached_property
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker as _sessionmaker
 
 from app import settings
 
 
-class DBManager:
+class SQLDBManager:
     _DB_CONN_FORMAT_HEAD = "postgresql+psycopg2://{user}:{password}@{host}:{port}/"
-    _DB_CONN_ASYNC_FORMAT_HEAD = "postgresql+asyncpg://{user}:{password}@{host}:{port}/"
 
     DB_CONN_FORMAT = _DB_CONN_FORMAT_HEAD + '{name}'
-    DB_CONN_ASYNC_FORMAT = _DB_CONN_ASYNC_FORMAT_HEAD + '{name}'
     DB_CONN_DEFAULT_FORMAT = _DB_CONN_FORMAT_HEAD + 'postgres'
-    DB_CONN_DEFAULT_ASYNC_FORMAT = _DB_CONN_ASYNC_FORMAT_HEAD + 'postgres'
 
     @classmethod
     def create(cls, db_alias: str):
@@ -73,27 +69,16 @@ class DBManager:
             port=self.port,
             name=self.name
         )
-        self._async_conn_str = self.DB_CONN_ASYNC_FORMAT.format(
-            user=self.user,
-            password=self.password,
-            host=self.host,
-            port=self.port,
-            name=self.name
-        )
         self._test_manager = None
         self.on_creation = on_creation
 
     @property
-    def test_manager(self) -> 'DBManager':
+    def test_manager(self) -> 'SQLDBManager':
         return self._test_manager
 
     @property
     def conn_str(self):
         return self._conn_str
-
-    @property
-    def async_conn_str(self):
-        return self._async_conn_str
 
     def create_db_if_not_exist(self):
         default_conn_str = self.DB_CONN_DEFAULT_FORMAT.format(
@@ -117,29 +102,34 @@ class DBManager:
             except:
                 pass
 
+    def drop_db_if_exists(self):
+        default_conn_str = self.DB_CONN_DEFAULT_FORMAT.format(
+            user=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+        )
+        engine_default = create_engine(
+            default_conn_str,
+            echo=self.echo
+        )
+        with engine_default.connect() as conn:
+            conn.execute("COMMIT")
+            try:
+                stmt = text(f"DROP DATABASE {self.name}")
+                conn.execute(stmt)
+            except:
+                pass
+
     @cached_property
     def engine(self):
         return create_engine(self._conn_str, echo=self.echo)
-
-    @cached_property
-    def async_engine(self):
-        return create_async_engine(
-            self._async_conn_str, echo=self.echo
-        )
 
     @property
     def sessionmaker(self):
         return _sessionmaker(
             self.engine,
             expire_on_commit=False,
-        )
-
-    @property
-    def async_sessionmaker(self):
-        return _sessionmaker(
-            self.async_engine,
-            expire_on_commit=False,
-            class_=AsyncSession
         )
 
     def run_migrations(self) -> None:

@@ -13,7 +13,6 @@ from pydantic import BaseModel
 
 from slab import messaging
 from slab.errors import notify_error
-from slab.messaging import CQueue
 
 logger = logging.getLogger(__name__)
 
@@ -46,13 +45,13 @@ class DRoutine(abc.ABC):
     # - DRoutineBaseParams: any derived class from DRoutineBaseParams
     params_class = DRoutineBaseParams
 
-    async def __call__(self, params: Optional[DRoutineBaseParams] = None, delay=0, timeout=None):
+    def __call__(self, params: Optional[DRoutineBaseParams] = None, delay=0, timeout=None):
         if not self.queue:
             raise IOError(
                 "Queue not set. Please call register to bind a queue to this task."
             )
 
-        await self.validate_params(params)
+        self.validate_params(params)
 
         self.queue.send_message_dict(
             {'params': params.json() if params else None},
@@ -70,7 +69,7 @@ class DRoutine(abc.ABC):
         )
 
     @classmethod
-    async def validate_params(cls, params):
+    def validate_params(cls, params):
         if cls.params_class:
             if not isinstance(params, cls.params_class):
                 raise TypeError(
@@ -81,7 +80,7 @@ class DRoutine(abc.ABC):
                 raise TypeError("No params allowed since `params_class` is None.")
 
     @abc.abstractmethod
-    async def run(self, params: Optional[DRoutineBaseParams]) -> Union[int, float]:
+    def run(self, params: Optional[DRoutineBaseParams]) -> Union[int, float]:
         """
 
         Args:
@@ -98,7 +97,7 @@ class DRoutine(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def on_timeout(self, timeout) -> Union[int, float]:
+    def on_timeout(self, timeout) -> Union[int, float]:
         """
 
         Args:
@@ -130,14 +129,15 @@ class Registry:
 registry = Registry()
 
 
-def map_droutines_to_queue(queue: CQueue, *droutines: Iterable[Type[DRoutine]]):
+def map_droutines_to_queue(queue: messaging.CQueue, *droutines: Iterable[Type[DRoutine]]):
     for cls in droutines:
         cls.task_name = inspect.getmodule(cls).__name__ + '.' + cls.__name__
-        queue_visibility_timeout = int(queue.attributes['VisibilityTimeout'])
+        attributes = queue.attributes
+        queue_visibility_timeout = int(attributes['VisibilityTimeout'])
         if queue_visibility_timeout < cls.TIMEOUT:
             logger.warning(
                 "The default visibility timeout for queue %s is %s, which is "
-                "shorter then the set TIMEOUT value %",
+                "shorter then the set TIMEOUT value %s",
                 queue.url,
                 queue_visibility_timeout,
                 cls.TIMEOUT
@@ -146,7 +146,7 @@ def map_droutines_to_queue(queue: CQueue, *droutines: Iterable[Type[DRoutine]]):
         registry.register(cls.task_name, cls)
 
 
-async def handler_func(queue: messaging.CQueue, message: messaging.CMessage, worker_type):
+def handler_func(queue: messaging.CQueue, message: messaging.CMessage, worker_type):
     message_attributes = message.message_attributes
     metadata = {
         'message': {
@@ -159,7 +159,7 @@ async def handler_func(queue: messaging.CQueue, message: messaging.CMessage, wor
     if 'task_name' not in message_attributes:
         error_message = f"Task name not found in message. Skipping."
         # Deletes the message
-        await notify_error(
+        notify_error(
             messaging.MessagingException(error_message),
             metadata=metadata
         )
@@ -172,7 +172,7 @@ async def handler_func(queue: messaging.CQueue, message: messaging.CMessage, wor
         error_message = "Task name not found in registry. Please make sure to" \
                         "call init() method for the task class."
         # Deletes the message
-        await notify_error(
+        notify_error(
             messaging.MessagingException(error_message),
             metadata=metadata
         )
@@ -188,9 +188,9 @@ async def handler_func(queue: messaging.CQueue, message: messaging.CMessage, wor
             task_class.params_class.parse_raw(serialized_params)
             if task_class.params_class else None
         )
-        await task_class.validate_params(params)
+        task_class.validate_params(params)
     except Exception as e:
-        await notify_error(e, metadata=metadata)
+        notify_error(e, metadata=metadata)
         return False
 
     queue_visibility_timeout = int(queue.attributes['VisibilityTimeout'])
@@ -215,16 +215,16 @@ async def handler_func(queue: messaging.CQueue, message: messaging.CMessage, wor
         # Saves 1 API call here, if the visibility timeout is the same
         message.change_visibility(visibility_timeout_override)
     try:
-        ret = await asyncio.wait_for(
+        ret = asyncio.wait_for(
             instance.run(params),
             timeout=task_timeout
         )
     except asyncio.TimeoutError:
-        ret = await instance.on_timeout(task_timeout)
+        ret = instance.on_timeout(task_timeout)
     except Exception as e:
         # At this point we wait for the message visibility timeout to
         # let it retry
-        await notify_error(e, metadata=metadata)
+        notify_error(e, metadata=metadata)
         return False
     if ret >= 0:
         message.change_visibility(ret)
@@ -233,13 +233,13 @@ async def handler_func(queue: messaging.CQueue, message: messaging.CMessage, wor
         return True
 
 
-async def droutine_worker_start(queues: Iterable[CQueue], max_messages_to_receive, worker_type):
-    await messaging.message_loop(
+def droutine_worker_start(queues: Iterable[messaging.CQueue], max_messages_to_receive, worker_type):
+    messaging.message_loop(
         queues,
         handler_func=handler_func,
         worker_type=worker_type,
         max_messages_to_receive=max_messages_to_receive,
-        shutdown=await messaging.shutdown_on([
+        shutdown=messaging.shutdown_on([
             signal.SIGINT,
             signal.SIGTERM,
         ])

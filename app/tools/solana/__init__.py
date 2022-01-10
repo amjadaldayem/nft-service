@@ -1,9 +1,9 @@
-import asyncclick as click
+import click
 from .transaction import txn  # noqa
 
 
 @click.group()
-async def solana():
+def solana():
     """
     Tools for Solana blockchain.
 
