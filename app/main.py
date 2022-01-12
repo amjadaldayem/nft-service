@@ -1,5 +1,4 @@
 import logging
-import os
 import sys
 
 import click
@@ -7,10 +6,14 @@ import click
 import settings
 from app.tools import tk
 from app.worker import worker
-from app.worker.indexers.solana.nft_indexer import NftCollectionDRoutine as SolanaNftCollectionDRoutine
+from app.worker.indexers.solana.nft_indexer import (
+    NftCollectionDRoutine as SolanaNftCollectionDRoutine
+)
+from app.worker.indexers.terra.nft_indexer import (
+    NftCollectionDRoutine as TerraNftCollectionDRoutine
+)
 from slab.errors import setup_error_handler
 from slab.logging import setup_logging
-from slab.messaging import map_droutines_to_queue, CQueue
 
 sys.dont_write_bytecode = True
 
@@ -22,19 +25,10 @@ def sentry_error_notify(e, metadata):
 
 
 def initialize():
-    # # Initialize
-    # dynamodb_endpoint = settings.DYNAMODB_ENDPOINT
-    # region_name = settings.AWS_REGION
-    # env = settings.DEPLOYMENT_ENV
-    # table_name = f"{env}_nft"
-    # dynamodb_resource = boto3.resource(
-    #     'dynamodb',
-    #     endpoint_url=dynamodb_endpoint,
-    #     region_name=region_name
-    # )
-    # # NFTRepository.initialize(table_name)
-    map_droutines_to_queue(
-        SolanaNftCollectionDRoutine
+    settings.map_droutines_to_queue(
+        settings.NFT_COLLECTION_CRAWL_QUEUE_URL,
+        SolanaNftCollectionDRoutine,
+        TerraNftCollectionDRoutine
     )
 
 

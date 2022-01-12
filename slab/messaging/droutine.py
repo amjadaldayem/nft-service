@@ -2,7 +2,6 @@
 High level DRoutine module, taking use of the lower level `messages` structures.
 """
 import abc
-import asyncio
 import inspect
 import logging
 import signal
@@ -134,19 +133,26 @@ def map_droutines_to_queue(queue: messaging.CQueue, *droutines: Iterable[Type[DR
         cls.task_name = inspect.getmodule(cls).__name__ + '.' + cls.__name__
         attributes = queue.attributes
         queue_visibility_timeout = int(attributes['VisibilityTimeout'])
-        if queue_visibility_timeout < cls.TIMEOUT:
-            logger.warning(
-                "The default visibility timeout for queue %s is %s, which is "
-                "shorter then the set TIMEOUT value %s",
-                queue.url,
-                queue_visibility_timeout,
-                cls.TIMEOUT
-            )
         cls.queue = queue
         registry.register(cls.task_name, cls)
+        logger.info("Registered DRoutine %s on %s", cls.task_name, queue)
+        if queue_visibility_timeout < cls.TIMEOUT:
+            logger.warning(
+                "Default visibility timeout for %s is %s, which is "
+                "shorter than the set TIMEOUT value %s for DRoutine %s",
+                queue.url,
+                queue_visibility_timeout,
+                cls.TIMEOUT,
+                cls.task_name
+            )
+
+
+def handle_task_timeout(instance, ret, task_timeout, sig, frame):
+    ret[0] = instance.on_timeout(task_timeout)
 
 
 def handler_func(queue: messaging.CQueue, message: messaging.CMessage, worker_type):
+    signal.alarm(0)
     message_attributes = message.message_attributes
     metadata = {
         'message': {
@@ -209,23 +215,30 @@ def handler_func(queue: messaging.CQueue, message: messaging.CMessage, worker_ty
         )
 
     instance = task_class()
-
     ret = -1
+
+    def _handle_task_timeout(sig, frame):
+        raise TimeoutError
+
     if not default_vt:
         # Saves 1 API call here, if the visibility timeout is the same
         message.change_visibility(visibility_timeout_override)
     try:
-        ret = asyncio.wait_for(
-            instance.run(params),
-            timeout=task_timeout
+        signal.signal(
+            signal.SIGALRM,
+            _handle_task_timeout
         )
-    except asyncio.TimeoutError:
+        signal.alarm(task_timeout)
+        ret = instance.run(params)
+    except TimeoutError:
         ret = instance.on_timeout(task_timeout)
     except Exception as e:
         # At this point we wait for the message visibility timeout to
         # let it retry
+        signal.alarm(0)
         notify_error(e, metadata=metadata)
         return False
+
     if ret >= 0:
         message.change_visibility(ret)
         return False

@@ -1,21 +1,21 @@
-import asyncio
 import base64
 import dataclasses
-import struct
+import functools
 import logging
+import struct
 import time
+import multiprocess as mp
 from collections import namedtuple
-from typing import Optional, List, Mapping, Union, Iterable, Dict
+from typing import Optional, List, Mapping, Union, Dict, Tuple, Iterable, Sized
 
 import base58
 from solana.publickey import PublicKey
 from solana.rpc import commitment
-from solana.rpc.api import MemcmpOpt
-from solana.rpc.async_api import AsyncClient
+from solana.rpc.api import MemcmpOpt, Client
 
 from app import settings
 from app.blockchains.solana import consts
-from app.blockchains.solana.patch import CustomAsyncClient
+from app.blockchains.solana.patch import CustomClient
 
 logger = logging.getLogger(__name__)
 
@@ -180,32 +180,32 @@ class RPCHelper:
 
 
 def nft_get_collection_pdas(update_authority) -> List[NFTMetadataProgramAccount]:
-    with CustomAsyncClient(
-            settings.SOLANA_RPC_ENDPOINT,
-            commitment=commitment.Confirmed,
-            timeout=60
-    ) as client:
-        client.is_connected()
-        # This is darn expensive ...
-        resp = client.get_program_accounts(
-            PublicKey(consts.METAPLEX_PUBKEY),
-            encoding='base64',
-            commitment=commitment.Confirmed,
-            **RPCHelper.memcmp_opts_update_authority_filters(
-                update_authority
+    client = CustomClient(
+        settings.SOLANA_RPC_ENDPOINT,
+        commitment=commitment.Confirmed,
+        timeout=60
+    )
+
+    # This is darn expensive ...
+    resp = client.get_program_accounts(
+        PublicKey(consts.METAPLEX_PUBKEY),
+        encoding='base64',
+        commitment=commitment.Confirmed,
+        **RPCHelper.memcmp_opts_update_authority_filters(
+            update_authority
+        )
+    )
+    result = []
+    for r in resp['result']:
+        data, encoding = r['account']['data']
+        result.append(
+            NFTMetadataProgramAccount(
+                public_key=r['pubkey'],
+                data=data,
+                encoding=encoding
             )
         )
-        result = []
-        for r in resp['result']:
-            data, encoding = r['account']['data']
-            result.append(
-                NFTMetadataProgramAccount(
-                    public_key=r['pubkey'],
-                    data=data,
-                    encoding=encoding
-                )
-            )
-        return result
+    return result
 
 
 def nft_get_metadata(pda: NFTMetadataProgramAccount) -> Optional[NFTMetaData]:
@@ -242,26 +242,25 @@ def nft_get_metadata_by_pda_key(pda_key: Union[str, PublicKey]) -> Optional[NFTM
     Returns:
 
     """
-    with CustomAsyncClient(
-            settings.SOLANA_RPC_ENDPOINT,
-            commitment=commitment.Confirmed,
-            timeout=15
-    ) as client:
-        client.is_connected()
-        resp = client.get_account_info(pda_key)
+    client = CustomClient(
+        settings.SOLANA_RPC_ENDPOINT,
+        commitment=commitment.Confirmed,
+        timeout=15
+    )
+    resp = client.get_account_info(pda_key)
 
-        value = resp['result']['value']
-        if not value:
-            return None
-        data_field = value['data']
-        data, encoding = data_field
-        return nft_get_metadata(
-            NFTMetadataProgramAccount(
-                public_key=pda_key,
-                data=data,
-                encoding=encoding
-            )
+    value = resp['result']['value']
+    if not value:
+        return None
+    data_field = value['data']
+    data, encoding = data_field
+    return nft_get_metadata(
+        NFTMetadataProgramAccount(
+            public_key=pda_key,
+            data=data,
+            encoding=encoding
         )
+    )
 
 
 def nft_get_metadata_by_token_key(token_key: str) -> NFTMetaData:
@@ -307,26 +306,73 @@ def nft_get_metadata_pda_key_by_token_key(token_key: str) -> PublicKey:
 #   The 2nd parameter (the wallet) is the update_authority for InitializeCandyMachine instruction
 #   The could be use to fetch the new collection.
 
-def _get_transaction_with_index(client: AsyncClient, idx, sig):
-    resp = client.get_confirmed_transaction(sig)
-    return idx, resp['result']
+
+def _get_transaction(client_signature_pair):
+    client, sig = client_signature_pair
+    try:
+        resp = client.get_confirmed_transaction(sig)
+    except Exception as e:
+        logger.error("Cannot get transaction data due to %s", str(e))
+        return None
+    return resp.get('result')
+
+
+def get_multi_transactions(signatures: List[str], batch_size=50) -> Dict[str, dict]:
+    """
+
+    Args:
+        signatures:
+        batch_size:
+
+    Returns:
+        Dict, mapping from signatures to the transaction data. The values can be null
+        if the fetch for the trasactions failed.
+    """
+    batches = int(round(len(signatures) / batch_size))
+    if batches == 0:
+        batches = 1
+    clients = [
+        CustomClient(settings.SOLANA_RPC_ENDPOINT, timeout=60)
+        for _ in range(batches)
+    ]
+    client_signature_pairs = [
+        (clients[i % batches], signature)
+        for i, signature in enumerate(signatures)
+    ]
+    print(len(clients))
+    pool = mp.Pool(batches)
+    try:
+        all_result = list(pool.imap(
+            _get_transaction,
+            client_signature_pairs,
+            chunksize=batch_size
+        ))
+        pool.close()
+    finally:
+        pool.terminate()
+        pool.join()
+
+    return dict(zip(
+        signatures,
+        all_result
+    ))
 
 
 def fetch_transactions_for_pubkey_para(
-        async_client: AsyncClient,
+        client: Client,
         public_key: str,
         before: Optional[str] = None,
         until: Optional[str] = None,
         limit: int = 500,
         batch_size: int = 50
-) -> List[Dict]:
+) -> Dict[str, dict]:
     """
     Helper function to fetch transactions for the specified PubKey in parallel.
     The resulting transactions are sorted in the descending order (from most recent
     to the oldest).
     """
-    async_client.is_connected()
-    resp = async_client.get_confirmed_signature_for_address2(
+
+    resp = client.get_confirmed_signature_for_address2(
         public_key,
         before=before,
         until=until,
@@ -334,21 +380,7 @@ def fetch_transactions_for_pubkey_para(
     )
     signatures = [s['signature'] for s in resp['result']]
 
-    size = len(signatures)
-    start = 0
-    all_result = []
-
-    while start < size:
-        segment = signatures[start: start + batch_size]
-        tasks = [
-            _get_transaction_with_index(async_client, i, signature)
-            for i, signature in enumerate(segment)
-        ]
-        segment_result = list(asyncio.gather(*tasks))
-        segment_result.sort()
-        _, events = zip(*segment_result)
-        all_result.extend(events)
-        start += batch_size
-        time.sleep(0.1)
-
+    all_result = get_multi_transactions(
+        signatures, batch_size=batch_size
+    )
     return all_result

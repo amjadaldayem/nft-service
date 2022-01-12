@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import boto3
 import datetime
 import logging
 import pickle
@@ -271,7 +272,7 @@ class CQueue(object):
         """
 
     def __str__(self):
-        return f'Queue={self.name};Url={self.url};Priority={self.priority};'
+        return f'Queue={self.name}; Url={self.url};'
 
 
 class PolicyBase(object):
@@ -311,7 +312,7 @@ class WeightedPolicy(PolicyBase):
 
 # Public API
 
-def single_loop(sqs, poller, handler_func, worker_type):
+def single_loop(poller, handler_func, worker_type):
     chosen_queue, message = poller.next_queue_and_message()
     msg_received = 0
     msg_processed = 0
@@ -404,7 +405,6 @@ def message_loop(queues: Iterable[CQueue],
 
         loop_counter += 1
         msg_received, msg_processed = single_loop(
-            sqs,
             poll_policy_instance,
             handler_func,
             worker_type

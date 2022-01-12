@@ -1,4 +1,4 @@
-import asyncio
+import time
 import unittest
 from typing import Union
 from unittest import mock
@@ -13,6 +13,14 @@ from slab.messaging import (
     droutine_worker_start,
     map_droutines_to_queue,
     DRoutineBaseParams
+)
+from .module_a import (
+    FooDRoutineParams as A_FooDRoutineParams,
+    FooDRoutine as A_FooDRoutine
+)
+from .module_b import (
+    FooDRoutineParams as B_FooDRoutineParams,
+    FooDRoutine as B_FooDRoutine
 )
 
 
@@ -70,7 +78,7 @@ class MessagesTestCase(unittest.TestCase):
 
 class DRoutineTestCase(unittest.TestCase):
 
-    async def asyncSetUp(self) -> None:
+    def setUp(self) -> None:
         self.mock_sqs = moto.mock_sqs()
         self.mock_sqs.start()
         sqs = boto3.resource('sqs')
@@ -93,16 +101,16 @@ class DRoutineTestCase(unittest.TestCase):
             BarDRoutine
         )
 
-    async def asyncTearDown(self) -> None:
+    def tearDown(self) -> None:
         self.mock_sqs.stop()
 
-    async def test_droutine_registry(self):
+    def test_droutine_registry(self):
         self.assertIsNotNone(FooDRoutine.queue)
 
     @mock.patch('slab.messaging.droutine.notify_error')
     @mock.patch.object(FooDRoutine, 'on_timeout')
     @mock.patch.object(FooDRoutine, 'run')
-    async def test_call_droutine_missing_args(self, mock_run, mock_on_timeout, mock_notify_error):
+    def test_call_droutine_missing_args(self, mock_run, mock_on_timeout, mock_notify_error):
         mock_run.return_value = OK
         mock_on_timeout.return_value = OK
         with self.assertRaises(TypeError):
@@ -111,7 +119,7 @@ class DRoutineTestCase(unittest.TestCase):
     # @mock.patch('slab.messaging.droutine.notify_error')
     # @mock.patch.object(FooDRoutine, 'on_timeout')
     # @mock.patch.object(FooDRoutine, 'run')
-    # async def test_run_droutine_wrong_params_types(self, mock_run, mock_on_timeout, mock_notify_error):
+    # def test_run_droutine_wrong_params_types(self, mock_run, mock_on_timeout, mock_notify_error):
     #     mock_run.return_value = OK
     #     mock_on_timeout.return_value = OK
     #     with self.assertRaises(TypeError):
@@ -129,7 +137,7 @@ class DRoutineTestCase(unittest.TestCase):
 
     @mock.patch.object(FooDRoutine, 'on_timeout')
     @mock.patch.object(FooDRoutine, 'run')
-    async def test_call_droutine_with_args(self, mock_run, mock_on_timeout):
+    def test_call_droutine_with_args(self, mock_run, mock_on_timeout):
         mock_run.return_value = OK
         mock_on_timeout.return_value = OK
 
@@ -148,7 +156,7 @@ class DRoutineTestCase(unittest.TestCase):
 
     @mock.patch.object(FooDRoutine, 'on_timeout')
     @mock.patch.object(FooDRoutine, 'run')
-    async def test_call_droutine(self, mock_run, mock_on_timeout):
+    def test_call_droutine(self, mock_run, mock_on_timeout):
         mock_run.return_value = OK
         mock_on_timeout.return_value = OK
 
@@ -168,14 +176,14 @@ class DRoutineTestCase(unittest.TestCase):
     @mock.patch('slab.messaging.droutine.notify_error')
     @mock.patch.object(FooDRoutine, 'on_timeout')
     @mock.patch.object(FooDRoutine, 'run')
-    async def test_run_droutine_exception_notify_error_called(self,
-                                                              mock_run,
-                                                              mock_on_timeout,
-                                                              mock_notify_error):
+    def test_run_droutine_exception_notify_error_called(self,
+                                                        mock_run,
+                                                        mock_on_timeout,
+                                                        mock_notify_error):
         class BadRun(Exception):
             pass
 
-        async def raise_during_run(params):
+        def raise_during_run(params):
             raise BadRun("O!")
 
         mock_run.side_effect = raise_during_run
@@ -192,15 +200,15 @@ class DRoutineTestCase(unittest.TestCase):
         mock_on_timeout.assert_not_called()
         mock_notify_error.assert_called_once()
         # Ensures that the message is popped back to the queue (it should)
-        asyncio.sleep(FooDRoutine.TIMEOUT + FooDRoutine.VTT + 1)
+        time.sleep(FooDRoutine.TIMEOUT + FooDRoutine.VTT + 1)
         self.assertEqual(self.default_queue.messages_in_queue, 1)
         mock_on_timeout.assert_not_called()
 
     @mock.patch.object(FooDRoutine, 'on_timeout')
     @mock.patch.object(FooDRoutine, 'run')
-    async def test_fire_task_timeout_delete_message(self, mock_run, mock_on_timeout):
-        async def timeout_during_run(params):
-            asyncio.sleep(FooDRoutine.TIMEOUT + 1)
+    def test_fire_task_timeout_delete_message(self, mock_run, mock_on_timeout):
+        def timeout_during_run(params):
+            time.sleep(FooDRoutine.TIMEOUT + 1)
             return OK
 
         mock_run.side_effect = timeout_during_run
@@ -217,15 +225,15 @@ class DRoutineTestCase(unittest.TestCase):
 
         mock_run.assert_called_once_with(params)
         mock_on_timeout.assert_called_once_with(FooDRoutine.TIMEOUT)
-        asyncio.sleep(0.1)
+        time.sleep(0.1)
         # The message got deleted because `on_timeout` returns < 0
         self.assertEqual(self.default_queue.messages_in_queue, 0)
 
     @mock.patch.object(FooDRoutine, 'on_timeout')
     @mock.patch.object(FooDRoutine, 'run')
-    async def test_fire_task_timeout_no_delete_message(self, mock_run, mock_on_timeout):
-        async def timeout_during_run(params):
-            asyncio.sleep(FooDRoutine.TIMEOUT + 1)
+    def test_fire_task_timeout_no_delete_message(self, mock_run, mock_on_timeout):
+        def timeout_during_run(params):
+            time.sleep(FooDRoutine.TIMEOUT + 2)
             return OK
 
         mock_run.side_effect = timeout_during_run
@@ -242,12 +250,12 @@ class DRoutineTestCase(unittest.TestCase):
 
         mock_run.assert_called_once_with(params)
         mock_on_timeout.assert_called_once_with(FooDRoutine.TIMEOUT)
-        asyncio.sleep(0.1)
+        time.sleep(0.1)
         self.assertEqual(self.default_queue.messages_in_queue, 1)
 
     @mock.patch.object(BarDRoutine, 'on_timeout')
     @mock.patch.object(BarDRoutine, 'run')
-    async def test_call_droutine_no_params(self, mock_run, mock_on_timeout):
+    def test_call_droutine_no_params(self, mock_run, mock_on_timeout):
         mock_run.return_value = OK
         mock_on_timeout.return_value = OK
 
@@ -266,21 +274,20 @@ class DRoutineTestCase(unittest.TestCase):
     @mock.patch.object(BarDRoutine, 'run')
     @mock.patch.object(FooDRoutine, 'on_timeout')
     @mock.patch.object(FooDRoutine, 'run')
-    async def test_call_multiple_droutines(self,
-                                           mock_foo_run,
-                                           mock_foo_on_timeout,
-                                           mock_bar_run,
-                                           mock_bar_on_timeout):
+    def test_call_multiple_droutines(self,
+                                     mock_foo_run,
+                                     mock_foo_on_timeout,
+                                     mock_bar_run,
+                                     mock_bar_on_timeout):
         mock_foo_run.return_value = OK
         mock_foo_on_timeout.return_value = OK
         mock_bar_run.return_value = OK
         mock_bar_on_timeout.return_value = OK
 
         params = FooDRoutineParams()
-        asyncio.gather(
-            FooDRoutine()(params=params),
-            BarDRoutine()()
-        )
+        FooDRoutine()(params=params)
+        BarDRoutine()()
+
         droutine_worker_start(
             queues=[self.default_queue],
             max_messages_to_receive=2,
@@ -291,4 +298,39 @@ class DRoutineTestCase(unittest.TestCase):
         mock_foo_on_timeout.assert_not_called()
         mock_bar_on_timeout.assert_not_called()
         # No messages should be in the queue anymore
+        self.assertEqual(self.default_queue.messages_in_queue, 0)
+
+    @mock.patch.object(A_FooDRoutine, 'on_timeout')
+    @mock.patch.object(A_FooDRoutine, 'run')
+    @mock.patch.object(B_FooDRoutine, 'on_timeout')
+    @mock.patch.object(B_FooDRoutine, 'run')
+    def test_same_named_droutines_from_different_modules(self,
+                                                         mock_b_run,
+                                                         mock_b_on_timeout,
+                                                         mock_a_run,
+                                                         mock_a_on_timeout):
+        map_droutines_to_queue(
+            self.default_queue,
+            A_FooDRoutine,
+            B_FooDRoutine
+        )
+        mock_b_run.return_value = OK
+        mock_b_on_timeout.return_value = OK
+        mock_a_run.return_value = OK
+        mock_a_on_timeout.return_value = OK
+
+        params_a = A_FooDRoutineParams(bar=50)
+        params_b = B_FooDRoutineParams(bar=30)
+        A_FooDRoutine()(params=params_a)
+        B_FooDRoutine()(params=params_b)
+
+        droutine_worker_start(
+            queues=[self.default_queue],
+            max_messages_to_receive=2,
+            worker_type='default'
+        )
+        mock_a_on_timeout.assert_not_called()
+        mock_b_on_timeout.assert_not_called()
+        mock_a_run.assert_called_once_with(params_a)
+        mock_b_run.assert_called_once_with(params_b)
         self.assertEqual(self.default_queue.messages_in_queue, 0)
