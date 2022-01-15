@@ -1,0 +1,7 @@
+./*/tests
+./.local
+.env*
+.gitignore
+./docker-compose*
+./Dockerfile
+README.md

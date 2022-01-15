@@ -1,2 +1,9 @@
 #!/usr/bin/env sh
-PYTHONPATH=.:$PYTHONPATH python app/main.py "$@"
+
+if [[ $1 == 'web' ]]
+then
+  # E.g., ./main web --port 80
+  uvicorn "app.web.api:app" --host "0.0.0.0" "${@:2}"
+else
+  PYTHONPATH=.:$PYTHONPATH python3 app/main.py "$@"
+fi

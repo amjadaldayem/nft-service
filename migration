@@ -1,2 +1,0 @@
-#!/usr/bin/env sh
-PYTHONPATH=.:$PYTHONPATH alembic -c ./app/models/alembic.ini --name="database-${@:1:1}" "${@:2}"
