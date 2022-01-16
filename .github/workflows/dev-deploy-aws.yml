@@ -40,8 +40,6 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo $(pwd)
-          ls -l
           docker build -t $ECR_REPO_URI:$IMAGE_TAG .
           docker push $ECR_REPO_URI:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REPO_URI:$IMAGE_TAG"
