@@ -11,12 +11,13 @@ on:
 env:
   AWS_REGION: us-west-2
   ECR_REPO_URI: 391319738221.dkr.ecr.us-west-2.amazonaws.com/nft-service
+  DEPLOYMENT_ENV: dev
 
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    environment: dev
+    environment: ${{ env.DEPLOYMENT_ENV }}
 
     steps:
       - name: Checkout
@@ -39,7 +40,8 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG2: ${{ env.DEPLOYMENT_ENV }-latest
         run: |
-          docker build -t $ECR_REPO_URI:$IMAGE_TAG .
-          docker push $ECR_REPO_URI:$IMAGE_TAG
+          docker build -f ./Dockerfile-lambda -t $ECR_REPO_URI:$IMAGE_TAG -t $ECR_REPO_URI:$IMAGE_TAG2 .
+          docker push --all-tags $ECR_REPO_URI
           echo "::set-output name=image::$ECR_REPO_URI:$IMAGE_TAG"

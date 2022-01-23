@@ -25,6 +25,9 @@ def sentry_error_notify(e, metadata):
 
 
 def initialize():
+    setup_logging(settings.DEBUG)
+    if settings.DEPLOYMENT_ENV not in ('local', 'test'):
+        setup_error_handler(sentry_error_notify)
     settings.map_droutines_to_queue(
         settings.NFT_COLLECTION_CRAWL_QUEUE_URL,
         SolanaNftCollectionDRoutine,
@@ -34,9 +37,6 @@ def initialize():
 
 @click.group()
 def main():
-    setup_logging(settings.DEBUG)
-    if settings.DEPLOYMENT_ENV not in ('local', 'test'):
-        setup_error_handler(sentry_error_notify)
     initialize()
 
 

@@ -9,3 +9,5 @@ COPY ./app /app/app
 COPY ./slab /app/slab
 
 ENV PYTHONPATH=/app:$PYTHONPATH
+
+CMD ["app.web.api.handler"]
