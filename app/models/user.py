@@ -1,11 +1,13 @@
-class User:
-    def __init__(self, user_id, preferred_username, email, phone=''):
-        self.user_id = user_id
-        self.preferred_username = preferred_username
-        self.email = email
-        self.phone = phone
+import datetime
 
-    def __eq__(self, other):
-        if not isinstance(other, User):
-            return False
-        return self.user_id == other.user_id
+from pydantic import BaseModel
+
+
+class User(BaseModel):
+    user_id: str
+    username: str
+    preferred_username: str
+    email: str
+    phone_number: str = ''
+    joined_on: datetime.datetime = datetime.datetime(year=1970, month=1, day=1)
+

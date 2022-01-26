@@ -4,8 +4,10 @@ WORKDIR /app
 COPY ./requirements.txt ./main ./ish /app/
 
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
-
+RUN yum install -y wget && wget https://github.com/remind101/ssm-env/releases/download/v0.0.3/ssm-env \
+    && chmod +x /app/ssm-env && yum clean all
 COPY ./app /app/app
 COPY ./slab /app/slab
 
 ENV PYTHONPATH=/app:$PYTHONPATH
+ENTRYPOINT ["./app/ssm-env", "-with-decryption"]

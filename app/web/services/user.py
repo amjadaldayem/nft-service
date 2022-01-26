@@ -1,0 +1,155 @@
+import datetime
+import time
+
+import orjson
+import pybase64 as base64
+from jose import jwt, jwk
+
+from app.models.user import User
+
+
+class PublicKeyNotFound(Exception):
+    pass
+
+
+class BadSignature(Exception):
+    pass
+
+
+class TokenExpired(Exception):
+    pass
+
+
+class WrongAudience(Exception):
+    pass
+
+
+class UserService:
+
+    def __init__(self, *,
+                 user_pool_id,
+                 user_pool_client_id,
+                 cognito_client,
+                 dynamodb_resource):
+        """
+        Make suer we do _not_ do any AWS resource operations in the
+        constructor. Because under test env, service instances might have been
+        constructed _before_ the env vars are patched.
+
+        Args:
+            user_pool_id:
+            user_pool_client_id:
+            cognito_client:
+            dynamodb_resource:
+        """
+        self.user_pool_id = user_pool_id
+        self.user_pool_client_id = user_pool_client_id
+        self.cognito_client = cognito_client
+        self.dynamodb_resource = dynamodb_resource
+
+    def sign_up_and_confirm_user(self, email, username, password):
+        user_data = self.cognito_client.sign_up(
+            ClientId=self.user_pool_client_id,
+            Username=username,
+            Password=password,
+            UserAttributes=[
+                {'Name': 'email', 'Value': email},
+                {'Name': 'preferred_username', 'Value': username},
+            ]
+        )
+        user_id = user_data['UserSub']
+        self.cognito_client.admin_confirm_sign_up(
+            UserPoolId=self.user_pool_id,
+            Username=username
+        )
+        return User(
+            user_id=user_id,
+            username=username,
+            preferred_username=username,
+            email=email,
+            joined_on=datetime.datetime.now()
+        )
+
+    def login(self, username, password):
+        resp = self.cognito_client.initiate_auth(
+            AuthFlow='USER_PASSWORD_AUTH',
+            ClientId=self.user_pool_client_id,
+            AuthParameters={
+                'USERNAME': username,
+                'PASSWORD': password
+            }
+        )
+        result = resp['AuthenticationResult']
+        access_token = result['AccessToken']
+        refresh_token = result['RefreshToken']
+        return access_token, refresh_token
+
+    def extract_token(self, token, public_keys, verify=False) -> dict:
+        """
+        https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html
+
+        Args:
+            token:
+            public_keys: A list of public key structures.
+            verify: If verify the token. Set to true in the case of APIGateway we use it for authorization
+                before even hitting the Lambda function.
+
+                [
+                    {
+                      "alg": "RS256",
+                      "e": "AQAB",
+                      "kid": "Dxxq6Q...",
+                      "kty": "RSA",
+                      "n": "mvgEmv4c7X256BekFfjOhWxn...",
+                      "use": "sig"
+                    },
+                ]
+
+        Returns:
+            {
+              "sub": "aaaaaaaa-bbbb-cccc-dddd-example",
+              "aud": "xxxxxxxxxxxxexample",
+              "email_verified": true,
+              "token_use": "id",
+              "auth_time": 1500009400,
+              "iss": "https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_example",
+              "cognito:username": "anaya",
+              "exp": 1500013000,
+              "given_name": "Anaya",
+              "iat": 1500009400,
+              "email": "anaya@example.com"
+            }
+        """
+        if not verify:
+            return orjson.loads(base64.urlsafe_b64decode(str(token).split('.')[1]))
+        # get the kid from the headers prior to verification
+        headers = jwt.get_unverified_headers(token)
+        kid = headers['kid']
+        # search for the kid in the downloaded public keys
+        for i, data in enumerate(public_keys):
+            if kid == data['kid']:
+                key_data = data
+                break
+        else:
+            raise PublicKeyNotFound
+
+        # construct the public key
+        public_key = jwk.construct(key_data)
+        # get the last two sections of the token,
+        # message and signature (encoded in base64)
+        message, encoded_signature = str(token).rsplit('.', 1)
+        # decode the signature
+        decoded_signature = base64.urlsafe_b64decode(encoded_signature.encode('utf-8'))
+        # verify the signature
+        if not public_key.verify(message.encode("utf8"), decoded_signature):
+            raise BadSignature
+        # since we passed the verification, we can now safely
+        # use the unverified claims
+        claims = jwt.get_unverified_claims(token)
+
+        if time.time() > claims['exp']:
+            raise TokenExpired
+        if claims['aud'] != self.user_pool_client_id:
+            raise WrongAudience(f"Audience {claims['aud']} not matching client {app_client_id}.")
+        # Let's return the payload
+        return orjson.loads(base64.urlsafe_b64decode(message.split('.')[1]))

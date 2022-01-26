@@ -1,9 +1,14 @@
+import os
+
 import fastapi_jsonrpc as jsonrpc
-from fastapi import Body, Depends, Header
+from fastapi import Body, Depends
 from mangum import Mangum
 from pydantic import BaseModel
 
+from app import settings  # noqa
+
 from app.models.user import User
+from app.web.api.dependencies import get_auth_user
 
 app = jsonrpc.API()
 
@@ -11,39 +16,33 @@ api_v1_noauth = jsonrpc.Entrypoint('/v1/rpc')
 api_v1_auth = jsonrpc.Entrypoint('/v1/_rpc')
 
 
-class MyError(jsonrpc.BaseError):
+class EmptyValue(jsonrpc.BaseError):
     CODE = 5000
-    MESSAGE = 'My error'
+    MESSAGE = 'Empty Value'
 
     class DataModel(BaseModel):
         details: str
 
 
-@api_v1_noauth.method(errors=[MyError])
+@api_v1_noauth.method(errors=[EmptyValue])
 def echo(
         data: str = Body(..., example='123'),
 ) -> str:
-    if data == 'error':
-        raise MyError(data={'details': 'error'})
+    if not data:
+        raise ValueError("Empty data")
     else:
-        return data
+        return data + '\n' + os.environ['COGNITO_PUBLIC_KEYS']
 
 
-def get_auth_user(
-        authroization: str = Header(None)
-) -> User:
-    pass
-
-
-@api_v1_auth.method(errors=[MyError])
+@api_v1_auth.method(errors=[EmptyValue])
 def echo(
         data: str = Body(..., example='123'),
         user: User = Depends(get_auth_user),
 ) -> str:
-    if data == 'error':
-        raise MyError(data={'details': 'error'})
+    if not data:
+        raise ValueError("Empty data")
     else:
-        return data
+        return f"From authenticated user {user.user_id} : {data}"
 
 
 app.bind_entrypoint(api_v1_noauth)
