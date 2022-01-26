@@ -24,6 +24,13 @@ SQS_ENDPOINT = os.getenv('SQS_ENDPOINT')
 
 AWS_REGION = os.getenv('AWS_REGION', 'us-west-2')
 
+COGNITO_USER_POOL_ID = os.getenv('COGNITO_USER_POOL_ID')
+COGNITO_APP_CLIENT_ID = os.getenv('COGNITO_APP_CLIENT_ID')
+
+DYNAMODB_USER_TABLE = os.getenv('DYNAMODB_USER_TABLE', 'user')
+DYNAMODB_NFT_TABLE = os.getenv('DYNAMODB_NFT_TABLE', 'nft')
+
+
 # Per blockchain basic configurations
 from .solana import *  # noqa
 from .queues import *  # noqa

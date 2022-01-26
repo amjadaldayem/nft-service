@@ -11,9 +11,9 @@ on:
 env:
   AWS_REGION: us-west-2
   ECR_REPO_URI: 391319738221.dkr.ecr.us-west-2.amazonaws.com/nft-service
-  FUNCTION_NAME: arn:aws:lambda:us-west-2:822618759175:function:NftAPIServiceStack-NftServiceApiFuncD04E88BA-WrCoOKt9PMsK
-  COGNITO_APP_CLIENT_ID: 1e3u6mprmqsvnf131dns9aa4oo
-  DEPLOYMENT_ENV: dev
+#  FUNCTION_NAME: arn:aws:lambda:us-west-2:822618759175:function:NftAPIServiceStack-NftServiceApiFuncD04E88BA-WrCoOKt9PMsK
+#  COGNITO_APP_CLIENT_ID: 1e3u6mprmqsvnf131dns9aa4oo
+#  DEPLOYMENT_ENV: dev
 
 jobs:
   deploy:
@@ -47,15 +47,15 @@ jobs:
           docker push --all-tags $ECR_REPO_URI
           echo "::set-output name=image::$ECR_REPO_URI:$IMAGE_TAG"
 
-      - name: Update Lambda Function code
-        id: update-function-code
-        env:
-          IMAGE_URI: ${{ steps.build-image.outputs.image }}
-        run: |
-          aws lambda update-function-configuration --function-name ${{ env.FUNCTION_NAME }} \
-            --environment '{
-              "Variables": {
-                "COGNITO_PUBLIC_KEYS": "ssm:///${{ env.DEPLOYMENT_ENV }}/sintra-nft-service/v1/cognito_public_keys",
-                "COGNITO_APP_CLIENT_ID": "${{ COGNITO_APP_CLIENT_ID }}"
-            }'
-          aws lambda update-function-code --function-name ${{ env.FUNCTION_NAME }} --image-uri $IMAGE_URI
+#      - name: Update Lambda Function code
+#        id: update-function-code
+#        env:
+#          IMAGE_URI: ${{ steps.build-image.outputs.image }}
+#        run: |
+#          aws lambda update-function-configuration --function-name ${{ env.FUNCTION_NAME }} \
+#            --environment '{
+#              "Variables": {
+#                "COGNITO_PUBLIC_KEYS": "ssm:///${{ env.DEPLOYMENT_ENV }}/sintra-nft-service/v1/cognito_public_keys",
+#                "COGNITO_APP_CLIENT_ID": "${{ env.COGNITO_APP_CLIENT_ID }}"
+#            }'
+#          aws lambda update-function-code --function-name ${{ env.FUNCTION_NAME }} --image-uri $IMAGE_URI

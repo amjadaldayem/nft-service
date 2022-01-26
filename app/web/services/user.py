@@ -47,7 +47,7 @@ class UserService:
         self.cognito_client = cognito_client
         self.dynamodb_resource = dynamodb_resource
 
-    def sign_up_and_confirm_user(self, email, username, password):
+    def sign_up(self, email, username, password, confirm=True):
         user_data = self.cognito_client.sign_up(
             ClientId=self.user_pool_client_id,
             Username=username,
@@ -58,10 +58,11 @@ class UserService:
             ]
         )
         user_id = user_data['UserSub']
-        self.cognito_client.admin_confirm_sign_up(
-            UserPoolId=self.user_pool_id,
-            Username=username
-        )
+        if confirm:
+            self.cognito_client.admin_confirm_sign_up(
+                UserPoolId=self.user_pool_id,
+                Username=username
+            )
         return User(
             user_id=user_id,
             username=username,

@@ -102,7 +102,7 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         cls.foo_email = 'foo@example.com'
         cls.foo_password = 'abc123'
 
-        cls.user = services.user_service.sign_up_and_confirm_user(
+        cls.user = services.user_service.sign_up(
             email=cls.foo_email,
             username=cls.foo_username,
             password=cls.foo_password
