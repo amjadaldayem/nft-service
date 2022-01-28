@@ -28,6 +28,7 @@ class UserRepository:
         pass
 
     def create_user(self, user: User):
+        pass
 
     def update_user(self, user_id: str, **kwargs):
         pass
