@@ -30,5 +30,6 @@ COGNITO_APP_CLIENT_ID = os.getenv('COGNITO_APP_CLIENT_ID')
 DYNAMODB_USER_TABLE = os.getenv('DYNAMODB_USER_TABLE', 'user')
 DYNAMODB_NFT_TABLE = os.getenv('DYNAMODB_NFT_TABLE', 'nft')
 
+os.environ["MOTO_ALLOW_NONEXISTENT_REGION"] = '1'
 # Per blockchain basic configurations
 from .solana import *  # noqa

@@ -1,9 +1,9 @@
-import logging
 import os
 import uuid
-import moto
 from typing import Mapping
 from unittest import mock
+
+import moto
 
 
 class BasePatcherMixin:

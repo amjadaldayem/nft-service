@@ -31,7 +31,7 @@ def echo(
     if not data:
         raise ValueError("Empty data")
     else:
-        return data + '\n' + os.getenv('GITHUB_SHA', None)
+        return data + '\n' + os.getenv('GITHUB_SHA', '')
 
 
 @api_v1_auth.method(errors=[EmptyValue])

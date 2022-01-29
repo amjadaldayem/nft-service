@@ -74,6 +74,7 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.env_dict = super().start({})
+        cls.env_dict['AWS_DEFAULT_REGION'] = 'us-west-2'
         cls.cognito_client = boto3.client('cognito-idp')
         cls.dynamodb_resource = boto3.resource('dynamodb')
         cls.user_pool_id, cls.user_pool_client_id = \
@@ -83,7 +84,7 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         cls.env_dict['COGNITO_PUBLIC_KEYS'] = orjson.dumps(
             cls.cognito_get_public_keys(
                 cls.user_pool_id,
-                cls.env_dict.get('AWS_REGION', 'us-west-2')
+                cls.env_dict.get('AWS_REGION', 'us-west-2'),
             )
         ).decode('utf8')
         cls.env_dict['COGNITO_APP_CLIENT_ID'] = cls.user_pool_client_id
