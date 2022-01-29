@@ -54,7 +54,7 @@ jobs:
           API_TAG_LATEST="${API_TAG_HEAD}latest"
           API_TAG_HASH="${API_TAG_HEAD}${GITHUB_SHA}"
           cp Dockerfile Dockerfile-api
-          echo "\n" >> Dockerfile-api
+          echo >> Dockerfile-api
           echo 'CMD ["app.web.api.handler"]' >> Dockerfile-api
           docker build -f Dockerfile-api -t $ECR_REPO_URI:API_TAG_LATEST -t $ECR_REPO_URI:API_TAG_HASH .
 
