@@ -56,7 +56,7 @@ jobs:
           cp Dockerfile Dockerfile-api
           echo >> Dockerfile-api
           echo 'CMD ["app.web.api.handler"]' >> Dockerfile-api
-          docker build -f Dockerfile-api -t $ECR_REPO_URI:API_TAG_LATEST -t $ECR_REPO_URI:API_TAG_HASH .
+          docker build -f Dockerfile-api -t $ECR_REPO_URI:$API_TAG_LATEST -t $ECR_REPO_URI:$API_TAG_HASH .
 
       - name: Login to Amazon ECR and Push All
         id: login-ecr
