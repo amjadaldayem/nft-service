@@ -56,10 +56,12 @@ jobs:
           cp Dockerfile Dockerfile-api
           echo "\n" >> Dockerfile-api
           echo 'CMD ["app.web.api.handler"]' >> Dockerfile-api
-          docker build -f Dockerfile -t $ECR_REPO_URI:API_TAG_LATEST -t $ECR_REPO_URI:API_TAG_HASH .
+          docker build -f Dockerfile-api -t $ECR_REPO_URI:API_TAG_LATEST -t $ECR_REPO_URI:API_TAG_HASH .
 
       - name: Login to Amazon ECR and Push All
         id: login-ecr
+        env:
+          ECR_REPO_URI: ${{ env.ECR_REPO_URI }}
         run: |
           aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $ECR_REPO_URI
           docker push --all-tags $ECR_REPO_URI 
