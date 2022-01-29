@@ -35,7 +35,7 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
         run: |
           GITHUB_SHORT_SHA="$(echo ${GITHUB_SHA} | cut -c1-7)"
-          echo "::set-output name=github_sha::$GITHUB_SHORT_SHA"
+          echo "::set-output name=github_short_sha::$GITHUB_SHORT_SHA"
 
       - name: Build API Lambda Image
         id: build-image
@@ -47,12 +47,12 @@ jobs:
           # We are not able to override the CMD (it won't work).
           API_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-api-
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          GITHUB_SHA: ${{ steps.get-github-short-sha.outputs.github_sha }}
+          GITHUB_SHORT_SHA: ${{ steps.get-github-short-sha.outputs.github_short_sha }}
           KINESIS_PRODUCER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-p-
           KINESIS_CONSUMER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-c-
         run: |
           API_TAG_LATEST="${API_TAG_HEAD}latest"
-          API_TAG_HASH="${API_TAG_HEAD}${GITHUB_SHA}"
+          API_TAG_HASH="${API_TAG_HEAD}${GITHUB_SHORT_SHA}"
           cp Dockerfile Dockerfile-api
           echo >> Dockerfile-api
           echo 'CMD ["app.web.api.handler"]' >> Dockerfile-api
