@@ -45,8 +45,7 @@ jobs:
           IMAGE_TAG2: ${{ env.DEPLOYMENT_ENV }}-latest  # Used for initial API gateway code update.
         run: |
           IMAGE_TAG="$(echo ${GITHUB_SHA} | cut -c1-7)"
-          # Append the entry point
-          docker build -f ./.docker/Dockerfile -t $ECR_REPO_URI:$IMAGE_TAG -t $ECR_REPO_URI:$IMAGE_TAG2 .
+          docker build -f Dockerfile -t $ECR_REPO_URI:$IMAGE_TAG -t $ECR_REPO_URI:$IMAGE_TAG2 .
           docker push --all-tags $ECR_REPO_URI
           echo "::set-output name=image::$ECR_REPO_URI:$IMAGE_TAG"
           echo "::set-output name=github_sha::$IMAGE_TAG"
