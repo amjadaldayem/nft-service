@@ -48,16 +48,9 @@ jobs:
           echo "::set-output name=image::$ECR_REPO_URI:$IMAGE_TAG"
           echo "::set-output name=github_sha::$IMAGE_TAG"
 
-      # Do not do deploy here. Use `sintra-stacks` to push deployment.
       - name: Update Lambda Function env vars
         id: update-function-code
         env:
-          IMAGE_URI: ${{ steps.build-image.outputs.image }}
           GITHUB_SHA: ${{ steps.build-image.outputs.github_sha }}
         run: |
-#          aws lambda update-function-configuration --function-name ${{ env.FUNCTION_NAME }} \
-#            --environment '{
-#              "Variables": {
-#                "GITHUB_SHA": ${GITHUB_SHA}
-#            }'
           aws ssm put-parameter --name "/${{ env.DEPLOYMENT_ENV }}/sintra-nft-service/v1/github_sha" --value $GITHUB_SHA --type 'String'
