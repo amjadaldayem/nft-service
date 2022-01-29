@@ -9,4 +9,4 @@ RUN yum install -y wget && wget https://github.com/remind101/ssm-env/releases/do
 COPY app /app/app
 
 ENV PYTHONPATH=/app:$PYTHONPATH
-ENTRYPOINT ["./app/ssm-env", "-with-decryption"]
+ENTRYPOINT ["/app/ssm-env", "-with-decryption"]
