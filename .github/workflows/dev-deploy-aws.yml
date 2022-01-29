@@ -46,21 +46,20 @@ jobs:
         run: |
           IMAGE_TAG="$(echo ${GITHUB_SHA} | cut -c1-7)"
           # Append the entry point
-          echo 'CMD ["app.web.api.handler"]' >> ./Dockerfile
-          docker build -t $ECR_REPO_URI:$IMAGE_TAG -t $ECR_REPO_URI:$IMAGE_TAG2 .
+          docker build -f ./.docker/Dockerfile -t $ECR_REPO_URI:$IMAGE_TAG -t $ECR_REPO_URI:$IMAGE_TAG2 .
           docker push --all-tags $ECR_REPO_URI
           echo "::set-output name=image::$ECR_REPO_URI:$IMAGE_TAG"
+          echo "::set-output name=github_sha::$IMAGE_TAG"
 
-#     Do not do deploy here. Use `sintra-stacks` to push deployment.
-#      - name: Update Lambda Function code
-#        id: update-function-code
-#        env:
-#          IMAGE_URI: ${{ steps.build-image.outputs.image }}
-#        run: |
-#          aws lambda update-function-configuration --function-name ${{ env.FUNCTION_NAME }} \
-#            --environment '{
-#              "Variables": {
-#                "COGNITO_PUBLIC_KEYS": "ssm:///${{ env.DEPLOYMENT_ENV }}/sintra-nft-service/v1/cognito_public_keys",
-#                "COGNITO_APP_CLIENT_ID": "${{ env.COGNITO_APP_CLIENT_ID }}"
-#            }'
-#          aws lambda update-function-code --function-name ${{ env.FUNCTION_NAME }} --image-uri $IMAGE_URI
+      # Do not do deploy here. Use `sintra-stacks` to push deployment.
+      - name: Update Lambda Function env vars
+        id: update-function-code
+        env:
+          IMAGE_URI: ${{ steps.build-image.outputs.image }}
+          GITHUB_SHA: ${{ steps.build-image.outputs.github_sha }}
+        run: |
+          aws lambda update-function-configuration --function-name ${{ env.FUNCTION_NAME }} \
+            --environment '{
+              "Variables": {
+                "GITHUB_SHA": ${GITHUB_SHA}
+            }'

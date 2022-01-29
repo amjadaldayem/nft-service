@@ -5,15 +5,8 @@ import click
 
 import settings
 from app.tools import tk
-from app.worker import worker
-from app.worker.indexers.solana.nft_indexer import (
-    NftCollectionDRoutine as SolanaNftCollectionDRoutine
-)
-from app.worker.indexers.terra.nft_indexer import (
-    NftCollectionDRoutine as TerraNftCollectionDRoutine
-)
-from slab.errors import setup_error_handler
-from slab.logging import setup_logging
+from app.utils import setup_error_handler
+from app.utils import setup_logging
 
 sys.dont_write_bytecode = True
 
@@ -28,11 +21,6 @@ def initialize():
     setup_logging(settings.DEBUG)
     if settings.DEPLOYMENT_ENV not in ('local', 'test'):
         setup_error_handler(sentry_error_notify)
-    settings.map_droutines_to_queue(
-        settings.NFT_COLLECTION_CRAWL_QUEUE_URL,
-        SolanaNftCollectionDRoutine,
-        TerraNftCollectionDRoutine
-    )
 
 
 @click.group()
@@ -41,7 +29,7 @@ def main():
 
 
 main.add_command(tk)
-main.add_command(worker)
 
 if __name__ == '__main__':
+    # Entry point for tools and other stuff.
     main()

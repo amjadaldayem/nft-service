@@ -10,7 +10,7 @@ from solana.rpc.api import Client
 from app import settings
 from app.blockchains.solana import CustomClient
 from app.blockchains.solana.client import fetch_transactions_for_pubkey_para, get_multi_transactions
-from slab.utils import partition
+from app.utils import partition
 
 logger = logging.getLogger(__name__)
 

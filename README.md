@@ -23,3 +23,19 @@ OpenSearch: 9200 (HTTPS!)
 OpenSearch Dashboard: 9600
 
 All other AWS Services: 5050
+
+### Command ./main
+
+```
+$ ./main web <params>
+```
+
+To start local API server
+
+```
+$ ./main ws <params>
+```
+
+To start local async Websocket listeners. Use there are sub commands to it.
+
+Otherwise, will trigger the click commands in `main.py`. 

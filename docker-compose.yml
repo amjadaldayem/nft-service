@@ -4,32 +4,6 @@ networks:
   sintra:
 
 services:
-  postgres:
-    image: postgres:10.14-alpine
-    restart: always
-    environment:
-      POSTGRES_USER: &POSTGRES_USER postgres
-      POSTGRES_PASSWORD: &POSTGRES_PASSWORD postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./.local/postgres/docker-entrypoint-initdb.d/01-init.sql:/docker-entrypoint-initdb.d/01-init.sql
-    networks:
-      - sintra
-
-  postgres-admin:
-    image: adminer
-    restart: always
-    depends_on:
-      - postgres
-    ports:
-      - "8080:8080"
-    networks:
-      - sintra
-    environment:
-      POSTGRES_USER: *POSTGRES_USER
-      POSTGRES_PASSWORD: *POSTGRES_PASSWORD
-
   dynamo:
     image: amazon/dynamodb-local:1.17.0
     restart: always
