@@ -12,7 +12,6 @@ env:
   AWS_REGION: us-west-2
   ECR_REPO_URI: 391319738221.dkr.ecr.us-west-2.amazonaws.com/nft-service
   DEPLOYMENT_ENV: dev
-  FUNCTION_NAME: arn:aws:lambda:us-west-2:822618759175:function:NftAPIServiceStack-NftServiceApiFuncD04E88BA-WrCoOKt9PMsK
 
 jobs:
   deploy:
@@ -30,46 +29,37 @@ jobs:
           aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
+      - name: Get Github Short Sha
+        id: get-github-short-sha
+        env:
+          GITHUB_SHA: ${{ github.sha }}
         run: |
-          aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $ECR_REPO_URI
+          GITHUB_SHORT_SHA="$(echo ${GITHUB_SHA} | cut -c1-7)"
+          echo "::set-output name=github_sha::$GITHUB_SHORT_SHA"
 
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Build API Lambda Image
         id: build-image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          GITHUB_SHA: ${{ github.sha }}
           # Tagging format:
           #  repo:<env>-<process>-<hash|latest>
           # The reason why we need multiple image is that
           # for Lambda with Container, the CMD has to be built in Dockerfile.
           # We are not able to override the CMD (it won't work).
           API_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-api-
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          GITHUB_SHA: ${{ steps.get-github-short-sha.outputs.github_sha }}
           KINESIS_PRODUCER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-p-
           KINESIS_CONSUMER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-c-
         run: |
-          GITHUB_SHORT_SHA="$(echo ${GITHUB_SHA} | cut -c1-7)"
-          # For API Image
           API_TAG_LATEST="${API_TAG_HEAD}latest"
-          API_TAG_HASH="${API_TAG_HEAD}${GITHUB_SHORT_SHA}"
+          API_TAG_HASH="${API_TAG_HEAD}${GITHUB_SHA}"
           cp Dockerfile Dockerfile-api
           echo "\n" >> Dockerfile-api
           echo 'CMD ["app.web.api.handler"]' >> Dockerfile-api
           docker build -f Dockerfile -t $ECR_REPO_URI:API_TAG_LATEST -t $ECR_REPO_URI:API_TAG_HASH .
-#          # General Kinesis producers Image (Supposed to be deployed in ECS)
-#          KINESIS_PRODUCER_TAG_LATEST="${KINESIS_PRODUCER_TAG_HEAD}latest"
-#          KINESIS_PRODUCER_TAG_HASH="${KINESIS_PRODUCER_TAG_HEAD}${GITHUB_SHORT_SHA}"
-#          cp Dockerfile Dockerfile-ecs
-#          echo "\n" >> Dockerfile-api
-#          echo 'CMD ["app.web.api.handler"]' >> Dockerfile-api
-#          docker build -f Dockerfile -t $ECR_REPO_URI:API_TAG_LATEST -t $ECR_REPO_URI:API_TAG_HASH .
-          docker push --all-tags $ECR_REPO_URI   
-          echo "::set-output name=github_sha::$GITHUB_SHORT_SHA"
 
-      - name: Update Lambda Function env vars
-        id: update-function-code
-        env:
-          GITHUB_SHA: ${{ steps.build-image.outputs.github_sha }}
+      - name: Login to Amazon ECR and Push All
+        id: login-ecr
         run: |
-          aws ssm put-parameter --name "/${{ env.DEPLOYMENT_ENV }}/sintra-nft-service/v1/github_sha" --value $GITHUB_SHA --type 'String'
+          aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $ECR_REPO_URI
+          docker push --all-tags $ECR_REPO_URI 
