@@ -1,10 +1,11 @@
+# Entrypoint for commandline toolkit
 import logging
 import sys
 
 import click
 
 import settings
-from app.tools import tk
+from app.tools import solana
 from app.utils import setup_error_handler
 from app.utils import setup_logging
 
@@ -28,7 +29,7 @@ def main():
     initialize()
 
 
-main.add_command(tk)
+main.add_command(solana)
 
 if __name__ == '__main__':
     # Entry point for tools and other stuff.

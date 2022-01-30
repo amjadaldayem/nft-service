@@ -4,9 +4,15 @@ if [[ $1 == 'web' ]]
 then
   # E.g., ./main web --port 80
   uvicorn "app.web.api:app" --host "0.0.0.0" "${@:2}"
-elif [[ $1 == 'ws' ]]
+elif [[ $1 == 'producer' ]]
 then
-  PYTHONPATH=.:$PYTHONPATH python3 app/ws_main.py "${@:2}"
+  PYTHONPATH=.:$PYTHONPATH python3 app/producer_main.py "${@:2}"
+elif [[ $1 == 'tk' ]]
+then
+  PYTHONPATH=.:$PYTHONPATH python3 app/tk_main.py "${@:2}"
+elif [[ $1 == 'ish' ]]
+then
+  PYTHONPATH=.:$PYTHONPATH ipython "${@:2}"
 else
-  PYTHONPATH=.:$PYTHONPATH python3 app/main.py "$@"
+  echo "Please give a subcommand."
 fi

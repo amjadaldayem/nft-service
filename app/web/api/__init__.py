@@ -47,5 +47,3 @@ def echo(
 
 app.bind_entrypoint(api_v1_noauth)
 app.bind_entrypoint(api_v1_auth)
-
-handler = Mangum(app=app)
