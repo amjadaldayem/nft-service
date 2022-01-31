@@ -1,5 +1,5 @@
 import logging
-from typing import List, Mapping
+from typing import List, Mapping, Union
 
 import boto3
 import orjson
@@ -11,27 +11,52 @@ logger = logging.getLogger(__name__)
 
 class KinesisStreamer:
 
-    def __init__(self, stream_name, region, endpoint_url=None):
+    def __init__(self, stream_name, region, endpoint_url=None, dummy=False):
+        """
+
+        Args:
+            stream_name:
+            region:
+            endpoint_url:
+            dummy: If set, will only log to STDOUT the information instead of
+                sending to Kinesis data stream.
+        """
         self.stream_name = stream_name
         self.region = region
-        self.client = boto3.client('kinesis', endpoint_url=endpoint_url)
-        self.waiter = self.client.get_waiter('stream_exists')
-        self.waiter.wait(
-            StreamName=self.stream_name,
-            WaiterConfig={
-                'Delay': 5,
-                'MaxAttempts': 3
-            }
-        )
+        if dummy:
+            self.put = self._put_log
+        else:
+            self.put = self._put_kinesis
+            self.client = boto3.client('kinesis', endpoint_url=endpoint_url)
+            self.waiter = self.client.get_waiter('stream_exists')
+            self.waiter.wait(
+                StreamName=self.stream_name,
+                WaiterConfig={
+                    'Delay': 5,
+                    'MaxAttempts': 3
+                }
+            )
 
-    def put(self, records: List[Mapping]) -> List[Mapping]:
+    def _put_log(self, records: List[Union[Mapping, str]]) -> List[Mapping]:
+        for record in records:
+            logger.info(
+                orjson.dumps(
+                    {
+                        'stream_name': self.stream_name,
+                        'record': record
+                    }
+                )
+            )
+        return []
+
+    def _put_kinesis(self, records: List[Union[Mapping, str]]) -> List[Mapping]:
         """
 
         Args:
             records:
 
         Returns:
-            A list of failed records. May need to re-put.
+            A list of failed records. May need to re-put. Success if empty.
         """
         failed_records = []
         try:

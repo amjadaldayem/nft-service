@@ -1,30 +1,16 @@
-# Entry point for Kinesis producers (Async) for event captures
-import asyncio
+# Entry point for Kinesis producers for event captures
 
-import asyncclick as click
+import click
 
 from app.indexers.solana import solana_sme
 
 
 @click.group()
-async def sme():
-    """
-    Secondary market producer.
-
-    Returns:
-
-    """
-    pass
-
-sme.add_command(solana_sme)
-
-
-@click.group()
-async def main():
+def main():
     pass
 
 
-main.add_command(sme)
+main.add_command(solana_sme)
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
