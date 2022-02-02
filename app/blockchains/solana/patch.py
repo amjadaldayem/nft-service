@@ -38,7 +38,7 @@ class CustomHTTPProvider(HTTPProvider):
 
 class CustomClient(Client):
     """
-    A custom async client with adjustable `timeout` value.
+    A custom client with adjustable `timeout` value.
     """
 
     def __init__(
@@ -48,5 +48,5 @@ class CustomClient(Client):
             blockhash_cache: Union[BlockhashCache, bool] = False,
             timeout: int = 30
     ) -> None:
-        super().__init__(commitment, blockhash_cache)
-        self._provider = CustomHTTPProvider(endpoint, timeout=timeout)
+        super().__init__(endpoint, commitment, blockhash_cache, timeout=timeout)
+        # self._provider = CustomHTTPProvider(endpoint, timeout=timeout)

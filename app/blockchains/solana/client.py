@@ -1,84 +1,21 @@
 import base64
-import dataclasses
 import logging
 import struct
-from collections import namedtuple
-from typing import Optional, List, Mapping, Union, Dict
+from typing import Optional, List, Union, Dict
 
 import base58
 import multiprocess as mp
 from solana.publickey import PublicKey
 from solana.rpc import commitment
 from solana.rpc.api import MemcmpOpt, Client
+from solana.rpc.types import DataSliceOpts
 
 from app import settings
 from app.blockchains.solana import consts
 from app.blockchains.solana.patch import CustomClient
+from .nft_metadata import NFTMetadataProgramAccount, NFTMetaData
 
 logger = logging.getLogger(__name__)
-
-METADATA_PROGRAM_ID = PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
-
-NFTCollectionInput = namedtuple(
-    'NFTCollectionInput',
-    [
-        'update_authority',  # For fetching all mints
-        'num_creators',
-    ]
-)
-
-NFTMetadataProgramAccount = namedtuple(
-    'NFTMetadataProgramAccount',
-    [
-        'public_key',
-        'data',
-        'encoding'
-    ]
-)
-
-
-@dataclasses.dataclass
-class NFTMetaData:
-    """
-    The metadata of an NFT, note that to retrieve the actual content of the
-    metadata, we need to issue HTTP GET against the `uri` field again. This
-    can be potentially expensive and needed to be handled carefully.
-    """
-    mint_key: str  # Token address in SolScan speak
-    update_authority: str
-    primary_sale_happened: bool
-    is_mutable: bool
-    name: Optional[str]
-    symbol: Optional[str]
-    uri: Optional[str]
-    seller_fee_basis_points: str
-    # Num of Creators is important for use with analysis on secondary
-    # sales/listing
-    creators: List[str]
-    verified: List[str]
-    share: List[str]
-    ext_data: Mapping = dataclasses.field(default_factory=dict)
-
-    @property
-    def creators_info(self) -> List[Mapping]:
-        creators = self.creators
-        verified = self.verified
-        share = self.share
-        lc = len(creators)
-        lv = len(verified)
-        ls = len(share)
-
-        if not (lc == lv == ls):
-            return []
-
-        return [
-            {
-                'creator': creators[i],
-                'share': share[i],
-                'verified': verified[i],
-            }
-            for i in range(lc)
-        ]
 
 
 class RPCHelper:
@@ -177,22 +114,50 @@ class RPCHelper:
         return metadata
 
 
-def nft_get_collection_pdas(update_authority) -> List[NFTMetadataProgramAccount]:
+def nft_get_collection_mint_addresses(update_authority) -> List[NFTMetadataProgramAccount]:
+    """
+
+    Note to get Candy Machine address
+
+    References:
+    https://github.com/metaplex-foundation/metaplex-program-library/blob/master/token-metadata/program/src/instruction.rs
+
+    token key -> mint authority -> the only transaction for the mint authority
+    -> analyzed the transaction the 2nd param to the MetaplexCandy Machine program instruction
+        is the Candy Machine address
+
+    Args:
+        update_authority:
+
+    Returns:
+
+    """
+    from .metaplex import METAPLEX_CREATOR_ARRAY_START
     client = CustomClient(
         settings.SOLANA_RPC_ENDPOINT,
         commitment=commitment.Confirmed,
-        timeout=60
+        timeout=180
     )
-
-    # This is darn expensive ...
+    # This trick is to return 0 data to do the full scan first
+    # then we have the number of items, and could do a fake pagination next?
     resp = client.get_program_accounts(
-        PublicKey(consts.METAPLEX_PUBKEY),
+        consts.METAPLEX_METADATA_PROGRAM,
         encoding='base64',
+        data_slice=DataSliceOpts(offset=0, length=0),
         commitment=commitment.Confirmed,
-        **RPCHelper.memcmp_opts_update_authority_filters(
-            update_authority
-        )
+        memcmp_opts=[
+            MemcmpOpt(offset=1, bytes=update_authority),
+        ]
     )
+    # This is darn expensive ...
+    # resp = client.get_program_accounts(
+    #     PublicKey(consts.METAPLEX_METADATA_PROGRAM),
+    #     encoding='base64',
+    #     commitment=commitment.Confirmed,
+    #     memcmp_opts=[
+    #         MemcmpOpt(offset=1, bytes=update_authority),
+    #     ]
+    # )
     result = []
     for r in resp['result']:
         data, encoding = r['account']['data']
@@ -288,13 +253,13 @@ def nft_get_metadata_pda_key_by_token_key(token_key: str) -> PublicKey:
     return PublicKey.find_program_address(
         [
             b'metadata',
-            bytes(METADATA_PROGRAM_ID),
+            bytes(consts.METAPLEX_METADATA_PROGRAM),
             bytes(
                 PublicKey(token_key)
                 if type(token_key) is not PublicKey else token_key
             )
         ],
-        METADATA_PROGRAM_ID
+        consts.METAPLEX_METADATA_PROGRAM
     )[0]
 
 
