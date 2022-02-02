@@ -1,15 +1,3 @@
-from typing import List
-
-from solana.publickey import PublicKey
-from solana.rpc import commitment
-from solana.rpc.api import MemcmpOpt
-from solana.rpc.types import DataSliceOpts, TokenAccountOpts
-
-from app import settings
-from app.blockchains.solana import consts
-from .patch import CustomClient
-from .nft_metadata import NFTMetadataProgramAccount
-
 # Reference:
 # https://github.com/metaplex-foundation/metaplex-program-library/blob/master/token-metadata/program/src/state.rs
 METAPLEX_MAX_NAME_LENGTH = 32

@@ -76,7 +76,7 @@ def get_transactions_for(public_key, filename, limit, before, until):
             batch_size=min(num_failed_signatures, batch_size)
         )
         # Stiches back
-        succeeded, failed = partition(lambda t: t[1], all_result.items())
+        succeeded, failed = partition(lambda t: t[1], retried_result.items())
         for k, v in succeeded:
             all_result[k] = v
         failed, _ = zip(*failed)

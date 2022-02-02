@@ -54,7 +54,7 @@ class NftCollectionDRoutine(DRoutine):
         # If the collection does not exist, fetch it.
         # Placeholder for collection first
         # Expensive...
-        pdas = solana.nft_get_collection_mint_addresses(update_authority)
+        pdas = solana.nft_get_collection_nfts(update_authority)
         if not pdas:
             logger.error(
                 "No NFT found for NFT Collection %s. Skipping",
