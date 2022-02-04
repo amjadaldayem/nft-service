@@ -1,28 +1,85 @@
-import contextlib
+import dataclasses
+from functools import cached_property
+from typing import Any, Type, List, Optional, Mapping
 
 import boto3
 
-from app import settings
+
+@dataclasses.dataclass
+class MappingPair:
+    table_attr_name: str
+    field_name: Optional[str]
+    table_attr_prefix: Optional[str] = None
 
 
-class NFTRepository:
+class SchemaMapping:
     """
+    Python Type	                        DynamoDB Type
+    string	                            String (S)
+    integer	                            Number (N)
+    decimal.Decimal	                    Number (N)
+    boto3.dynamodb.types.Binary	        Binary (B)
+    boolean	                            Boolean (BOOL)
+    None	                            Null (NULL)
+    string set	                        String Set (SS)
+    integer set	                        Number Set (NS)
+    decimal.Decimal set	                Number Set (NS)
+    boto3.dynamodb.types.Binary set	    Binary Set (BS)
+    list	                            List (L)
+    dict	                            Map (M)
     """
+
+    def __init__(self, facet: str,
+                 dataclass: Type[dataclasses.dataclass],
+                 primary_key: MappingPair,
+                 sort_key: MappingPair,
+                 *attr_mappings):
+        self.facet = facet
+        self.dataclass = dataclass
+        self.primary_key = primary_key
+        self.sort_key = sort_key
+        self.attr_mappings = attr_mappings
+        # table_attr -> (field_name, prefix) lookup
+        self.lookup = {
+            m.table_attr_name: (m.field_name, m.table_attr_prefix)
+            for m in (self.primary_key, self.sort_key,) + self.attr_mappings
+        }
+        # self._generate_mappings()
+
+
+class DynamoDBRepositoryBase:
+    """
+
+    """
+
+    SNULL = ''  # Empty string
+
+    # Constans for ReturnValues for PutItem
+    RV_NONE = 'NONE'
+    RV_ALL_OLD = 'ALL_OLD'
+    RV_UPDATED_OLD = 'UPDATED_OLD'
+    RV_ALL_NEW = 'ALL_NEW'
+    RV_UPDATED_NEW = 'UPDATED_NEW'
 
     def __init__(self,
                  table_name,
-                 region='us-west-2',
-                 endpoint_url=None
+                 dynamodb_resource,
+                 schema_mapping_list: List[SchemaMapping] = None,  # TODO: imp later
                  ):
         self.table_name = table_name
-        self.session = boto3.Session()
-        self.kwargs = {
-            'region_name': region
-        }
-        if endpoint_url:
-            self.kwargs['endpoint_url'] = endpoint_url
+        self.resource = dynamodb_resource
+        # Each Facet
+        # {
+        #   field_name: {
+        #     dynamodb_attr_name : {
+        #       ''
+        #     }
+        #   }
+        # }
+        self.facets = {}
+        # TODO: Later build this generic stuff
+        # self._parse_schema_mapping_list(schema_mapping_list)
 
-    @contextlib.asynccontextmanager
+    @cached_property
     def table(self):
-        with self.session.resource('dynamodb', **self.kwargs) as dynamo_resource:
-            yield dynamo_resource.Table(self.table_name)
+        return self.resource.Table(self.table_name)

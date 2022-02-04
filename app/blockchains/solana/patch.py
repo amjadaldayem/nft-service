@@ -1,11 +1,16 @@
 import json
-from typing import Optional, Union, Any, Dict, Type
+from typing import Any, Dict
+from typing import Optional, Union
 
-import requests
+import httpx
 import orjson
+import requests
+from httpx import Timeout
 from solana.blockhash import BlockhashCache
 from solana.rpc.api import Client
+from solana.rpc.async_api import AsyncClient
 from solana.rpc.commitment import Commitment
+from solana.rpc.providers.async_http import AsyncHTTPProvider
 from solana.rpc.providers.http import HTTPProvider
 from solana.rpc.types import RPCMethod, RPCResponse
 
@@ -49,4 +54,28 @@ class CustomClient(Client):
             timeout: int = 30
     ) -> None:
         super().__init__(endpoint, commitment, blockhash_cache, timeout=timeout)
-        # self._provider = CustomHTTPProvider(endpoint, timeout=timeout)
+        self._provider = CustomHTTPProvider(endpoint, timeout=timeout)
+
+
+class CustomAsyncHTTPProvider(AsyncHTTPProvider):
+
+    def __init__(self, endpoint, timeout: int):
+        """Init AsyncHTTPProvider."""
+        super().__init__(endpoint)
+        self.session = httpx.AsyncClient(timeout=Timeout(float(timeout)))
+
+
+class CustomAsyncClient(AsyncClient):
+    """
+    A custom async client with adjustable `timeout` value.
+    """
+
+    def __init__(
+            self,
+            endpoint: Optional[str] = None,
+            commitment: Optional[Commitment] = None,
+            blockhash_cache: Union[BlockhashCache, bool] = False,
+            timeout: int = 30
+    ) -> None:
+        super().__init__(commitment, blockhash_cache)
+        self._provider = CustomAsyncHTTPProvider(endpoint, timeout=timeout)

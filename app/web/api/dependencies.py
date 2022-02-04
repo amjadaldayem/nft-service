@@ -1,9 +1,10 @@
 import os
 
+import orjson
 from fastapi import Header
 from app.models.user import User
 from app.web import services
-from app.web.api.exceptions import AuthenticationError
+from app.web.api.exceptions import AuthenticationError, UserNotFound
 
 
 def get_auth_user(
@@ -12,16 +13,12 @@ def get_auth_user(
     try:
         user_data = services.user_service.extract_token(
             authorization,
-            os.environ['COGNITO_PUBLIC_KEYS'],
+            orjson.loads(os.environ['COGNITO_PUBLIC_KEYS']),
             os.environ.get('VERIFY_TOKEN', False)
         )
     except Exception as e:
         raise AuthenticationError(data={'details': str(e)})
-
-    return User(
-        user_id=user_data['sub'],
-        username=user_data['cognito:username'],
-        preferred_username=user_data['cognito:username'],
-        email=user_data['email'],
-        joined_on=user_data['joined_on']
-    )
+    user = services.user_service.get_user(user_data['sub'])
+    if not user:
+        raise UserNotFound(data={'details': f"User sub = {user_data['sub']}"})
+    return user

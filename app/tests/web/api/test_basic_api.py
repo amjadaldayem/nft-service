@@ -1,3 +1,4 @@
+import datetime
 import functools
 import unittest
 from typing import Union
@@ -90,6 +91,33 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         cls.env_dict['COGNITO_APP_CLIENT_ID'] = cls.user_pool_client_id
         cls.env_dict['VERIFY_TOKEN'] = '1'
 
+        # Creates DynamoDb table
+        from app import settings
+        cls.dynamodb_resource.meta.client.create_table(
+            TableName=settings.DYNAMODB_USER_TABLE,
+            AttributeDefinitions=[
+                {
+                    'AttributeName': 'pk',
+                    'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'sk',
+                    'AttributeType': 'S'
+                },
+            ],
+            KeySchema=[
+                {
+                    'AttributeName': 'pk',
+                    'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'sk',
+                    'KeyType': 'RANGE'
+                },
+            ],
+            BillingMode='PAY_PER_REQUEST'
+        )
+
         # Patch the global `user_service` instance
         cls.patch_object_fields(
             services.user_service,
@@ -98,6 +126,11 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
             cognito_client=cls.cognito_client,
             dynamodb_resource=cls.dynamodb_resource
         )
+        cls.patch_object_fields(
+            services.user_service.user_repository,
+            resource=cls.dynamodb_resource
+        )
+        cls.user_table = cls.dynamodb_resource.Table(settings.DYNAMODB_USER_TABLE)
 
         cls.foo_username = 'foo'
         cls.foo_email = 'foo@example.com'
@@ -108,6 +141,7 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
             username=cls.foo_username,
             password=cls.foo_password
         )
+        print(cls.user)
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -136,14 +170,13 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         # Method not found.
         self.assertEqual(error['code'], -32601)
 
-    def test_echo(self):
-        data = '123'
+    def test_get_revision(self):
         result, error = self.rpc(
-            method='echo',
-            params={'data': data}
+            method='get_revision',
+            params={}
         )
         self.assertIsNone(error)
-        self.assertIn(data, result)
+        self.assertIn('NONE', result)
 
     def test_echo_authenticated(self):
         auth, _ = services.user_service.login(
@@ -154,8 +187,7 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
             params={'data': 123},
             authorization=auth
         )
-        self.assertIsNone(result)
-        self.assertEqual(error['code'], AuthenticationError.CODE)
+        self.assertIsNotNone(result)
 
     def test_echo_not_authenticated(self):
         result, error = self._rpc(
@@ -164,3 +196,59 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         )
         self.assertIsNone(result)
         self.assertEqual(error['code'], AuthenticationError.CODE)
+
+    def test_sign_up(self):
+        email, username, password = 'bar@example.com', 'bar', 'abc123456'
+        result, error = self.rpc(
+            method='sign_up',
+            params={
+                'data': {
+                    'email': email,
+                    'username': username,
+                    'password': password
+                }
+            }
+        )
+        self.assertIsNone(error)
+        user_id = result['user_id']
+        readback = services.user_service.get_user(user_id)
+        result['joined_on'] = datetime.datetime.fromisoformat(result['joined_on'])
+        self.assertEqual(readback.__dict__, result)
+
+    def test_login(self):
+        result, error = self.rpc(
+            method='login',
+            params={
+                'data': {
+                    'username': self.foo_username,
+                    'password': self.foo_password
+                }
+            },
+        )
+        self.assertIsNone(error)
+        auth = result['access_token']
+        result, error = self._rpc(
+            method='get_user_data',
+            params={},
+            authorization=auth
+        )
+        self.assertIsNone(error)
+        self.assertEqual(
+            result['username'],
+            self.foo_username
+        )
+
+    def test_get_user_data(self):
+        auth, _ = services.user_service.login(
+            self.foo_username, self.foo_password
+        )
+        result, error = self._rpc(
+            method='get_user_data',
+            params={},
+            authorization=auth
+        )
+        self.assertIsNone(error)
+        self.assertEqual(
+            result['username'],
+            self.foo_username
+        )

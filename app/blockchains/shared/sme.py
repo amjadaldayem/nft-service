@@ -25,3 +25,7 @@ class SecondaryMarketEvent:
     buyer: str = EMPTY_PUBLIC_KEY
     transaction_hash: str = EMPTY_TRANSACTION_HASH
     data: Optional[dict] = None  # Extra information
+
+    @property
+    def dedupe_key(self):
+        return f'{self.blockchain_id}-{self.transaction_hash}'

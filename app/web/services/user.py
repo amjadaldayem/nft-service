@@ -4,8 +4,9 @@ import time
 import orjson
 import pybase64 as base64
 from jose import jwt, jwk
+from jose.utils import base64url_decode
 
-from app.models.user import User
+from app.models.user import User, UserRepository
 
 
 class PublicKeyNotFound(Exception):
@@ -45,9 +46,11 @@ class UserService:
         self.user_pool_id = user_pool_id
         self.user_pool_client_id = user_pool_client_id
         self.cognito_client = cognito_client
-        self.dynamodb_resource = dynamodb_resource
+        self.user_repository = UserRepository(
+            dynamodb_resource
+        )
 
-    def sign_up(self, email, username, password, confirm=True):
+    def sign_up(self, email, username, password, confirm=True) -> User:
         user_data = self.cognito_client.sign_up(
             ClientId=self.user_pool_client_id,
             Username=username,
@@ -57,19 +60,22 @@ class UserService:
                 {'Name': 'preferred_username', 'Value': username},
             ]
         )
+        # User Id is the Sub from Cognito
         user_id = user_data['UserSub']
         if confirm:
             self.cognito_client.admin_confirm_sign_up(
                 UserPoolId=self.user_pool_id,
                 Username=username
             )
-        return User(
+        user = User(
             user_id=user_id,
             username=username,
             preferred_username=username,
             email=email,
             joined_on=datetime.datetime.now()
         )
+        self.user_repository.save_user_profile(user)
+        return user
 
     def login(self, username, password):
         resp = self.cognito_client.initiate_auth(
@@ -84,6 +90,18 @@ class UserService:
         access_token = result['AccessToken']
         refresh_token = result['RefreshToken']
         return access_token, refresh_token
+
+    def get_user(self, user_id):
+        """
+        TODO: Later stitch more info for the user
+
+        Args:
+            user_id:
+
+        Returns:
+
+        """
+        return self.user_repository.get_user_profile(user_id)
 
     def extract_token(self, token, public_keys, verify=False) -> dict:
         """
@@ -140,7 +158,7 @@ class UserService:
         # message and signature (encoded in base64)
         message, encoded_signature = str(token).rsplit('.', 1)
         # decode the signature
-        decoded_signature = base64.urlsafe_b64decode(encoded_signature.encode('utf-8'))
+        decoded_signature = base64url_decode(encoded_signature.encode('utf-8'))
         # verify the signature
         if not public_key.verify(message.encode("utf8"), decoded_signature):
             raise BadSignature
@@ -151,6 +169,8 @@ class UserService:
         if time.time() > claims['exp']:
             raise TokenExpired
         if claims['aud'] != self.user_pool_client_id:
-            raise WrongAudience(f"Audience {claims['aud']} not matching client {app_client_id}.")
+            raise WrongAudience(f"Audience {claims['aud']} not matching client.")
         # Let's return the payload
-        return orjson.loads(base64.urlsafe_b64decode(message.split('.')[1]))
+        payload = message.split('.')[1]  # type: str
+        decoded_payload = base64url_decode(payload.encode())
+        return orjson.loads(decoded_payload)
