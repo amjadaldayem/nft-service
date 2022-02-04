@@ -25,3 +25,11 @@ class UserNotFound(jsonrpc.BaseError):
 
     class DataModel(BaseModel):
         details: str
+
+
+class UnknownError(jsonrpc.BaseError):
+    CODE = 9000
+    MESSAGE = 'Unknown error'
+
+    class DataModel(BaseModel):
+        details: str

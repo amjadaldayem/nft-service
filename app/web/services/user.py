@@ -1,5 +1,6 @@
 import datetime
 import time
+import uuid
 
 import orjson
 import pybase64 as base64
@@ -50,23 +51,31 @@ class UserService:
             dynamodb_resource
         )
 
-    def sign_up(self, email, username, password, confirm=True) -> User:
-        user_data = self.cognito_client.sign_up(
-            ClientId=self.user_pool_client_id,
+    def sign_up(self, email, username, password) -> User:
+        from app.web.api.exceptions import UnknownError
+        user_data = self.cognito_client.admin_create_user(
+            UserPoolId=self.user_pool_id,
             Username=username,
-            Password=password,
+            TemporaryPassword=str(uuid.uuid1()),
+            MessageAction='SUPPRESS',
             UserAttributes=[
                 {'Name': 'email', 'Value': email},
                 {'Name': 'preferred_username', 'Value': username},
             ]
         )
         # User Id is the Sub from Cognito
-        user_id = user_data['UserSub']
-        if confirm:
-            self.cognito_client.admin_confirm_sign_up(
-                UserPoolId=self.user_pool_id,
-                Username=username
-            )
+        for item in user_data['User']['Attributes']:
+            if item['Name'] == 'sub':
+                user_id = item['Value']
+                break
+        else:
+            raise UnknownError(data={'details': 'Idp does not return value sub.'})
+        self.cognito_client.admin_set_user_password(
+            UserPoolId=self.user_pool_id,
+            Username=username,
+            Permanent=True,
+            Password=password
+        )
         user = User(
             user_id=user_id,
             username=username,

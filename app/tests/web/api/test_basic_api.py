@@ -35,6 +35,14 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
             'AdminCreateUserConfig': {
                 'AllowAdminCreateUserOnly': True
             },
+            'AutoVerifiedAttributes': [
+                'email',
+            ],
+            'AliasAttributes': [
+                'phone_number',
+                'email',
+                'preferred_username'
+            ],
             'Schema': [
                 {
                     'Name': 'email',
@@ -60,7 +68,7 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
                     'Mutable': False,
                     'AttributeDataType': 'DateTime'
                 }
-            ]
+            ],
         }
         user_pool = cognito_client.create_user_pool(
             **user_pool_creation_args
@@ -136,12 +144,15 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         cls.foo_email = 'foo@example.com'
         cls.foo_password = 'abc123'
 
+        cls.bar_email = 'bar@example.com'
+        cls.bar_username = 'bar'
+        cls.bar_password = 'abc123456'
+
         cls.user = services.user_service.sign_up(
             email=cls.foo_email,
             username=cls.foo_username,
             password=cls.foo_password
         )
-        print(cls.user)
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -198,14 +209,13 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         self.assertEqual(error['code'], AuthenticationError.CODE)
 
     def test_sign_up(self):
-        email, username, password = 'bar@example.com', 'bar', 'abc123456'
         result, error = self.rpc(
             method='sign_up',
             params={
                 'data': {
-                    'email': email,
-                    'username': username,
-                    'password': password
+                    'email': self.bar_email,
+                    'username': self.bar_username,
+                    'password': self.bar_password
                 }
             }
         )
@@ -214,6 +224,45 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         readback = services.user_service.get_user(user_id)
         result['joined_on'] = datetime.datetime.fromisoformat(result['joined_on'])
         self.assertEqual(readback.__dict__, result)
+
+    def test_sign_up_bad_username(self):
+        result, error = self.rpc(
+            method='sign_up',
+            params={
+                'data': {
+                    'email': "a@a.com",
+                    'username': "1",
+                    'password': "abc12345"
+                }
+            }
+        )
+        self.assertIsNotNone(error)
+        self.assertEqual(error['code'], -32602)
+        result, error = self.rpc(
+            method='sign_up',
+            params={
+                'data': {
+                    'email': "a@a.com",
+                    'username': "a" * 99,
+                    'password': "abc12345"
+                }
+            }
+        )
+        self.assertIsNotNone(error)
+        self.assertEqual(error['code'], -32602)
+
+    def test_sign_up_with_dupes(self):
+        result, error = self.rpc(
+            method='sign_up',
+            params={
+                'data': {
+                    'email': self.foo_email,
+                    'username': self.foo_username,
+                    'password': "abc12345"
+                }
+            }
+        )
+        self.assertIsNotNone(error)
 
     def test_login(self):
         result, error = self.rpc(
