@@ -1,5 +1,11 @@
 import asyncio
 import logging
+import time
+import uuid
+import queue
+
+import multiprocess as mp
+
 import pybase64 as base64
 from collections import namedtuple
 from typing import List, Mapping, Union, Callable, Any, Optional, Coroutine
@@ -15,6 +21,68 @@ KinesisStreamRecord = namedtuple(
     'KinesisStreamRecord',
     ["partition_key", "data", "timestamp", "sequence_number"]
 )
+
+END_MARKER = '_EnD_983RRd73s652f__'
+
+
+def _poller(queue, handler):
+    loop = asyncio.new_event_loop()
+    while True:
+        try:
+            event = queue.get(True, 2)
+        except mp.queues.Empty:
+            continue
+        if event == END_MARKER:
+            break
+        handler(event, None, loop)
+
+
+def _setup_local_consumer_poller(queue, handler):
+    p = mp.Process(target=_poller, args=(queue, handler))
+    p.start()
+    return p
+
+
+def _lambda_wrapper(coro, event, loop):
+    """
+    Logic for parsing Lambda event and invoking Async handler
+    Args:
+        coro:
+        event:
+        loop:
+
+    Returns:
+
+    """
+    transformed = []
+    for r in event['Records']:
+        t = r['kinesis']
+
+        #                     "kinesisSchemaVersion": "1.0",
+        #                     "partitionKey": "1",
+        #                     "sequenceNumber": "49590338271490256608559692538361571095921575989136588898",
+        #                     "data": "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0Lg==",
+        #                     "approximateArrivalTimestamp": 1545084650.987
+        transformed.append(
+            KinesisStreamRecord(
+                partition_key=t['partitionKey'],
+                data=orjson.loads(base64.urlsafe_b64decode(t['data'])),
+                timestamp=t['approximateArrivalTimestamp'],
+                sequence_number=t['sequenceNumber']
+            )
+        )
+    failed_records = loop.run_until_complete(
+        coro(transformed, loop)
+    )
+    if failed_records:
+        return {
+            "batchItemFailures": [
+                {"itemIdentifier": failed_record.sequence_number}
+                for failed_record in failed_records
+            ]
+        }
+    else:
+        return {"batchItemFailures": []}
 
 
 class KinesisStreamer:
@@ -60,21 +128,37 @@ class KinesisStreamer:
 
     """
 
-    def __init__(self, stream_name, region, endpoint_url=None, dummy=False):
+    PRODUCER_NORMAL = 0
+    PRODUCER_LOG_ONLY = 1
+    PRODUCER_LOCAL_CONSUMER = 2
+
+    def __init__(self, stream_name, region, endpoint_url=None, producer_mode=0, handler=None):
         """
 
         Args:
             stream_name:
             region:
             endpoint_url:
-            dummy: If set, will only log to STDOUT the information instead of
-                sending to Kinesis data stream.
+            producer_mode: What level the Streamer Producer works on.
+                0 - For normal Kinesis Producer
+                1 - Only logs to console the produced data
+                2 - Locally simulates Lambda invocation to invoke the consumer.
+            handler: Consumer function that follows the Lambda Kinesis contract
+                to receive messages for local run. Only meaningful when producer_mode = 2.
         """
         self.stream_name = stream_name
         self.region = region
-        if dummy:
+        if producer_mode == self.PRODUCER_LOCAL_CONSUMER:
+            # Use local handler directly (if one is wrapped)
+            logger.info("Using local consumer.")
+            self.put = self._put_local_handler
+            self.queue = mp.Queue()
+            self.poller = _setup_local_consumer_poller(self.queue, handler)
+
+        elif producer_mode == self.PRODUCER_LOG_ONLY:
             self.put = self._put_log
         else:
+            # PRODUCER_LEVEL_NORMAL
             self.put = self._put_kinesis
             self.client = boto3.client('kinesis', endpoint_url=endpoint_url)
             self.waiter = self.client.get_waiter('stream_exists')
@@ -85,7 +169,12 @@ class KinesisStreamer:
                     'MaxAttempts': 3
                 }
             )
-        self.loop = asyncio.new_event_loop()
+
+    def kill_local_poller(self):
+        if hasattr(self, 'queue'):
+            self.queue.put_nowait(END_MARKER)
+            if self.poller.is_alive():
+                self.poller.join()
 
     def _put_log(self, records: List[Union[Mapping, str]]) -> List[Mapping]:
         for record in records:
@@ -132,8 +221,44 @@ class KinesisStreamer:
 
         return failed_records
 
-    def wrap_handler(self,
-                     func: Coroutine[List[KinesisStreamRecord], Any, KinesisStreamRecord]
+    def _put_local_handler(self, records: List[Union[Mapping, str]]) -> List[Mapping]:
+        if hasattr(self, 'queue'):
+            records = [
+                {
+                    'kinesis': {
+                        'partitionKey': uuid.uuid1(),
+                        'data': base64.urlsafe_b64encode(orjson.dumps(record)),
+                        'approximateArrivalTimestamp': time.time(),
+                        'sequenceNumber': i
+                    }
+                } for i, record in enumerate(records)
+            ]
+            evt = {
+                'Records': records
+            }
+            self.queue.put_nowait(evt)
+
+    @classmethod
+    def wrap_local_handler(cls,
+                           coro: Coroutine[List[KinesisStreamRecord], Any, KinesisStreamRecord],
+                           ) -> Callable[[Mapping, Mapping, asyncio.BaseEventLoop], Mapping]:
+        """
+
+        Args:
+            func:
+
+        Returns:
+            a function handler(event, context, loop) for local consumer
+        """
+
+        def _handler(event, context, loop):
+            return _lambda_wrapper(coro, event, loop)
+
+        return _handler
+
+    @classmethod
+    def wrap_handler(cls,
+                     coro: Coroutine[List[KinesisStreamRecord], Any, KinesisStreamRecord]
                      ) -> Callable[[Mapping, Mapping], Mapping]:
         """
         Wraps a callable to get the Handler the conforms with Lambda Input for
@@ -147,37 +272,11 @@ class KinesisStreamer:
             func:
 
         Returns:
-
+            a function handler(event, context) that meets Lambda contract
         """
+        loop = asyncio.new_event_loop()
 
         def _handler(event, context):
-            transformed = []
-            for r in event['Records']:
-                t = r['kinesis']
-
-                #                     "kinesisSchemaVersion": "1.0",
-                #                     "partitionKey": "1",
-                #                     "sequenceNumber": "49590338271490256608559692538361571095921575989136588898",
-                #                     "data": "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0Lg==",
-                #                     "approximateArrivalTimestamp": 1545084650.987
-                transformed.append(
-                    KinesisStreamRecord(
-                        partition_key=t['partitionKey'],
-                        data=base64.urlsafe_b64decode(t['data']),
-                        timestamp=t['approximateArrivalTimestamp'],
-                        sequence_number=t['sequenceNumber']
-                    )
-                )
-            failed_record = self.loop.run_until_complete(
-                func(transformed, self.loop)
-            )
-            if failed_record:
-                return {
-                    "batchItemFailures": [
-                        {"itemIdentifier": failed_record.sequence_number}
-                    ]
-                }
-            else:
-                return {"batchItemFailures": []}
+            return _lambda_wrapper(coro, event, loop)
 
         return _handler

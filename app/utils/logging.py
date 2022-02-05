@@ -17,12 +17,12 @@ def setup_logging(debug=0, include_noisy=None, disable_existing=True):
     Sets up logging for an app.
 
     Args:
-        debug (int): An integer determining what level of debugging output to
+        debug (int): An integer determining what producer_mode of debugging output to
                      display. 0 disables debug, 1 enables it but disables
                      debug logging from noisy libraries like boto, 2 enables
                      debugging fully.
         include_noisy (list): A list of "noisy modules" to allow with debug
-                              level 1.
+                              producer_mode 1.
         disable_existing (bool): If true, first disable all existing logging
                                  handlers before setting up logging. Allows us
                                  to throw out things that cause duplicate

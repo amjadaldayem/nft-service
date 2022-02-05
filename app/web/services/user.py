@@ -52,17 +52,24 @@ class UserService:
         )
 
     def sign_up(self, email, username, password) -> User:
-        from app.web.api.exceptions import UnknownError
-        user_data = self.cognito_client.admin_create_user(
-            UserPoolId=self.user_pool_id,
-            Username=username,
-            TemporaryPassword=str(uuid.uuid1()),
-            MessageAction='SUPPRESS',
-            UserAttributes=[
-                {'Name': 'email', 'Value': email},
-                {'Name': 'preferred_username', 'Value': username},
-            ]
+        from app.web.api.exceptions import (
+            UnknownError,
+            ErrorCreatingUserInPool,
+            ErrorCreatingUser
         )
+        try:
+            user_data = self.cognito_client.admin_create_user(
+                UserPoolId=self.user_pool_id,
+                Username=username,
+                TemporaryPassword=str(uuid.uuid1()),
+                MessageAction='SUPPRESS',
+                UserAttributes=[
+                    {'Name': 'email', 'Value': email},
+                    {'Name': 'preferred_username', 'Value': username},
+                ]
+            )
+        except Exception as e:
+            raise ErrorCreatingUserInPool(data={'details': str(e)})
         # User Id is the Sub from Cognito
         for item in user_data['User']['Attributes']:
             if item['Name'] == 'sub':
@@ -70,21 +77,46 @@ class UserService:
                 break
         else:
             raise UnknownError(data={'details': 'Idp does not return value sub.'})
-        self.cognito_client.admin_set_user_password(
-            UserPoolId=self.user_pool_id,
-            Username=username,
-            Permanent=True,
-            Password=password
-        )
-        user = User(
-            user_id=user_id,
-            username=username,
-            preferred_username=username,
-            email=email,
-            joined_on=datetime.datetime.now()
-        )
-        self.user_repository.save_user_profile(user)
+        try:
+            self.cognito_client.admin_set_user_password(
+                UserPoolId=self.user_pool_id,
+                Username=username,
+                Permanent=True,
+                Password=password
+            )
+            user = User(
+                user_id=user_id,
+                username=username,
+                preferred_username=username,
+                email=email,
+                joined_on=datetime.datetime.now()
+            )
+            self.user_repository.save_user_profile(user)
+        except Exception as e:
+            self.delete_user(username)
+            raise ErrorCreatingUser(data={'details': str(e)})
         return user
+
+    def delete_user_from_pool(self, username):
+        """
+        Only deletes the user from the Cognito pool.
+
+        Args:
+            username:
+
+        Returns:
+
+        """
+        from app.web.api.exceptions import ErrorDeletingUserFromPool
+        try:
+            self.cognito_client.admin_delete_user(
+                UserPoolId=self.user_pool_id,
+                Username=username
+            )
+        except Exception as e:
+            raise ErrorDeletingUserFromPool(
+                data={'details': f'Error deleting user username={username}'}
+            )
 
     def login(self, username, password):
         resp = self.cognito_client.initiate_auth(

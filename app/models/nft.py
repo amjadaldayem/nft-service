@@ -4,7 +4,7 @@ from functools import cached_property
 import boto3
 
 from app import settings
-from app.blockchains import SecondaryMarketEvent
+from app.models.sme import SecondaryMarketEvent
 
 
 class NFTRepository:

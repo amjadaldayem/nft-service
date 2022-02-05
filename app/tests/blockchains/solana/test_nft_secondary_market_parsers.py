@@ -9,13 +9,13 @@ from app.blockchains import (
     SOLANA_SOLANART,
     SOLANA_DIGITAL_EYES,
     SOLANA_SOLSEA,
-    SecondaryMarketEvent,
     SECONDARY_MARKET_EVENT_LISTING,
     SECONDARY_MARKET_EVENT_DELISTING,
     SECONDARY_MARKET_EVENT_SALE,
     SECONDARY_MARKET_EVENT_PRICE_UPDATE,
     BLOCKCHAIN_SOLANA,
 )
+from app.models.sme import SecondaryMarketEvent
 from app.blockchains.solana import ParsedTransaction
 
 data_basedir = 'data'

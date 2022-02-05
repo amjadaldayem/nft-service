@@ -5,13 +5,13 @@ from typing import Union, List, Mapping
 import slugify as slugify
 
 from app.blockchains import solana
-from app.blockchains.solana.client import NFTMetaData
+from app.blockchains.solana.client import SolanaNFTMetaData
 from slab.messaging import DRoutine, OK, DRoutineBaseParams
 
 logger = logging.getLogger(__name__)
 
 
-def map_nft_metadata_to_nft_model(nft_collection_id, nft_metadata: NFTMetaData):
+def map_nft_metadata_to_nft_model(nft_collection_id, nft_metadata: SolanaNFTMetaData):
     """
     TODO: Finish this later.
     Args:
@@ -23,7 +23,7 @@ def map_nft_metadata_to_nft_model(nft_collection_id, nft_metadata: NFTMetaData):
     """
     return None
 
-def fetch_extra_metadata(nft_metadata_list: List[NFTMetaData]) -> Mapping:
+def fetch_extra_metadata(nft_metadata_list: List[SolanaNFTMetaData]) -> Mapping:
     """
     TODO: Finish this.
     Visits the `uri` property on each NFTMetadata, fetch the JSON info from
@@ -77,7 +77,7 @@ class NftCollectionDRoutine(DRoutine):
             nft_metadata_list
         )
 
-        one_nft = nft_metadata_list[0]  # type: NFTMetaData
+        one_nft = nft_metadata_list[0]  # type: SolanaNFTMetaData
 
         nft_models = list(filter(bool, map(
             functools.partial(map_nft_metadata_to_nft_model),

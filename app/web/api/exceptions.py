@@ -27,6 +27,30 @@ class UserNotFound(jsonrpc.BaseError):
         details: str
 
 
+class ErrorCreatingUser(jsonrpc.BaseError):
+    CODE = 5003
+    MESSAGE = 'Cannot create user in database.'
+
+    class DataModel(BaseModel):
+        details: str
+
+
+class ErrorCreatingUserInPool(jsonrpc.BaseError):
+    CODE = 5004
+    MESSAGE = 'Cannot create user in the pool.'
+
+    class DataModel(BaseModel):
+        details: str
+
+
+class ErrorDeletingUserFromPool(jsonrpc.BaseError):
+    CODE = 5005
+    MESSAGE = 'Cannot delete user from the pool.'
+
+    class DataModel(BaseModel):
+        details: str
+
+
 class UnknownError(jsonrpc.BaseError):
     CODE = 9000
     MESSAGE = 'Unknown error'

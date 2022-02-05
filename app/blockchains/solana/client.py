@@ -38,7 +38,7 @@ NFTMetadataProgramAccount = namedtuple(
 
 
 @dataclasses.dataclass
-class NFTMetaData:
+class SolanaNFTMetaData:
     """
     The metadata of an NFT, note that to retrieve the actual content of the
     metadata, we need to issue HTTP GET against the `uri` field again. This
@@ -161,7 +161,7 @@ class RPCHelper:
         primary_sale_happened = bool(data[i])
         i += 1
         is_mutable = bool(data[i])
-        metadata = NFTMetaData(
+        metadata = SolanaNFTMetaData(
             update_authority=bytes(source_account).decode('utf-8'),
             mint_key=bytes(mint_account).decode('utf-8'),
             primary_sale_happened=primary_sale_happened,
@@ -206,7 +206,7 @@ def nft_get_collection_nfts(update_authority) -> List[NFTMetadataProgramAccount]
     return result
 
 
-def nft_get_metadata(pda: NFTMetadataProgramAccount) -> Optional[NFTMetaData]:
+def nft_get_metadata(pda: NFTMetadataProgramAccount) -> Optional[SolanaNFTMetaData]:
     """
 
     Args:
@@ -229,18 +229,18 @@ def nft_get_metadata(pda: NFTMetadataProgramAccount) -> Optional[NFTMetaData]:
         return None
 
 
-def nft_get_metadata_by_token_account(pda_key: Union[str, PublicKey]) -> Optional[NFTMetaData]:
+def nft_get_metadata_by_token_account(pda_key: Union[str, PublicKey], client) -> Optional[SolanaNFTMetaData]:
     """
     Gets the NFT metadata by the `update_authority` key.
 
     Args:
         pda_key: The key to the `update_authority`, the wallet used to sign
             the new candy machine.
-
+        client:
     Returns:
 
     """
-    client = CustomClient(
+    client = client or CustomClient(
         settings.SOLANA_RPC_ENDPOINT,
         commitment=commitment.Confirmed,
         timeout=15
@@ -261,7 +261,7 @@ def nft_get_metadata_by_token_account(pda_key: Union[str, PublicKey]) -> Optiona
     )
 
 
-def nft_get_metadata_by_token_key(token_key: str) -> NFTMetaData:
+def nft_get_metadata_by_token_key(token_key: str, client=None) -> SolanaNFTMetaData:
     """
     Gets the NFT metadata by the Token key (address).
 
@@ -272,21 +272,7 @@ def nft_get_metadata_by_token_key(token_key: str) -> NFTMetaData:
 
     """
     metadata_pda_key = nft_get_token_account_by_token_key(token_key)
-    return nft_get_metadata_by_token_account(metadata_pda_key)
-
-
-def nft_get_metadata_list_by_token_keys(token_key: str) -> List[NFTMetaData]:
-    """
-    Gets the NFT metadata by the Token key (address).
-
-    Args:
-        token_key: The token key (or mint address in SolScan term).
-
-    Returns:
-
-    """
-    metadata_pda_key = nft_get_token_account_by_token_key(token_key)
-    return nft_get_metadata_by_token_account(metadata_pda_key)
+    return nft_get_metadata_by_token_account(metadata_pda_key, client)
 
 
 def nft_get_token_account_by_token_key(token_key: str) -> PublicKey:

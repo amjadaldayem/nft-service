@@ -4,9 +4,9 @@ from app.blockchains.shared import (
     SOLANA_DIGITAL_EYES,
     SOLANA_SOLANART,
     SOLANA_SOLSEA,
-    SOLANA_SMB,
-    EMPTY_PUBLIC_KEY
+    SOLANA_SMB
 )
+from app.blockchains import EMPTY_PUBLIC_KEY
 
 from spl.token.constants import *  # noqa
 
