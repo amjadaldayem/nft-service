@@ -29,7 +29,7 @@ class UserRepository(DynamoDBRepositoryBase):
 
     pk           sk
     <user_id>    p
-                 b#n#<blockchain_id>#<token_address> ...nft metadata...   <-- Bookmarked NFTs per blockchain
+                 b#<blockchain_id>#n#<token_address> ...nft metadata...   <-- Bookmarked NFTs per blockchain
 
     """
     PK = 'pk'

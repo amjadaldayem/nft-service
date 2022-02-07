@@ -11,7 +11,11 @@ import requests
 from solana.rpc import commitment
 
 from app import settings
-from app.blockchains.solana.client import SolanaNFTMetaData
+from app.blockchains import SECONDARY_MARKET_EVENT_SALE
+from app.blockchains.solana.client import (
+    SolanaNFTMetaData,
+    nft_get_nft_data
+)
 from app.models.nft import NFTRepository
 from app.models.sme import SecondaryMarketEvent
 from app.utils.streamer import KinesisStreamer, KinesisStreamRecord
@@ -115,22 +119,26 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         )
 
         for event in sme_list:
-            metadata = nft_get_metadata_by_token_key(event.token_key, client=client)
-            uri = metadata.uri
-            if uri:
-                try:
-                    nft_data = requests.get(uri).json()
-                    event.data = {
-                        'metadata': metadata,
-                        'nft_data': nft_data
-                    }
-                    succeeded_items_to_commit.append(event)
-                except Exception as e:
-                    failed_transaction_hashes.append(event.transaction_hash)
-                    logger.error(str(e))
+            try:
+                metadata = nft_get_metadata_by_token_key(event.token_key, client=client)
+                nft_data = nft_get_nft_data(
+                    metadata,
+                    current_owner=(
+                        event.buyer if event.event_type == SECONDARY_MARKET_EVENT_SALE
+                        else event.owner
+                    )
+                )
+                event.data = nft_data
+                succeeded_items_to_commit.append(event)
+            except Exception as e:
+                failed_transaction_hashes.append(event.transaction_hash)
+                logger.error(str(e))
 
     # Now succeeded_items_to_commit are all good items we could commit to db
     for item in succeeded_items_to_commit:
+        # Emits to DynamoDB
+        #  -> sme table
+        #  -> nft table
         logger.info("%s", orjson.dumps(item))
 
     if failed_transaction_hashes:

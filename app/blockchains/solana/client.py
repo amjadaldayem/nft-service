@@ -12,8 +12,10 @@ from solana.rpc import commitment
 from solana.rpc.api import MemcmpOpt, Client
 
 from app import settings
+from app.blockchains import BLOCKCHAIN_SOLANA
 from app.blockchains.solana import consts
 from app.blockchains.solana.patch import CustomClient
+from app.models.nft import NftData, NftCreator, MediaFile
 
 logger = logging.getLogger(__name__)
 
@@ -105,8 +107,6 @@ class RPCHelper:
         Finds all token accounts for a specific mint.
         https://spl.solana.com/token#finding-all-token-accounts-for-a-specific-mint
 
-        :param mint:
-        :return:
         """
         return {
             'data_size': 165,
@@ -186,7 +186,7 @@ def nft_get_collection_nfts(update_authority) -> List[NFTMetadataProgramAccount]
 
     # This is darn expensive ...
     resp = client.get_program_accounts(
-        PublicKey(consts.METAPLEX_PUBKEY),
+        PublicKey(consts.METAPLEX_METADATA_PROGRAM),
         encoding='base64',
         commitment=commitment.Confirmed,
         **RPCHelper.memcmp_opts_update_authority_filters(
@@ -267,12 +267,74 @@ def nft_get_metadata_by_token_key(token_key: str, client=None) -> SolanaNFTMetaD
 
     Args:
         token_key: The token key (or mint address in SolScan term).
-
+        client:
     Returns:
 
     """
     metadata_pda_key = nft_get_token_account_by_token_key(token_key)
     return nft_get_metadata_by_token_account(metadata_pda_key, client)
+
+
+def nft_get_nft_data(metadata: SolanaNFTMetaData, current_owner: str = "") -> NftData:
+    """
+    Gets the shared standard NFT model from metadata.
+
+    Args:
+        metadata: The token key (or mint address in SolScan term).
+        current_owner: The current owner to set. This is not accessible from metadata.
+    Returns:
+
+    """
+    import requests
+    # Let it throw if errors
+    more_data = requests.get(metadata.uri).json()
+
+    files = []
+    image_uri = more_data.get('image', '')
+    if image_uri:
+        files.append(MediaFile(image_uri))
+
+    files_raw = more_data.get('properties', {}).get('files')
+    if files_raw:
+        for d in files_raw:
+            if not d.get('uri'):
+                continue
+            if d['uri'] == image_uri:
+                # If repeated the image uri, just replace the type.
+                files[0].file_type = d.get('type')
+                continue
+            files.append(
+                MediaFile(
+                    uri=d['uri'],
+                    file_type=d.get('type', '')
+                )
+            )
+
+    nft_data = NftData(
+        blockchain_id=BLOCKCHAIN_SOLANA,
+        token_address=metadata.mint_key,
+        current_owner=current_owner,
+        name=metadata.name,
+        description=more_data.get('description', ''),
+        symbol=metadata.symbol,
+        primary_sale_happened=metadata.primary_sale_happened,
+        metadata_uri=metadata.uri or "",
+        creators=[
+            NftCreator(address=a, verified=bool(v), share=int(s))
+            for a, v, s in zip(
+                metadata.creators, metadata.verified, metadata.share
+            )
+        ],
+        ext_data={
+            'update_authority': metadata.update_authority
+        },
+        edition=str(more_data.get('edition', -1)),
+        attributes=more_data.get('attributes', {}),
+        external_url=more_data.get('external_url', ''),
+        files=files
+    )
+
+    return nft_data
 
 
 def nft_get_token_account_by_token_key(token_key: str) -> PublicKey:

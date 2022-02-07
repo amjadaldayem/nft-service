@@ -1,11 +1,13 @@
 import dataclasses
 from typing import Optional
 
+from app import settings
 from app.blockchains import (
     SECONDARY_MARKET_EVENT_UNKNOWN,
     EMPTY_PUBLIC_KEY,
     EMPTY_TRANSACTION_HASH
 )
+from app.models.dynamo import DynamoDBRepositoryBase
 
 
 @dataclasses.dataclass
@@ -24,3 +26,18 @@ class SecondaryMarketEvent:
     @property
     def dedupe_key(self):
         return f'{self.blockchain_id}-{self.transaction_hash}'
+
+
+class SMERepository(DynamoDBRepositoryBase):
+    """
+    pk                                         sk
+
+    b#<blockchain_id>#transaction_hash         'e'   event data
+                                               'n'   NFT Metadata
+    """
+
+    def __init__(self, dynamodb_resource):
+        super().__init__(
+            settings.DYNAMODB_SME_TABLE,
+            dynamodb_resource,
+        )
