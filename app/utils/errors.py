@@ -32,7 +32,10 @@ def notify_error(e: Union[str, Exception], metadata=None):
         try:
             _fn(e, metadata)
         except Exception as e:
-            raise
+            logger.fatal(
+                f"Error occurred while notifying errors. {str(e)}\n"
+                f"{full_stacktrace()}"
+            )
     else:
         logger.error(str(e))
 

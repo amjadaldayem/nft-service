@@ -115,7 +115,7 @@ class UserService:
             )
         except Exception as e:
             raise ErrorDeletingUserFromPool(
-                data={'details': f'Error deleting user username={username}'}
+                data={'details': f'Error deleting user username={username}. {str(e)}'}
             )
 
     def login(self, username, password):

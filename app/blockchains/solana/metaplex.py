@@ -6,35 +6,35 @@ METAPLEX_MAX_SYMBOL_LENGTH = 10
 METAPLEX_MAX_CREATOR_LEN = 32 + 1 + 1
 METAPLEX_MAX_CREATOR_LIMIT = 5
 METAPLEX_MAX_DATA_SIZE = (
-        4
-        + METAPLEX_MAX_NAME_LENGTH
-        + 4
-        + METAPLEX_MAX_SYMBOL_LENGTH
-        + 4
-        + METAPLEX_MAX_URI_LENGTH
-        + 2 + 1 + 4
-        + METAPLEX_MAX_CREATOR_LIMIT * METAPLEX_MAX_CREATOR_LEN
+    4
+    + METAPLEX_MAX_NAME_LENGTH
+    + 4
+    + METAPLEX_MAX_SYMBOL_LENGTH
+    + 4
+    + METAPLEX_MAX_URI_LENGTH
+    + 2 + 1 + 4
+    + METAPLEX_MAX_CREATOR_LIMIT * METAPLEX_MAX_CREATOR_LEN
 )
 METAPLEX_MAX_METADATA_LEN = (
-        1  # Key
-        + 32  # Update authority
-        + 32  # mint pubkey
-        + METAPLEX_MAX_DATA_SIZE
-        + 1  # Primary Sale
-        + 1  # mutable
-        + 9  # nonce
-        + 34  # collection
-        + 18  # use
-        + 2  # token standard
-        + 118  # padding
+    1  # Key
+    + 32  # Update authority
+    + 32  # mint pubkey
+    + METAPLEX_MAX_DATA_SIZE
+    + 1  # Primary Sale
+    + 1  # mutable
+    + 9  # nonce
+    + 34  # collection
+    + 18  # use
+    + 2  # token standard
+    + 118  # padding
 )
 METAPLEX_CREATOR_ARRAY_START = (
-        1 + 32 + 32 + 4
-        + METAPLEX_MAX_NAME_LENGTH
-        + 4
-        + METAPLEX_MAX_URI_LENGTH
-        + 4
-        + METAPLEX_MAX_SYMBOL_LENGTH + 2 + 1 + 4
+    1 + 32 + 32 + 4
+    + METAPLEX_MAX_NAME_LENGTH
+    + 4
+    + METAPLEX_MAX_URI_LENGTH
+    + 4
+    + METAPLEX_MAX_SYMBOL_LENGTH + 2 + 1 + 4
 )
 
 # References:

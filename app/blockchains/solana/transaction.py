@@ -429,7 +429,7 @@ class ParsedTransaction:
             for ins in inner_ins_array:
                 pii = ParsedInstruction.from_instruction_dict(ins, self.account_keys)
                 if (pii.is_token_program_instruction
-                    and pii.get_function_offset()) == TOKEN_TRANSFER:
+                        and pii.get_function_offset()) == TOKEN_TRANSFER:
                     owner = pii.account_list[2]
                     break
         elif func_offset == 0x01:
@@ -494,9 +494,9 @@ class ParsedTransaction:
         for balance in post_token_balances:
             idx = balance[T_KEY_ACCOUNT_INDEX]
             matched = (
-                    token_account_to_match is None
-                    or self.account_keys[idx] == token_account_to_match
-                    or balance['owner'] == token_account_to_match
+                token_account_to_match is None
+                or self.account_keys[idx] == token_account_to_match
+                or balance['owner'] == token_account_to_match
             )
             if matched and balance['uiTokenAmount']['amount'] == '1':
                 return balance['mint']

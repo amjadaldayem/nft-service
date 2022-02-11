@@ -1,8 +1,6 @@
 import dataclasses
 from functools import cached_property
-from typing import Any, Type, List, Optional, Mapping
-
-import boto3
+from typing import Type, List, Optional
 
 
 @dataclasses.dataclass
@@ -87,6 +85,3 @@ class DynamoDBRepositoryBase:
     @cached_property
     def table(self):
         return self.resource.Table(self.table_name)
-
-
-

@@ -5,7 +5,6 @@ from typing import Optional
 from pydantic import BaseModel
 
 from app import settings
-
 # Constants
 from app.models.dynamo import DynamoDBRepositoryBase
 
@@ -58,7 +57,7 @@ class UserRepository(DynamoDBRepositoryBase):
     def query_users(self, **kwargs):
         pass
 
-    def save_user_profile(self, user: User, overwrite=False) -> None:
+    def save_user_profile(self, user: User, overwrite=False):
         """
         Creates a new user in DB.
         Args:
@@ -75,10 +74,13 @@ class UserRepository(DynamoDBRepositoryBase):
         item[self.PK] = user.user_id
         item[self.SK] = 'p'
         item['joined_on'] = user.joined_on.isoformat()
-        resp = table.put_item(
-            Item=item,
-            ReturnValues=self.RV_NONE
-        )
+        try:
+            table.put_item(
+                Item=item,
+                ReturnValues=self.RV_NONE
+            )
+        except:
+            raise
 
     def update_user(self, user_id: str, **kwargs):
         pass

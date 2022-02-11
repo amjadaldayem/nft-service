@@ -1,6 +1,7 @@
-import moto
-import boto3
 import unittest
+
+import boto3
+import moto
 
 from app.utils import streamer
 
@@ -38,4 +39,3 @@ class TestDataStream(unittest.TestCase):
     def tearDownClass(cls) -> None:
         cls.mock_lambda.stop()
         cls.mock_kinesis.stop()
-

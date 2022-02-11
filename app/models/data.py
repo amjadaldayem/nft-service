@@ -1,10 +1,10 @@
 import dataclasses
 from datetime import datetime
-from functools import cached_property
 from typing import (
     List,
     Optional
 )
+
 from app.blockchains import (
     SECONDARY_MARKET_EVENT_UNKNOWN,
     EMPTY_PUBLIC_KEY,
@@ -124,6 +124,6 @@ class SecondaryMarketEvent:
         """
         return (
             f"eblt#{self.timestamp}"
-            if self.event_type == SECONDARY_MARKET_EVENT_LISTING or
-            self.event_type == SECONDARY_MARKET_EVENT_SALE else None
+            if self.event_type == SECONDARY_MARKET_EVENT_LISTING
+            or self.event_type == SECONDARY_MARKET_EVENT_SALE else None
         )

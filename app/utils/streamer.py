@@ -1,18 +1,14 @@
 import asyncio
 import logging
-import signal
 import time
 import uuid
-import queue
-
-import multiprocess as mp
-
-import pybase64 as base64
 from collections import namedtuple
-from typing import List, Mapping, Union, Callable, Any, Optional, Coroutine
+from typing import List, Mapping, Union, Callable, Any, Coroutine
 
 import boto3
+import multiprocess as mp
 import orjson
+import pybase64 as base64
 
 from app.utils import full_stacktrace
 
@@ -26,11 +22,11 @@ KinesisStreamRecord = namedtuple(
 END_MARKER = '_EnD_983RRd73s652f__'
 
 
-def _poller(queue, handler):
+def _poller(q, handler):
     loop = asyncio.new_event_loop()
     while True:
         try:
-            event = queue.get(True, 2)
+            event = q.get(True, 2)
         except mp.queues.Empty:
             continue
         if event == END_MARKER:
@@ -38,8 +34,8 @@ def _poller(queue, handler):
         handler(event, None, loop)
 
 
-def _setup_local_consumer_poller(queue, handler):
-    p = mp.Process(target=_poller, args=(queue, handler), daemon=True)
+def _setup_local_consumer_poller(q, handler):
+    p = mp.Process(target=_poller, args=(q, handler), daemon=True)
     p.start()
     return p
 
