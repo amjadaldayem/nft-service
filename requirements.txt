@@ -94,7 +94,7 @@ stack-data==0.1.4
 starlette==0.17.1
 tomli==2.0.0
 traitlets==5.1.1
-Twisted==21.7.0
+Twisted==22.1.0
 types-cachetools==4.2.9
 typing-extensions==3.10.0.2
 url-normalize==1.4.3
