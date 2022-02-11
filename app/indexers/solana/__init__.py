@@ -1,19 +1,19 @@
-import logging
 import asyncio
-
-import multiprocess as mp
+import logging
 from typing import Set
 
 import click
+import multiprocess as mp
 import multiprocessing_logging
+import pylru
 
+from app import settings
+from app.blockchains.solana import MARKET_NAME_MAP
+from app.utils.streamer import KinesisStreamer
 from .aio_transaction_listeners import (
     listen_to_market_events,
     MENTIONS
 )
-from app.blockchains.solana import MARKET_NAME_MAP, ParsedTransaction, nft_get_metadata_by_token_key
-from ... import settings
-from ...utils.streamer import KinesisStreamer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,9 +25,18 @@ async def _stop(loop):
     loop.stop()
 
 
+# Memorize recent 10,000 items
+local_cache = pylru.lrucache(10000)
+
+
 async def _do_listent_to_market_events(market_id, streamer):
     try:
         async for sig, timestamp_ns in listen_to_market_events(market_id):
+            if sig in local_cache:
+                continue
+            local_cache[sig] = 1
+            if len(local_cache) >= 100000:
+                local_cache.clear()
             streamer.put([(sig, timestamp_ns)])
 
     except asyncio.CancelledError:
@@ -64,6 +73,7 @@ def listen_to_market_events_wrapper(market_id, timeout, stream_name, region, end
             future.cancel()
             # Gives it a chance for the task to be set to cancelled from pending
             loop.run_until_complete(asyncio.sleep(0.1, loop=loop))
+            streamer.kill_local_poller()
         loop.stop()
     except:
         if not future.cancelled():

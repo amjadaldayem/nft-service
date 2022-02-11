@@ -12,8 +12,12 @@ class MappingPair:
     table_attr_prefix: Optional[str] = None
 
 
-class SchemaMapping:
+class SchemaMapper:
     """
+    Takes in a Dataclass and tries to map fields and properites to shorter
+    format when serializing to save space.
+
+
     Python Type	                        DynamoDB Type
     string	                            String (S)
     integer	                            Number (N)
@@ -64,7 +68,7 @@ class DynamoDBRepositoryBase:
     def __init__(self,
                  table_name,
                  dynamodb_resource,
-                 schema_mapping_list: List[SchemaMapping] = None,  # TODO: imp later
+                 schema_mapping_list: List[SchemaMapper] = None,  # TODO: imp later
                  ):
         self.table_name = table_name
         self.resource = dynamodb_resource
@@ -83,3 +87,6 @@ class DynamoDBRepositoryBase:
     @cached_property
     def table(self):
         return self.resource.Table(self.table_name)
+
+
+

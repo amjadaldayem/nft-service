@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from app import settings
 
 # Constants
-from app.models.dynamo import DynamoDBRepositoryBase, SchemaMapping, MappingPair
+from app.models.dynamo import DynamoDBRepositoryBase
 
 MIN_USERNAME_LEN = 2
 MAX_USERNAME_LEN = 36
@@ -58,11 +58,13 @@ class UserRepository(DynamoDBRepositoryBase):
     def query_users(self, **kwargs):
         pass
 
-    def save_user_profile(self, user: User) -> None:
+    def save_user_profile(self, user: User, overwrite=False) -> None:
         """
         Creates a new user in DB.
         Args:
             user:
+            overwrite: If set to true, user with the same ID will be overwritten
+                otherwise will throw Duplicate exception
 
         Returns:
 

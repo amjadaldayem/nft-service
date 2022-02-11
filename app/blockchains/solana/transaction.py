@@ -11,7 +11,7 @@ from app.blockchains import (
     SOLANA_SOLANART, SOLANA_SOLSEA, BLOCKCHAIN_SOLANA, SECONDARY_MARKET_EVENT_LISTING, SECONDARY_MARKET_EVENT_DELISTING,
     SECONDARY_MARKET_EVENT_SALE, SECONDARY_MARKET_EVENT_PRICE_UPDATE, EMPTY_PUBLIC_KEY,
 )
-from app.models.sme import SecondaryMarketEvent
+from app.models import SecondaryMarketEvent
 from app.blockchains.solana import (
     MARKET_PROGRAM_ID_MAP,
     MARKET_ADDRESS_MAP,

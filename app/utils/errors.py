@@ -1,10 +1,8 @@
-import asyncio.coroutines
 import logging
-import traceback
 import sys
+import traceback
 from typing import (
-    Union, Awaitable,
-)
+    Union, )
 
 import orjson
 

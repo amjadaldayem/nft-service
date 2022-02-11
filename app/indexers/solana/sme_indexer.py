@@ -6,6 +6,7 @@ from collections import namedtuple
 from typing import List, Tuple, Optional
 
 import aiohttp
+import boto3
 import orjson
 import requests
 from solana.rpc import commitment
@@ -16,17 +17,16 @@ from app.blockchains.solana.client import (
     SolanaNFTMetaData,
     nft_get_nft_data
 )
-from app.models.nft import NFTRepository
-from app.models.sme import SecondaryMarketEvent
+from app.models import (
+    NFTRepository,
+    SMERepository
+)
+from app.models import SecondaryMarketEvent
 from app.utils.streamer import KinesisStreamer, KinesisStreamRecord
 from app.blockchains.solana import ParsedTransaction, nft_get_metadata_by_token_key, CustomAsyncClient, CustomClient
-from app.utils import full_stacktrace
+from app.utils import full_stacktrace, notify_error
 
 logger = logging.getLogger(__name__)
-
-
-async def get_solana_metadata(client, token_key) -> SolanaNFTMetaData:
-    pass
 
 
 async def get_sme(client, transaction_hash: str) -> Tuple[str, bool, Optional[SecondaryMarketEvent]]:
@@ -85,6 +85,20 @@ async def get_smes(client, transaction_hashes: List[str], loop) -> Tuple[List[Se
     return succeeded_events, failed_retriable
 
 
+def write_to_local(succeeded_items_to_commit):
+    """
+    For local testing purpose only.
+
+    Returns:
+
+    """
+    with open('smes.json', 'a') as fd:
+        for e, n in succeeded_items_to_commit:
+            fd.write(orjson.dumps((e, n)).decode('utf8'))
+            fd.write(',')
+            fd.flush()
+
+
 async def handle_transactions(records: List[KinesisStreamRecord],
                               loop: asyncio.AbstractEventLoop):
     if not records:
@@ -121,6 +135,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         for event in sme_list:
             try:
                 metadata = nft_get_metadata_by_token_key(event.token_key, client=client)
+                # Nft_data is shared format across all chains, generic
                 nft_data = nft_get_nft_data(
                     metadata,
                     current_owner=(
@@ -128,18 +143,21 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                         else event.owner
                     )
                 )
-                event.data = nft_data
-                succeeded_items_to_commit.append(event)
+                succeeded_items_to_commit.append((event, nft_data))
             except Exception as e:
                 failed_transaction_hashes.append(event.transaction_hash)
                 logger.error(str(e))
 
-    # Now succeeded_items_to_commit are all good items we could commit to db
-    for item in succeeded_items_to_commit:
-        # Emits to DynamoDB
-        #  -> sme table
-        #  -> nft table
-        logger.info("%s", orjson.dumps(item))
+    sme_repository = SMERepository(
+        boto3.resource('dynamodb'),
+    )
+    _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
+    if failed:
+        notify_error(IOError(
+            "Error saving some items: sme table"
+        ), metadata={
+            'details': orjson.dumps(failed).decode('utf8'),
+        })
 
     if failed_transaction_hashes:
         # Pin the failed record from where we want to retry next

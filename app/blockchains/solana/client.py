@@ -15,7 +15,11 @@ from app import settings
 from app.blockchains import BLOCKCHAIN_SOLANA
 from app.blockchains.solana import consts
 from app.blockchains.solana.patch import CustomClient
-from app.models.nft import NftData, NftCreator, MediaFile
+from app.models import (
+    NftData,
+    NftCreator,
+    MediaFile
+)
 
 logger = logging.getLogger(__name__)
 
@@ -286,6 +290,13 @@ def nft_get_nft_data(metadata: SolanaNFTMetaData, current_owner: str = "") -> Nf
 
     """
     import requests
+
+    def transform_attributes(attrs):
+        return {
+            attr['trait_type']: str(attr['value']) if attr['value'] is not None else ''
+            for attr in attrs if 'trait_type' in attr
+        }
+
     # Let it throw if errors
     more_data = requests.get(metadata.uri).json()
 
@@ -314,6 +325,7 @@ def nft_get_nft_data(metadata: SolanaNFTMetaData, current_owner: str = "") -> Nf
         blockchain_id=BLOCKCHAIN_SOLANA,
         token_address=metadata.mint_key,
         current_owner=current_owner,
+        collection_key=metadata.update_authority,
         name=metadata.name,
         description=more_data.get('description', ''),
         symbol=metadata.symbol,
@@ -329,7 +341,7 @@ def nft_get_nft_data(metadata: SolanaNFTMetaData, current_owner: str = "") -> Nf
             'update_authority': metadata.update_authority
         },
         edition=str(more_data.get('edition', -1)),
-        attributes=more_data.get('attributes', {}),
+        attributes=transform_attributes(more_data.get('attributes', [])),
         external_url=more_data.get('external_url', ''),
         files=files
     )

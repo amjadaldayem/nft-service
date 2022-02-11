@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import signal
 import time
 import uuid
 import queue
@@ -38,7 +39,7 @@ def _poller(queue, handler):
 
 
 def _setup_local_consumer_poller(queue, handler):
-    p = mp.Process(target=_poller, args=(queue, handler))
+    p = mp.Process(target=_poller, args=(queue, handler), daemon=True)
     p.start()
     return p
 
@@ -154,11 +155,17 @@ class KinesisStreamer:
             self.put = self._put_local_handler
             self.queue = mp.Queue()
             self.poller = _setup_local_consumer_poller(self.queue, handler)
+            # def signal_handler(sig, frame):
+            #     self.kill_local_poller()
+            #
+            # for s in (signal.SIGINT, signal.SIGTERM):
+            #     signal.signal(s, signal_handler)
 
         elif producer_mode == self.PRODUCER_LOG_ONLY:
             self.put = self._put_log
         else:
-            # PRODUCER_LEVEL_NORMAL
+            # Pushes transaction hashes to Kinesis DataStream
+            # and let consumer handle them
             self.put = self._put_kinesis
             self.client = boto3.client('kinesis', endpoint_url=endpoint_url)
             self.waiter = self.client.get_waiter('stream_exists')

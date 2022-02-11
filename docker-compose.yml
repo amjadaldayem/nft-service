@@ -7,6 +7,7 @@ services:
   dynamo:
     image: amazon/dynamodb-local:1.17.0
     restart: always
+    command: -jar DynamoDBLocal.jar -sharedDb
     ports:
       - "8000:8000"
     networks:

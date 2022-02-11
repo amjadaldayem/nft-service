@@ -15,7 +15,7 @@ from app.blockchains import (
     SECONDARY_MARKET_EVENT_PRICE_UPDATE,
     BLOCKCHAIN_SOLANA,
 )
-from app.models.sme import SecondaryMarketEvent
+from app.models import SecondaryMarketEvent
 from app.blockchains.solana import ParsedTransaction
 
 data_basedir = 'data'
