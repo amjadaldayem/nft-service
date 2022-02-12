@@ -12,14 +12,22 @@ class NFTRepository(DynamoDBRepositoryBase):
     """
     nft_id = bn#<blockchain_id>#<nft_token_address>
 
-    Facet: Quick Name Filter
+    * Facet: Nft
+        pk = <nft_id> from NftData
+
+
+    * Facet: Collection
+        pk = <collection_id> from NftData
+
+    * Facet: Quick Name Filter
     ( partitioned into 26 + 10 + 1 = 37 partitions, 26 letters, 10 digits and others
     so people type something, we immediately try the partition initializing with that
     character, the sort key is the full name, which is matched with begins_with)
-    pk = qfi#<initial_letter>
-    sk = <full_name> <-- Use collection names
 
-    attribute: collection_id
+        pk = qfi#<initial_letter>
+        fq = <full_name> <-- Use collection names
+
+        attribute: collection_id
 
     """
 
@@ -61,8 +69,10 @@ class SMERepository(DynamoDBRepositoryBase):
     - Table
 
     * Facet: Secondary Market Event Time series
-        pk = w#<date-hour-5min_window> (in format 2022-01-31-17-00, 2022-01-31-17-05)
-        btt = bt#<blockchain_id>#<timestamp>#<transaction_hash>
+        pk = w
+            w#<date-hour-5min_window> (in format 2022-01-31-17-00, 2022-01-31-17-05)
+        sk = btt
+            btt#<blockchain_id>#<timestamp>#<transaction_hash>
              <- Per blockchain & Transaction timestamp & transaction hash
 
         -Lsi: Nft name
@@ -151,7 +161,7 @@ class SMERepository(DynamoDBRepositoryBase):
     @staticmethod
     def sme_to_dynamo(sme: SecondaryMarketEvent, fields_to_remove=None) -> dict:
         d = {
-            'pk': sme.pk,
+            'w': sme.w,
             'btt': sme.btt,
             'sme_id': sme.sme_id,
             'et': sme.et,

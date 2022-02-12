@@ -80,9 +80,9 @@ class SecondaryMarketEvent:
         return f'be#{self.blockchain_id}#{self.transaction_hash}'
 
     @property
-    def pk(self) -> str:
+    def w(self) -> str:
         """
-
+        The time window marker
         Returns:
             w#<date-hour-5min_window>
         """

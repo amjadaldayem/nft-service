@@ -7,8 +7,8 @@ import boto3
 import orjson
 
 from app.models import SMERepository, SecondaryMarketEvent, NftData
-from .shared import create_sme_table
-from ... import settings
+from .shared import create_tables
+from app import settings
 
 data_path = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -48,17 +48,7 @@ class SMESaveTestCase(unittest.TestCase):
             # endpoint_url=settings.DYNAMODB_ENDPOINT
         )
         self.client = self.resource.meta.client
-        create_sme_table(
-            self.client,
-            table_name=settings.DYNAMODB_SME_TABLE,
-            lsi_et=settings.DYNAMODB_SME_TABLE_LSI_EVENTS,
-            lsi_eblt=settings.DYNAMODB_SME_TABLE_LSI_BUY_LISTING_EVENTS,
-            lsi_timestamp=settings.DYNAMODB_SME_TABLE_LSI_TIMESTAMP,
-            lsi_nft_name=settings.DYNAMODB_SME_TABLE_LSI_NFT_NAME,
-            gsi_sme_id=settings.DYNAMODB_SME_TABLE_GSI_SME_ID,
-            gsi_nft_name=settings.DYNAMODB_SME_TABLE_GSI_NFT_EVENTS,
-            gsi_collection_name=settings.DYNAMODB_SME_TABLE_GSI_COLLECTION_EVENTS,
-        )
+        create_tables(self.client)
         self.sme_repo = SMERepository(
             self.resource,
         )

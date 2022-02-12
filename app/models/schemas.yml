@@ -1,0 +1,101 @@
+# The schema definition for DynamoDb
+---
+#     * Facet: Secondary Market Event Time series
+#        pk = w
+#            w#<date-hour-5min_window> (in format 2022-01-31-17-00, 2022-01-31-17-05)
+#        sk = btt
+#            btt#<blockchain_id>#<timestamp>#<transaction_hash>
+#             <- Per blockchain & Transaction timestamp & transaction hash
+#
+#        -Lsi: Nft name
+#            list_sort_key
+#            name = <name> string
+#
+#        - Lsi: Timestamp
+#            lsi_sort_key
+#            timestamp = <timestamp> (Number)
+#
+#        - Lsi: Event Type
+#            lsi_sort_key
+#            et = et#<event_type>#<timestamp>  (filter by single event)
+#
+#        - Lsi: Event Buy & Listing
+#
+#            lsi_sort_key
+#            eblt = eblt#<timestamp>
+#                (filter by buy and listing only, optimized common case)
+#    - Gsi: Transaction Events
+#
+#        gsi_pk = sme_id
+#        gsi_sk = None
+#
+#    - Gsi: Nft Events
+#
+#        gsi_pk = nft_id
+#        gsi_sk = timestamp (number)
+#
+#    - Gsi: Nft Collection Events
+#
+#        gsi_pk = collection_id
+#        gsi_sk = timestamp (number)
+sme:
+  name: sme
+  models:
+    n: app.models.data.NftData
+    s: app.models.data.SecondaryMarketEvent
+  # Set pk to point to a field or a property name of corresponding models
+  pk:
+    name: w
+    value: s.w
+  sk:
+    name: btt
+    value: s.btt
+    # By default, the type is S (string, if omitted)
+    type: S
+  lsi:
+    - name: sme_lsi_nft_name
+      sk:
+        name: name
+        value: n.name
+      ## If no projection given, it will default to all
+      # projection:
+      #   keys_only
+      #   all
+      #   include:
+      #     - attr1
+      #     - attr2
+    - name: sme_lsi_timestamp
+      sk:
+        name: timestamp
+        value: e.timestamp
+        type: N
+    - name: sme_lsi_et
+      sk:
+        name: et
+        value: e.et
+    - name: sme_lsi_eblt
+      sk:
+        name: eblt
+        value: e.eblt
+  gsi:
+    - name: sme_gsi_sme_id
+      pk:
+        name: sme_id
+        value: e.sme_id
+      sk: ~
+    - name: sme_gsi_nft_events
+      pk:
+        name: nft_id
+        value: n.nft_id
+      sk:
+        name: timestamp
+        value: e.timestamp
+        type: N
+    - name: sme_gsi_collection_events
+      pk:
+        name: collection_id
+        value: n.collection_id
+      sk:
+        name: timestamp
+        value: e.timestamp
+        type: N
