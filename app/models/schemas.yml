@@ -2,7 +2,7 @@
 ---
 #     * Facet: Secondary Market Event Time series
 #        pk = w
-#            w#<date-hour-5min_window> (in format 2022-01-31-17-00, 2022-01-31-17-05)
+#             w#<date-hour-5min_window> (in format 2022-01-31-17-00, 2022-01-31-17-05)
 #        sk = btt
 #            btt#<blockchain_id>#<timestamp>#<transaction_hash>
 #             <- Per blockchain & Transaction timestamp & transaction hash
@@ -52,6 +52,14 @@ sme:
     value: s.btt
     # By default, the type is S (string, if omitted)
     type: S
+  read_capcity:
+    default: 1
+    min: 1
+    max: 10
+  write_capacity:
+    default: 1
+    min: 1
+    max: 20
   lsi:
     - name: sme_lsi_nft_name
       sk:
@@ -83,6 +91,14 @@ sme:
         name: sme_id
         value: e.sme_id
       sk: ~
+      read_capcity:
+        default: 1
+        min: 1
+        max: 10
+      write_capacity:
+        default: 1
+        min: 1
+        max: 10
     - name: sme_gsi_nft_events
       pk:
         name: nft_id
@@ -91,6 +107,14 @@ sme:
         name: timestamp
         value: e.timestamp
         type: N
+      read_capcity:
+        default: 1
+        min: 1
+        max: 10
+      write_capacity:
+        default: 1
+        min: 1
+        max: 10
     - name: sme_gsi_collection_events
       pk:
         name: collection_id
@@ -99,3 +123,11 @@ sme:
         name: timestamp
         value: e.timestamp
         type: N
+      read_capcity:
+        default: 1
+        min: 1
+        max: 10
+      write_capacity:
+        default: 1
+        min: 1
+        max: 10
