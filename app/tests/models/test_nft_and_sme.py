@@ -74,20 +74,9 @@ class SMESaveTestCase(unittest.TestCase):
         count, failed = self.sme_repo.save_sme_with_nft_batch(
             sme_and_nft_data_list
         )
-        table = self.resource.Table(meta.DTSmeMeta.NAME)
-        resp = table.scan(
-            ProjectionExpression="",
-            ConsistentRead=True,
+        self._assert_smes_success(
+            sme_and_nft_data_list, count, failed
         )
-        sme_ids = {
-            sme.sme_id for sme, _ in sme_and_nft_data_list
-        }
-        read_back_sme_ids = {
-            r['sme_id'] for r in resp['Items']
-        }
-        self.assertEqual(count, len(read_back_sme_ids))
-        self.assertSetEqual(sme_ids, read_back_sme_ids)
-        self.assertFalse(failed)
 
     def test_save_sme_and_nft_events_solana_dupes(self):
         sme_and_nft_data_list = self.load_sme_and_nft_data_list_from_file(
@@ -97,16 +86,59 @@ class SMESaveTestCase(unittest.TestCase):
         count, failed = self.sme_repo.save_sme_with_nft_batch(
             sme_and_nft_data_list
         )
-        table = self.resource.Table(meta.DTSmeMeta.NAME)
-        self.assertFalse(failed)
-
+        self._assert_smes_success(sme_and_nft_data_list, count, failed)
         # Redo the saving
         count2, failed2 = self.sme_repo.save_sme_with_nft_batch(
             sme_and_nft_data_list
         )
         self.assertFalse(count2)
+        # Dupe entries not saved nor get populated to `failed` list.
         self.assertFalse(failed2)
+        # The orignial count and failed should hold.
+        self._assert_smes_success(sme_and_nft_data_list, count, failed)
 
+    def test_save_nft_data_solana(self):
+        sme_and_nft_data_list = self.load_sme_and_nft_data_list_from_file(
+            'solana',
+            'sme_nft_01.json'
+        )
+        _, nft_data_list = zip(*sme_and_nft_data_list)
+
+        count, failed = self.nft_repo.save_nfts(nft_data_list)
+        self._assert_nfts_success(nft_data_list, count, failed)
+
+    def test_save_nft_data_solana_dupes(self):
+        sme_and_nft_data_list = self.load_sme_and_nft_data_list_from_file(
+            'solana',
+            'sme_nft_01.json'
+        )
+        _, nft_data_list = zip(*sme_and_nft_data_list)
+
+        count, failed = self.nft_repo.save_nfts(nft_data_list)
+        self._assert_nfts_success(nft_data_list, count, failed)
+        # Again
+        count2, failed2 = self.nft_repo.save_nfts(nft_data_list)
+        self.assertFalse(count2)
+        self.assertFalse(failed2)
+        self._assert_nfts_success(nft_data_list, count, failed)
+
+    def _assert_smes_success(self, sme_and_nft_data_list, count, failed):
+        """
+        `count` and `failed` are from the result from
+
+        count, failed = self.sme_repo.save_sme_with_nft_batch(
+            sme_and_nft_data_list
+        )
+
+        Args:
+            sme_and_nft_data_list:
+            count:
+            failed:
+
+        Returns:
+
+        """
+        table = self.resource.Table(meta.DTSmeMeta.NAME)
         resp = table.scan(
             ProjectionExpression="",
             ConsistentRead=True,
@@ -119,14 +151,23 @@ class SMESaveTestCase(unittest.TestCase):
         }
         self.assertEqual(count, len(read_back_sme_ids))
         self.assertSetEqual(sme_ids, read_back_sme_ids)
+        self.assertFalse(failed)
 
-    def test_save_nft_data_solana(self):
-        sme_and_nft_data_list = self.load_sme_and_nft_data_list_from_file(
-            'solana',
-            'sme_nft_01.json'
-        )
-        _, nft_data_list = zip(*sme_and_nft_data_list)
+    def _assert_nfts_success(self, nft_data_list, count, failed):
+        """
+        Assume that the NFTs in the list appears in chronological order
+        where a "current_owner" appeared later in the list will replace
+        the previous one for the same NFT (yes, there can be dupes).
+        As this nft_data_list, should be extracted from `sme_and_nft_data_list`
 
+        Args:
+            nft_data_list:
+            count:
+            failed:
+
+        Returns:
+
+        """
         # Get the number of unique NFTs in the list
         unique_nft_ids = {
             nft_data.nft_id for nft_data in nft_data_list
@@ -149,7 +190,6 @@ class SMESaveTestCase(unittest.TestCase):
         for nft_data in nft_data_list:  # nft_data_list is in chronological order
             owners[nft_data.nft_id] = nft_data.current_owner_id
 
-        count, failed = self.nft_repo.save_nfts(nft_data_list)
         self.assertFalse(failed)
         self.assertEqual(count, len(unique_nft_ids))
 
