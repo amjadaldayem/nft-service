@@ -1,20 +1,16 @@
 # Lambda Handler for consuming the Kinesis data stream
 import asyncio
-import dataclasses
 import logging
-from collections import namedtuple
 from typing import List, Tuple, Optional
 
-import aiohttp
 import boto3
 import orjson
-import requests
 from solana.rpc import commitment
 
 from app import settings
 from app.blockchains import SECONDARY_MARKET_EVENT_SALE
+from app.blockchains.solana import ParsedTransaction, nft_get_metadata_by_token_key, CustomAsyncClient, CustomClient
 from app.blockchains.solana.client import (
-    SolanaNFTMetaData,
     nft_get_nft_data
 )
 from app.models import (
@@ -22,9 +18,8 @@ from app.models import (
     SMERepository
 )
 from app.models import SecondaryMarketEvent
+from app.utils import notify_error
 from app.utils.streamer import KinesisStreamer, KinesisStreamRecord
-from app.blockchains.solana import ParsedTransaction, nft_get_metadata_by_token_key, CustomAsyncClient, CustomClient
-from app.utils import full_stacktrace, notify_error
 
 logger = logging.getLogger(__name__)
 
@@ -148,13 +143,26 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 failed_transaction_hashes.append(event.transaction_hash)
                 logger.error(str(e))
 
+    dynamodb_resource = boto3.resource('dynamodb')
     sme_repository = SMERepository(
-        boto3.resource('dynamodb'),
+        dynamodb_resource
+    )
+    nft_repository = NFTRepository(
+        dynamodb_resource
     )
     _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
     if failed:
         notify_error(IOError(
-            "Error saving some items: sme table"
+            f"Error saving some items: {sme_repository.NAME}"
+        ), metadata={
+            'details': orjson.dumps(failed).decode('utf8'),
+        })
+
+    _, nft_data_list = zip(*succeeded_items_to_commit)
+    _, failed = nft_repository.save_nfts(nft_data_list)
+    if failed:
+        notify_error(IOError(
+            f"Error saving some items:  {nft_repository.NAME}"
         ), metadata={
             'details': orjson.dumps(failed).decode('utf8'),
         })
@@ -162,7 +170,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
     if failed_transaction_hashes:
         # Pin the failed record from where we want to retry next
         # We just throw in multiple records, and kinesis will take the
-        # one with lowest sequence id
+        # one with the lowest sequence id
         failed_transaction_hashes = set(failed_transaction_hashes)
         return [
             record for record in records if record.data[0] in failed_transaction_hashes
@@ -170,4 +178,5 @@ async def handle_transactions(records: List[KinesisStreamRecord],
     return
 
 
+# For Lambda handler
 handler = KinesisStreamer.wrap_handler(handle_transactions)

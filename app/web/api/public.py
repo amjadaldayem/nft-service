@@ -1,22 +1,20 @@
 import os
 import re
-from typing import Tuple, Dict
+from typing import Dict
 
 import pydantic
 from fastapi import (
-    Body,
-    Depends
+    Body
 )
 from pydantic import BaseModel, validator
 
+from app.models.user import MAX_USERNAME_LEN, User
 from app.web.services import user_service
-
 from .entry import (
     app,
     api_v1_noauth
 )
 from .exceptions import EmptyValue
-from app.models.user import MAX_USERNAME_LEN, User
 
 
 @api_v1_noauth.method()
@@ -42,10 +40,12 @@ class SignUpInput(LoginInput):
 @api_v1_noauth.method(errors=[EmptyValue])
 def sign_up(
         data: SignUpInput = Body(
-            ..., example="""
-            'data': {'username': 'john', 'email': 'doe@example.com', 'password': '*****'}
-            """
+            ...,
+            example={
+                'username': 'john', 'email': 'doe@example.com', 'password': '*****'
+            }
         ),
+        response_model=User
 ) -> User:
     if not data:
         raise EmptyValue

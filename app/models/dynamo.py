@@ -2,6 +2,7 @@ import dataclasses
 from functools import cached_property
 from typing import List, Optional, Dict
 
+import orjson
 import yaml
 
 
@@ -24,6 +25,7 @@ class DynamoDBRepositoryBase:
                  dynamodb_resource):
         self.table_name = table_name
         self.resource = dynamodb_resource
+        self.exceptions = self.resource.meta.client.exceptions
         # Each Facet
         # {
         #   field_name: {
@@ -44,12 +46,9 @@ class DynamoDBRepositoryBase:
 @dataclasses.dataclass
 class Attr:
     attr_name: str
-    # model fields or property
-    attr_value: str
     # DynamoDb datatype notation (S, N etc)
     attr_type: str = 'S'
-    # class of the model, if not given, will treat `attr_value` as a literal string
-    mapped_model: Optional[type] = None
+    attr_value: str = ''
 
     def as_hash_key_def(self):
         return {
@@ -134,8 +133,9 @@ class TableSchema:
         """
         attribute_defs = {
             self.pk.attr_name: self.pk,
-            self.sk.attr_name: self.sk,
         }
+        if self.sk:
+            attribute_defs[self.sk.attr_name] = self.sk
         for lsi in self.lsi_list:
             pk, sk = lsi.pk, lsi.sk
             attribute_defs[pk.attr_name] = pk
@@ -162,14 +162,18 @@ class TableSchema:
         lsi_list = [lsi.as_index_def() for lsi in self.lsi_list]
         gsi_list = [gsi.as_index_def() for gsi in self.gsi_list]
 
-        return {
+        ret = {
             'TableName': self.name,
             'AttributeDefinitions': attribute_defs,
             'KeySchema': key_schema,
-            'LocalSecondaryIndexes': lsi_list,
-            'GlobalSecondaryIndexes': gsi_list,
             'BillingMode': 'PAY_PER_REQUEST',
         }
+        if lsi_list:
+            ret['LocalSecondaryIndexes'] = lsi_list
+        if gsi_list:
+            ret['GlobalSecondaryIndexes'] = gsi_list
+
+        return ret
 
     def create_from_api(self, client):
         """
@@ -214,14 +218,14 @@ class SchemaParser:
         }
 
         name = table_schema_dict['name']
-        pk = cls._parse_attribute(table_schema_dict['pk'], model_classes)
-        sk = cls._parse_attribute(table_schema_dict['sk'], model_classes)
+        pk = cls._parse_attribute(table_schema_dict['pk'])
+        sk = cls._parse_attribute(table_schema_dict['sk'])
         gsi_list = [
-            cls._parse_index_schema(index_schema_dict, pk, model_classes, True)
+            cls._parse_index_schema(index_schema_dict, pk, True)
             for index_schema_dict in table_schema_dict.get('gsi', [])
         ]
         lsi_list = [
-            cls._parse_index_schema(index_schema_dict, pk, model_classes, False)
+            cls._parse_index_schema(index_schema_dict, pk, False)
             for index_schema_dict in table_schema_dict.get('lsi', [])
         ]
 
@@ -235,17 +239,15 @@ class SchemaParser:
         )
 
     @classmethod
-    def _parse_index_schema(cls, index_schema_dict, table_pk: Attr,
-                            model_class_map: Dict[str, type], is_gsi=True) -> IndexSchema:
+    def _parse_index_schema(cls, index_schema_dict, table_pk: Attr, is_gsi=True) -> IndexSchema:
         name = index_schema_dict['name']
         if not is_gsi:
             pk = table_pk
         else:
             pk = cls._parse_attribute(
-                index_schema_dict['pk'],
-                model_class_map
+                index_schema_dict['pk']
             )
-        sk = cls._parse_attribute(index_schema_dict['sk'], model_class_map)
+        sk = cls._parse_attribute(index_schema_dict['sk'])
         return IndexSchema(
             name=name,
             pk=pk,
@@ -257,30 +259,21 @@ class SchemaParser:
         )
 
     @classmethod
-    def _parse_attribute(cls, attr_dict: Optional[dict],
-                         model_class_map: Dict[str, type]) -> Optional[Attr]:
+    def _parse_attribute(cls, attr_dict: Optional[dict]) -> Optional[Attr]:
         if not attr_dict:
             return None
         else:
+            # Attr_value can be a list of a primitive type
+            # For documentation purpose
             attr_name = attr_dict['name']
-            attr_value = attr_dict['value']
-            if not attr_value or not attr_name:
+            if not attr_name:
                 raise ValueError(
                     "Empty attr_value or attr_name found."
                 )
-            model = None
-            try:
-                key, field_or_prop = attr_value.split('.')
-                model = model_class_map[key]
-                attr_value = field_or_prop
-            except:
-                pass
-
             return Attr(
                 attr_name=attr_name,
-                attr_value=attr_value,
-                attr_type=attr_dict.get('attr_type', 'S'),
-                mapped_model=model
+                attr_type=attr_dict.get('type', 'S'),
+                attr_value=orjson.dumps(attr_dict.get('value', None)).decode('utf8')
             )
 
     @classmethod

@@ -1,11 +1,13 @@
 import copy
+import dataclasses
 import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+import dacite
 
 from app import settings
 # Constants
+from app.models import meta
 from app.models.dynamo import DynamoDBRepositoryBase
 
 MIN_USERNAME_LEN = 2
@@ -13,7 +15,8 @@ MAX_USERNAME_LEN = 36
 MAX_EMAIL_LEN = 64
 
 
-class User(BaseModel):
+@dataclasses.dataclass
+class User:
     user_id: str
     username: str
     preferred_username: str
@@ -22,13 +25,13 @@ class User(BaseModel):
     joined_on: datetime.datetime = datetime.datetime(year=1970, month=1, day=1)
 
 
-class UserRepository(DynamoDBRepositoryBase):
+class UserRepository(DynamoDBRepositoryBase, meta.DTUserMeta):
     """
     user table
 
     pk           sk
     <user_id>    p
-                 b#<blockchain_id>#n#<token_address> ...nft metadata...   <-- Bookmarked NFTs per blockchain
+                 bn#<nft_id> ...nft metadata...   <-- Bookmarked NFTs per blockchain
 
     """
     PK = 'pk'
@@ -36,7 +39,7 @@ class UserRepository(DynamoDBRepositoryBase):
 
     def __init__(self, dynamodb_resource):
         super().__init__(
-            settings.DYNAMODB_USER_TABLE,
+            self.NAME,
             dynamodb_resource,
         )
 
@@ -52,7 +55,7 @@ class UserRepository(DynamoDBRepositoryBase):
         item_dict['user_id'] = item_dict['pk']
         item_dict['joined_on'] = datetime.datetime.fromisoformat(item_dict['joined_on'])
         del item_dict['sk']
-        return User(**item_dict)
+        return dacite.from_dict(data_class=User, data=item_dict)
 
     def query_users(self, **kwargs):
         pass

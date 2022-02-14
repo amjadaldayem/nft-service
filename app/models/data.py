@@ -46,11 +46,28 @@ class NftData:
 
     @property
     def collection_id(self):
-        return f"bn#{self.blockchain_id}#{self.collection_key}"
+        return f"bc#{self.blockchain_id}#{self.collection_key}"
+
+    @property
+    def collection_name(self):
+        name = self.name
+        if not name:
+            collection_name = self.symbol or ""
+        else:
+            try:
+                collection_name, _ = name.rsplit('#', 10)
+            except:
+                collection_name = name
+
+        return collection_name.strip()
 
     @property
     def nft_id(self):
         return f"bn#{self.blockchain_id}#{self.token_address}"
+
+    @property
+    def current_owner_id(self):
+        return f"bo#{self.blockchain_id}#{self.current_owner}"
 
     @property
     def media_url(self):

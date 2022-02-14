@@ -5,7 +5,11 @@ import sys
 import click
 
 import settings
-from app.tools import solana
+from app.tools import (
+    solana,
+    models
+)
+
 from app.utils import setup_error_handler
 from app.utils import setup_logging
 
@@ -30,6 +34,7 @@ def main():
 
 
 main.add_command(solana)
+main.add_command(models)
 
 if __name__ == '__main__':
     # Entry point for tools and other stuff.

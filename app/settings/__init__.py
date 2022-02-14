@@ -37,7 +37,5 @@ SME_AGGREGATION_WINDOW = int(os.getenv('SME_AGGREGATION_WINDOW', '5'))
 # case.
 SME_FETCH_DEFAULT_LAG = int(os.getenv('SME_FETCH_DEFAULT_LAG', '300'))
 
-# Table configurations
-from .tables import *  # noqa
 # Per blockchain basic configurations
 from .solana import *  # noqa
