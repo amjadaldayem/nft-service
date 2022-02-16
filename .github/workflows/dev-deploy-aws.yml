@@ -54,8 +54,8 @@ jobs:
           API_TAG_LATEST="${API_TAG_HEAD}latest"
           API_TAG_HASH="${API_TAG_HEAD}${GITHUB_SHORT_SHA}"
           cp Dockerfile Dockerfile-api
-          echo >> Dockerfile-api
-          echo 'CMD ["app.api_lambda_main.handler"]' >> Dockerfile-api
+#          echo >> Dockerfile-api
+#          echo 'CMD ["app.api_lambda_main.handler"]' >> Dockerfile-api
           docker build -f Dockerfile-api -t $ECR_REPO_URI:$API_TAG_LATEST -t $ECR_REPO_URI:$API_TAG_HASH .
 
       - name: Login to Amazon ECR and Push All
