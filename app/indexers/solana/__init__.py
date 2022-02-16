@@ -87,15 +87,11 @@ def listen_to_market_events_wrapper(market_id, timeout, stream_name, region, end
         loop.close()
 
 
-@click.command(name='solana-sme')
-@click.argument('stream-name', nargs=1)
-@click.argument('market-ids', nargs=-1)
-@click.option('-t', '--runtime', type=int, default=0)
-@click.option('--region', type=str, default='us-west-2')
-@click.option('--endpoint-url', type=str, default=None)
-def solana_sme(stream_name, market_ids: Set[int], runtime, region, endpoint_url):
+def do_solana_sme(stream_name, market_ids: Set[int], runtime, region, endpoint_url):
     """
-    Starts Solana Secondary Market Events listener on specified Market Id.
+    Starts Solana Secondary Market Events listener on Market Id set or `all`.
+    This will run as the producers for Kinesis data stream messages.
+
     --producer_mode 0: normal kinesis producer, 1: log only 2: local handler invocation (for testing)
     E.g.,
 

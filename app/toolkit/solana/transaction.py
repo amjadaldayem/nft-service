@@ -1,9 +1,7 @@
-import asyncio
 import logging
 import os.path
 import time
 
-import click
 import orjson
 from solana.rpc.api import Client
 
@@ -15,19 +13,7 @@ from app.utils import partition
 logger = logging.getLogger(__name__)
 
 
-@click.group()
-def txn():
-    """
-    Transaction related commands
-
-    """
-    return
-
-
-@click.command(name='get')
-@click.argument('signature')
-@click.argument('filename')
-def get_transaction(signature, filename):
+def do_get_transaction(signature, filename):
     c = Client(settings.SOLANA_RPC_ENDPOINT)
     resp = c.get_confirmed_transaction(signature)
     dir_name = os.path.dirname(filename)
@@ -37,13 +23,7 @@ def get_transaction(signature, filename):
         c.write(orjson.dumps(resp['result'], option=orjson.OPT_INDENT_2))
 
 
-@click.command(name='for')
-@click.argument('public_key')
-@click.argument('filename')
-@click.option('-l', '--limit', required=False, default=50, type=int)
-@click.option('-b', '--before', required=False, default=None)
-@click.option('-u', '--until', required=False, default=None)
-def get_transactions_for(public_key, filename, limit, before, until):
+def do_get_transactions_for(public_key, filename, limit, before, until):
     """
     Get transactions for a public_key and stores them to `file_name`
 
@@ -91,8 +71,3 @@ def get_transactions_for(public_key, filename, limit, before, until):
 
     with open(filename, 'wb') as fd:
         fd.write(orjson.dumps(all_result, option=orjson.OPT_INDENT_2))
-
-
-#
-txn.add_command(get_transaction)
-txn.add_command(get_transactions_for)

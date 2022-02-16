@@ -1,4 +1,3 @@
-import click
 from jinja2 import Template
 
 from app.models.dynamo import SchemaParser
@@ -21,10 +20,7 @@ class {{ schema.name }}:
 """
 
 
-@click.command(name="generate-meta")
-@click.argument("schemas_file")
-@click.argument("output_file")
-def generate_meta(schemas_file, output_file):
+def do_generate_meta(schemas_file, output_file):
     """
     Generates meta-classes file from schema YAML to use with Dynamodb Repositories.
     """
@@ -106,14 +102,3 @@ def generate_meta(schemas_file, output_file):
                 'table_schemas': table_schemas_transformed
             }
         ))
-
-
-@click.group()
-def models():
-    """
-    Utilities for data model.
-    """
-    pass
-
-
-models.add_command(generate_meta)

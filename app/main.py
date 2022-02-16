@@ -5,11 +5,8 @@ import sys
 import click
 
 import settings
-from app.tools import (
-    solana,
-    models
-)
-
+from app.toolkit.cmds import toolkit
+from app.indexers.cmds import indexer
 from app.utils import setup_error_handler
 from app.utils import setup_logging
 
@@ -33,8 +30,8 @@ def main():
     initialize()
 
 
-main.add_command(solana)
-main.add_command(models)
+main.add_command(toolkit)
+main.add_command(indexer)
 
 if __name__ == '__main__':
     # Entry point for tools and other stuff.
