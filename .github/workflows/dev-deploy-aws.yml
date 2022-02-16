@@ -41,20 +41,17 @@ jobs:
         id: build-image
         env:
           # Tagging format:
-          #  repo:<env>-<process>-<hash|latest>
-          # The reason why we need multiple image is that
-          # for Lambda with Container, the CMD has to be built in Dockerfile.
-          # We are not able to override the CMD (it won't work).
-          API_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-api-
+          #  repo:<env>-<hash|latest>
+          # e.g., dev-latest, dev-17ae13a
+          TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           GITHUB_SHORT_SHA: ${{ steps.get-github-short-sha.outputs.github_short_sha }}
           KINESIS_PRODUCER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-p-
           KINESIS_CONSUMER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-c-
         run: |
-          API_TAG_LATEST="${API_TAG_HEAD}latest"
-          API_TAG_HASH="${API_TAG_HEAD}${GITHUB_SHORT_SHA}"
-          cp Dockerfile Dockerfile-api
-          docker build -f Dockerfile-api -t $ECR_REPO_URI:$API_TAG_LATEST -t $ECR_REPO_URI:$API_TAG_HASH .
+          IMAGE_TAG_LATEST="${TAG_PREFIX}latest"
+          IMAGE_TAG_HASH="${TAG_PREFIX}${GITHUB_SHORT_SHA}"
+          docker build -f Dockerfile -t $ECR_REPO_URI:$IMAGE_TAG_LATEST -t $ECR_REPO_URI:$IMAGE_TAG_HASH .
 
       - name: Login to Amazon ECR and Push All
         id: login-ecr
