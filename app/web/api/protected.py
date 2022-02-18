@@ -11,7 +11,7 @@ from .entry import (
     app,
     api_v1_auth
 )
-from .exceptions import (
+from ..exceptions import (
     EmptyValue
 )
 

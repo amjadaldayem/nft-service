@@ -14,7 +14,7 @@ from .entry import (
     app,
     api_v1_noauth
 )
-from .exceptions import EmptyValue
+from ..exceptions import EmptyValue
 
 
 @api_v1_noauth.method()

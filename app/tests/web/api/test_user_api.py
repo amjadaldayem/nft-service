@@ -14,7 +14,7 @@ from app.tests.mixins import BasePatcherMixin, JsonRpcTestMixin
 from app.tests.shared import create_tables
 from app.web import services
 from app.web.api import app
-from app.web.api.exceptions import AuthenticationError
+from app.web.exceptions import AuthenticationError
 
 
 class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):

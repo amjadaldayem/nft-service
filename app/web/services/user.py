@@ -8,7 +8,12 @@ from jose import jwt, jwk
 from jose.utils import base64url_decode
 
 from app.models.user import User, UserRepository
-from app.web.api.exceptions import AuthenticationError
+from ..exceptions import (
+    AuthenticationError,
+    UnknownError,
+    ErrorCreatingUserInPool,
+    ErrorCreatingUser
+)
 
 
 class PublicKeyNotFound(Exception):
@@ -53,11 +58,6 @@ class UserService:
         )
 
     def sign_up(self, email, username, password) -> User:
-        from app.web.api.exceptions import (
-            UnknownError,
-            ErrorCreatingUserInPool,
-            ErrorCreatingUser
-        )
         try:
             user_data = self.cognito_client.admin_create_user(
                 UserPoolId=self.user_pool_id,
@@ -131,7 +131,7 @@ class UserService:
             resp = self.cognito_client.admin_initiate_auth(
                 UserPoolId=self.user_pool_id,
                 ClientId=self.user_pool_client_id,
-                AuthFlow='USER_PASSWORD_AUTH',
+                AuthFlow='ADMIN_USER_PASSWORD_AUTH',
                 AuthParameters={
                     'USERNAME': username,
                     'PASSWORD': password

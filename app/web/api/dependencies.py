@@ -4,7 +4,7 @@ import orjson
 from fastapi import Header
 from app.models.user import User
 from app.web import services
-from app.web.api.exceptions import AuthenticationError, UserNotFound
+from ..exceptions import AuthenticationError, UserNotFound
 
 
 def get_auth_user(

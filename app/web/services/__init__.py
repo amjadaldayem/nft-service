@@ -1,7 +1,7 @@
-import os
 import boto3
-from .user import UserService  # noqa
+
 from app import settings
+from .user import UserService  # noqa
 
 cognito_client = boto3.client('cognito-idp')
 dynamodb_resource = boto3.resource('dynamodb')
