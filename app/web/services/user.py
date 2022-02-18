@@ -1,6 +1,7 @@
 import datetime
 import time
 import uuid
+from typing import Optional
 
 import orjson
 import pybase64 as base64
@@ -62,6 +63,7 @@ class UserService:
                 UserPoolId=self.user_pool_id,
                 Username=username,
                 TemporaryPassword=str(uuid.uuid1()),
+                ForceAliasCreation=False,
                 MessageAction='SUPPRESS',
                 UserAttributes=[
                     {'Name': 'email', 'Value': email},
@@ -93,7 +95,7 @@ class UserService:
             )
             self.user_repository.save_user_profile(user)
         except Exception as e:
-            self.delete_user(username)
+            self.delete_user_from_pool(username)
             raise ErrorCreatingUser(data={'details': str(e)})
         return user
 
@@ -132,7 +134,7 @@ class UserService:
         refresh_token = result['RefreshToken']
         return access_token, refresh_token
 
-    def get_user(self, user_id):
+    def get_user(self, user_id) -> Optional[User]:
         """
         TODO: Later stitch more info for the user
 
@@ -142,7 +144,7 @@ class UserService:
         Returns:
 
         """
-        return self.user_repository.get_user_profile(user_id)
+        return self.user_repository.get_user(user_id)
 
     def extract_token(self, token, public_keys, verify=False) -> dict:
         """

@@ -15,7 +15,7 @@ from app.models import (
     NftData,
     meta,
 )
-from .shared import create_tables
+from ..shared import create_tables
 
 data_path = os.path.join(os.path.dirname(__file__), 'data')
 

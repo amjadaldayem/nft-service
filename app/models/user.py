@@ -1,14 +1,13 @@
 import copy
-import dataclasses
 import datetime
 from typing import Optional
 
-import dacite
+from pydantic import dataclasses
 
-from app import settings
 # Constants
 from app.models import meta
 from app.models.dynamo import DynamoDBRepositoryBase
+from .shared import DataclassBase
 
 MIN_USERNAME_LEN = 2
 MAX_USERNAME_LEN = 36
@@ -16,7 +15,7 @@ MAX_EMAIL_LEN = 64
 
 
 @dataclasses.dataclass
-class User:
+class User(DataclassBase):
     user_id: str
     username: str
     preferred_username: str
@@ -34,8 +33,6 @@ class UserRepository(DynamoDBRepositoryBase, meta.DTUserMeta):
                  bn#<nft_id> ...nft metadata...   <-- Bookmarked NFTs per blockchain
 
     """
-    PK = 'pk'
-    SK = 'sk'
 
     def __init__(self, dynamodb_resource):
         super().__init__(
@@ -43,7 +40,7 @@ class UserRepository(DynamoDBRepositoryBase, meta.DTUserMeta):
             dynamodb_resource,
         )
 
-    def get_user_profile(self, user_id) -> Optional[User]:
+    def get_user(self, user_id) -> Optional[User]:
         table = self.table
         resp = table.get_item(
             Key={
@@ -52,10 +49,27 @@ class UserRepository(DynamoDBRepositoryBase, meta.DTUserMeta):
             },
         )
         item_dict = resp['Item']
-        item_dict['user_id'] = item_dict['pk']
+        return self.user_from_dynamo(item_dict)
+
+    @classmethod
+    def user_to_dynamo(cls, user: User):
+        item = copy.copy(user.__dict__)
+        del item['user_id']
+        item[cls.PK] = user.user_id
+        item[cls.SK] = 'p'
+        item['joined_on'] = user.joined_on.isoformat()
+        return item
+
+    @classmethod
+    def user_from_dynamo(cls, item_dict):
+        item_dict['user_id'] = item_dict[cls.PK]
+        del item_dict[cls.PK]
         item_dict['joined_on'] = datetime.datetime.fromisoformat(item_dict['joined_on'])
-        del item_dict['sk']
-        return dacite.from_dict(data_class=User, data=item_dict)
+        if cls.SK in item_dict:
+            del item_dict['sk']
+        if '__initialised__' in item_dict:
+            del item_dict['__initialised__']
+        return User(**item_dict)
 
     def query_users(self, **kwargs):
         pass
@@ -72,14 +86,9 @@ class UserRepository(DynamoDBRepositoryBase, meta.DTUserMeta):
 
         """
         table = self.table
-        item = copy.copy(user.__dict__)
-        del item['user_id']
-        item[self.PK] = user.user_id
-        item[self.SK] = 'p'
-        item['joined_on'] = user.joined_on.isoformat()
         try:
             table.put_item(
-                Item=item,
+                Item=self.user_to_dynamo(user),
                 ReturnValues=self.RV_NONE
             )
         except:

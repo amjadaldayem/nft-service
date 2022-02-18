@@ -1,9 +1,9 @@
-import dataclasses
 from functools import cached_property
 from typing import List, Optional, Dict
 
 import orjson
 import yaml
+from pydantic import dataclasses
 
 
 class DynamoDBRepositoryBase:
@@ -26,17 +26,6 @@ class DynamoDBRepositoryBase:
         self.table_name = table_name
         self.resource = dynamodb_resource
         self.exceptions = self.resource.meta.client.exceptions
-        # Each Facet
-        # {
-        #   field_name: {
-        #     dynamodb_attr_name : {
-        #       ''
-        #     }
-        #   }
-        # }
-        self.facets = {}
-        # TODO: Later build this generic stuff
-        # self._parse_schema_mapping_list(schema_mapping_list)
 
     @cached_property
     def table(self):
@@ -74,7 +63,7 @@ class Projection:
     # Precedence: all -> keys_only -> include
     all: bool = True
     keys_only: bool = True
-    include: List[str] = dataclasses.field(default_factory=list)
+    include: List[str] = dataclasses.Field(default_factory=list)
 
     def as_projection_def(self):
         projection_type = (
@@ -98,8 +87,8 @@ class IndexSchema:
     name: str
     gsi: bool  # True if Gsi, False for Lsi
     pk: Attr
-    sk: Attr
-    projection: Projection
+    sk: Optional[Attr]
+    projection: Optional[Projection]
 
     def as_index_def(self):
         key_schema = [

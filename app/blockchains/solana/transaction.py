@@ -11,7 +11,6 @@ from app.blockchains import (
     SOLANA_SOLANART, SOLANA_SOLSEA, BLOCKCHAIN_SOLANA, SECONDARY_MARKET_EVENT_LISTING, SECONDARY_MARKET_EVENT_DELISTING,
     SECONDARY_MARKET_EVENT_SALE, SECONDARY_MARKET_EVENT_PRICE_UPDATE, EMPTY_PUBLIC_KEY,
 )
-from app.models import SecondaryMarketEvent
 from app.blockchains.solana import (
     MARKET_PROGRAM_ID_MAP,
     MARKET_ADDRESS_MAP,
@@ -26,6 +25,7 @@ from app.blockchains.solana.instruction import (
     T_KEY_INSTRUCTIONS,
     ParsedInstruction
 )
+from app.models import SecondaryMarketEvent
 
 T_KEY_POST_TOKEN_BALANCES = 'postTokenBalances'
 T_KEY_ACCOUNT_INDEX = 'accountIndex'
@@ -388,7 +388,7 @@ class ParsedTransaction:
                 token_key = matched_pi.account_list[2]
                 owner = matched_pi.account_list[0]
 
-        event = SecondaryMarketEvent(
+        return SecondaryMarketEvent(
             blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_DIGITAL_EYES,
             event_type=event_type,
@@ -399,8 +399,7 @@ class ParsedTransaction:
             data=data,
             timestamp=self.block_time,
             transaction_hash=self.signature
-        )
-        return event if event_type else None
+        ) if event_type else None
 
     def _parse_solsea(self, solsea_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
@@ -429,7 +428,7 @@ class ParsedTransaction:
             for ins in inner_ins_array:
                 pii = ParsedInstruction.from_instruction_dict(ins, self.account_keys)
                 if (pii.is_token_program_instruction
-                        and pii.get_function_offset()) == TOKEN_TRANSFER:
+                    and pii.get_function_offset()) == TOKEN_TRANSFER:
                     owner = pii.account_list[2]
                     break
         elif func_offset == 0x01:
@@ -494,9 +493,9 @@ class ParsedTransaction:
         for balance in post_token_balances:
             idx = balance[T_KEY_ACCOUNT_INDEX]
             matched = (
-                token_account_to_match is None
-                or self.account_keys[idx] == token_account_to_match
-                or balance['owner'] == token_account_to_match
+                    token_account_to_match is None
+                    or self.account_keys[idx] == token_account_to_match
+                    or balance['owner'] == token_account_to_match
             )
             if matched and balance['uiTokenAmount']['amount'] == '1':
                 return balance['mint']

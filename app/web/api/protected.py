@@ -1,12 +1,9 @@
-import orjson
 from fastapi import (
     Body,
     Depends
 )
-import fastapi_jsonrpc as jsonrpc
 
 from app import settings  # noqa
-
 from app.models.user import User
 from app.web.api.dependencies import get_auth_user
 from .entry import (

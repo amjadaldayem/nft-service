@@ -1,6 +1,7 @@
 # JSONRPC Custom Errors
-import fastapi_jsonrpc as jsonrpc
 from pydantic import BaseModel
+
+from app.utils.fastapi_ex import jsonrpc
 
 
 class EmptyValue(jsonrpc.BaseError):

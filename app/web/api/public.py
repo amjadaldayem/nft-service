@@ -45,7 +45,6 @@ def sign_up(
                 'username': 'john', 'email': 'doe@example.com', 'password': '*****'
             }
         ),
-        response_model=User
 ) -> User:
     if not data:
         raise EmptyValue

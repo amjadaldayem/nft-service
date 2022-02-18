@@ -44,8 +44,8 @@
 sme:
   name: sme
   models:
-    n: app.models.data.NftData
-    s: app.models.data.SecondaryMarketEvent
+    n: app.models.NftData
+    s: app.models.SecondaryMarketEvent
   pk:
     name: w
     value: s.w
@@ -159,7 +159,7 @@ sme:
 nft:
   name: nft
   models:
-    n: app.models.data.NftData
+    n: app.models.NftData
   pk:
     name: pk
     value:
@@ -201,7 +201,7 @@ nft:
 user:
   name: user
   models:
-    u: app.models.user.User
+    u: app.models.User
   # Set pk to point to a field or a property name of corresponding models
   pk:
     name: pk

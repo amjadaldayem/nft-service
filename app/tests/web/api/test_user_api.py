@@ -1,6 +1,7 @@
 import datetime
 import functools
 import unittest
+import uuid
 from typing import Union
 
 import boto3
@@ -8,13 +9,15 @@ import orjson
 import requests
 from starlette.testclient import TestClient
 
+from app.models import User
 from app.tests.mixins import BasePatcherMixin, JsonRpcTestMixin
+from app.tests.shared import create_tables
 from app.web import services
 from app.web.api import app
 from app.web.api.exceptions import AuthenticationError
 
 
-class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
+class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
 
     @classmethod
     def cognito_get_public_keys(cls, user_pool_id, region):
@@ -86,6 +89,7 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         cls.env_dict['AWS_DEFAULT_REGION'] = 'us-west-2'
         cls.cognito_client = boto3.client('cognito-idp')
         cls.dynamodb_resource = boto3.resource('dynamodb')
+        create_tables(cls.dynamodb_resource.meta.client)
         cls.user_pool_id, cls.user_pool_client_id = \
             cls.cognito_create_user_pool_and_client(cls.cognito_client)
 
@@ -100,31 +104,6 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         cls.env_dict['VERIFY_TOKEN'] = '1'
 
         # Creates DynamoDb table
-        from app import settings
-        cls.dynamodb_resource.meta.client.create_table(
-            TableName=settings.DYNAMODB_USER_TABLE,
-            AttributeDefinitions=[
-                {
-                    'AttributeName': 'pk',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'sk',
-                    'AttributeType': 'S'
-                },
-            ],
-            KeySchema=[
-                {
-                    'AttributeName': 'pk',
-                    'KeyType': 'HASH'
-                },
-                {
-                    'AttributeName': 'sk',
-                    'KeyType': 'RANGE'
-                },
-            ],
-            BillingMode='PAY_PER_REQUEST'
-        )
 
         # Patch the global `user_service` instance
         cls.patch_object_fields(
@@ -138,8 +117,6 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
             services.user_service.user_repository,
             resource=cls.dynamodb_resource
         )
-        cls.user_table = cls.dynamodb_resource.Table(settings.DYNAMODB_USER_TABLE)
-
         cls.foo_username = 'foo'
         cls.foo_email = 'foo@example.com'
         cls.foo_password = 'abc123'
@@ -223,7 +200,10 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         user_id = result['user_id']
         readback = services.user_service.get_user(user_id)
         result['joined_on'] = datetime.datetime.fromisoformat(result['joined_on'])
-        self.assertEqual(readback.__dict__, result)
+        self.assertEqual(
+            readback,
+            User(**result)
+        )
 
     def test_sign_up_bad_username(self):
         result, error = self.rpc(
@@ -251,18 +231,33 @@ class TestBasicAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         self.assertIsNotNone(error)
         self.assertEqual(error['code'], -32602)
 
-    def test_sign_up_with_dupes(self):
+    def test_sign_up_with_dupe_email(self):
         result, error = self.rpc(
             method='sign_up',
             params={
                 'data': {
                     'email': self.foo_email,
+                    'username': str(uuid.uuid4()),
+                    'password': "abc12345"
+                }
+            }
+        )
+        self.assertIsNotNone(error)
+        self.assertEqual(error.code, 5004)
+
+    def test_sign_up_with_dupe_username(self):
+        result, error = self.rpc(
+            method='sign_up',
+            params={
+                'data': {
+                    'email': str(uuid.uuid4()) + "@example.com",
                     'username': self.foo_username,
                     'password': "abc12345"
                 }
             }
         )
         self.assertIsNotNone(error)
+        self.assertEqual(error['code'], 5004)
 
     def test_login(self):
         result, error = self.rpc(
