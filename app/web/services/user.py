@@ -1,4 +1,5 @@
 import datetime
+import logging
 import time
 import uuid
 from typing import Optional
@@ -12,8 +13,11 @@ from ..exceptions import (
     AuthenticationError,
     UnknownError,
     ErrorCreatingUserInPool,
-    ErrorCreatingUser
+    ErrorCreatingUser,
+    ErrorDeletingUserFromPool,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class PublicKeyNotFound(Exception):
@@ -115,7 +119,6 @@ class UserService:
         Returns:
 
         """
-        from app.web.api.exceptions import ErrorDeletingUserFromPool
         try:
             self.cognito_client.admin_delete_user(
                 UserPoolId=self.user_pool_id,
@@ -195,7 +198,12 @@ class UserService:
             }
         """
         if not verify:
-            return orjson.loads(base64url_decode(str(token).split('.')[1]))
+            data = str(token).split('.')[1]
+            logger.info("Token: %s", str(token))
+            logger.info("Splitted %s", data)
+            decoded = base64url_decode(data)
+            logger.info("Decoded: %s", decoded)
+            return orjson.loads(decoded)
         # get the kid from the headers prior to verification
         headers = jwt.get_unverified_headers(token)
         kid = headers['kid']
