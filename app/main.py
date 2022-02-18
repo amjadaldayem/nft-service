@@ -8,7 +8,6 @@ from sentry_sdk.integrations.aws_lambda import (
     AwsLambdaIntegration,
 )
 
-import settings
 from app.indexers.cmds import indexer
 from app.toolkit.cmds import toolkit
 from app.utils import setup_error_handler
@@ -24,6 +23,7 @@ def sentry_error_notify(e, metadata):
 
 
 def initialize(is_lambda=False):
+    from app import settings
     setup_logging(settings.DEBUG)
     integrations = []
     if is_lambda:
