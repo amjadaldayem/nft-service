@@ -9,6 +9,9 @@ NOISY_MODULES = (
     "requests",
     "s3transfer",
     "urllib3",
+    "mangum.lifespan",
+    "mangum.http",
+    "sentry_sdk.errors",
 )
 
 
