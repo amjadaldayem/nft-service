@@ -84,3 +84,15 @@ class DTUserMeta:
     
     SK = 'sk'  # ["bn#<n.nft_id>","bc#<n.collection_id>"]
     
+    GSI_USER_EMAILS = 'user_gsi_emails'  # 
+    
+    GSI_USER_EMAILS_PK = 'email'  # u.email
+    
+    GSI_USER_EMAILS_SK = 'sk'  # ["bn#<n.nft_id>","bc#<n.collection_id>"]
+    
+    GSI_USER_NICKNAME = 'user_gsi_nickname'  # 
+    
+    GSI_USER_NICKNAME_PK = 'nickname'  # u.nickname
+    
+    GSI_USER_NICKNAME_SK = 'sk'  # ["bn#<n.nft_id>","bc#<n.collection_id>"]
+    

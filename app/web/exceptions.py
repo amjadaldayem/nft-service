@@ -52,6 +52,22 @@ class ErrorDeletingUserFromPool(jsonrpc.BaseError):
         details: str
 
 
+class DuplicateEmail(jsonrpc.BaseError):
+    CODE = 5006
+    MESSAGE = 'Email already exists.'
+
+    class DataModel(BaseModel):
+        details: str
+
+
+class DuplicateUsername(jsonrpc.BaseError):
+    CODE = 5007
+    MESSAGE = 'Username already exists.'
+
+    class DataModel(BaseModel):
+        details: str
+
+
 class UnknownError(jsonrpc.BaseError):
     CODE = 9000
     MESSAGE = 'Unknown error'

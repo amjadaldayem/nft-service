@@ -2,6 +2,7 @@ import copy
 import datetime
 from typing import Optional
 
+from boto3.dynamodb.conditions import Key
 from pydantic import dataclasses
 
 # Constants
@@ -21,6 +22,7 @@ class User(DataclassBase):
     preferred_username: str
     email: str
     phone_number: str = ''
+    nickname: str = ''
     joined_on: datetime.datetime = datetime.datetime(year=1970, month=1, day=1)
 
 
@@ -40,15 +42,55 @@ class UserRepository(DynamoDBRepositoryBase, meta.DTUserMeta):
             dynamodb_resource,
         )
 
-    def get_user(self, user_id) -> Optional[User]:
+    def get_user(self, *,
+                 user_id: Optional[str] = None,
+                 nickname: Optional[str] = None,
+                 email: Optional[str] = None) -> Optional[User]:
+        """
+        Precendence:
+            - user_id
+            - email
+
+        Args:
+            user_id:
+            nickname:
+            email:
+
+        Returns:
+
+        """
         table = self.table
-        resp = table.get_item(
-            Key={
-                self.PK: user_id,
-                self.SK: 'p'
-            },
-        )
-        item_dict = resp['Item']
+        if user_id:
+            resp = table.get_item(
+                Key={
+                    self.PK: user_id,
+                    self.SK: 'p'
+                },
+            )
+            item_dict = resp['Item']
+        elif email:
+            resp = self.table.query(
+                IndexName=self.GSI_USER_EMAILS,
+                KeyConditionExpression=(
+                        Key(self.GSI_USER_EMAILS_PK).eq(email.lower())
+                        & Key(self.GSI_USER_EMAILS_SK).eq('p')
+                ),
+            )
+            items = resp['Items']
+            return self.user_from_dynamo(items[0]) if items else None
+        elif nickname:
+            resp = self.table.query(
+                IndexName=self.GSI_USER_NICKNAME,
+                KeyConditionExpression=(
+                        Key(self.GSI_USER_NICKNAME_PK).eq(nickname)
+                        & Key(self.GSI_USER_NICKNAME_SK).eq('p')
+                ),
+            )
+            items = resp['Items']
+            return self.user_from_dynamo(items[0]) if items else None
+        else:
+            return None
+
         return self.user_from_dynamo(item_dict)
 
     @classmethod

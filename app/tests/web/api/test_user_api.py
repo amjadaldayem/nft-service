@@ -14,7 +14,11 @@ from app.tests.mixins import BasePatcherMixin, JsonRpcTestMixin
 from app.tests.shared import create_tables
 from app.web import services
 from app.web.api import app
-from app.web.exceptions import AuthenticationError
+from app.web.exceptions import (
+    AuthenticationError,
+    DuplicateEmail,
+    DuplicateUsername
+)
 
 
 class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
@@ -168,7 +172,7 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
 
     def test_echo_authenticated(self):
         auth, _ = services.user_service.login(
-            self.foo_username, self.foo_password
+            self.foo_email, self.foo_password
         )
         result, error = self._rpc(
             method='echo',
@@ -231,7 +235,20 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         self.assertIsNotNone(error)
         self.assertEqual(error['code'], -32602)
 
-    @unittest.skip(reason="Grrr, cognito allows dupe email now.")
+    def test_sign_up_bad_email(self):
+        result, error = self.rpc(
+            method='sign_up',
+            params={
+                'data': {
+                    'email': "not-valid-email",
+                    'username': "qfasdfdF",
+                    'password': "abc12345"
+                }
+            }
+        )
+        self.assertIsNotNone(error)
+        self.assertEqual(error['code'], -32602)
+
     def test_sign_up_with_dupe_email(self):
         result, error = self.rpc(
             method='sign_up',
@@ -244,7 +261,7 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
             }
         )
         self.assertIsNotNone(error)
-        self.assertEqual(error.code, 5004)
+        self.assertEqual(error['code'], DuplicateEmail.CODE)
 
     def test_sign_up_with_dupe_username(self):
         result, error = self.rpc(
@@ -258,14 +275,14 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
             }
         )
         self.assertIsNotNone(error)
-        self.assertEqual(error['code'], 5004)
+        self.assertEqual(error['code'], DuplicateUsername.CODE)
 
     def test_login(self):
         result, error = self.rpc(
             method='login',
             params={
                 'data': {
-                    'username': self.foo_username,
+                    'email': self.foo_email,
                     'password': self.foo_password
                 }
             },
@@ -279,13 +296,13 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         )
         self.assertIsNone(error)
         self.assertEqual(
-            result['username'],
+            result['nickname'],
             self.foo_username
         )
 
     def test_get_user_data(self):
         auth, _ = services.user_service.login(
-            self.foo_username, self.foo_password
+            self.foo_email, self.foo_password
         )
         result, error = self._rpc(
             method='get_user_data',
@@ -294,6 +311,6 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         )
         self.assertIsNone(error)
         self.assertEqual(
-            result['username'],
+            result['nickname'],
             self.foo_username
         )

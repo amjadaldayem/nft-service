@@ -15,6 +15,8 @@ from ..exceptions import (
     ErrorCreatingUserInPool,
     ErrorCreatingUser,
     ErrorDeletingUserFromPool,
+    DuplicateEmail,
+    DuplicateUsername,
 )
 
 logger = logging.getLogger(__name__)
@@ -62,16 +64,21 @@ class UserService:
         )
 
     def sign_up(self, email, username, password) -> User:
+        if self.user_repository.get_user(email=email):
+            raise DuplicateEmail(data={'details': f"Email {email} already exists."})
+        if self.user_repository.get_user(nickname=username):
+            raise DuplicateUsername(data={'details': f"User name {username} already exists."})
+
         try:
             user_data = self.cognito_client.admin_create_user(
                 UserPoolId=self.user_pool_id,
-                Username=username,
+                Username=email,
                 TemporaryPassword=str(uuid.uuid1()),
                 ForceAliasCreation=False,
                 MessageAction='SUPPRESS',
                 UserAttributes=[
                     {'Name': 'email', 'Value': email},
-                    {'Name': 'preferred_username', 'Value': username},
+                    {'Name': 'preferred_username', 'Value': email},
                 ]
             )
         except Exception as e:
@@ -87,20 +94,21 @@ class UserService:
         try:
             self.cognito_client.admin_set_user_password(
                 UserPoolId=self.user_pool_id,
-                Username=username,
+                Username=email,
                 Permanent=True,
                 Password=password
             )
         except Exception as e:
             self.cognito_delete_user(user_id)
-            raise ErrorCreatingUserInPool()
+            raise ErrorCreatingUserInPool(data={'details': str(e)})
 
         try:
             user = User(
                 user_id=user_id,
-                username=username,
-                preferred_username=username,
+                username=email,  # This field is used for deduping only
+                preferred_username=email,
                 email=email,
+                nickname=username,
                 joined_on=datetime.datetime.now()
             )
             self.user_repository.save_user_profile(user)
@@ -129,14 +137,14 @@ class UserService:
                 data={'details': f'Error deleting user username={username}. {str(e)}'}
             )
 
-    def login(self, username, password):
+    def login(self, email, password):
         try:
             resp = self.cognito_client.admin_initiate_auth(
                 UserPoolId=self.user_pool_id,
                 ClientId=self.user_pool_client_id,
                 AuthFlow='ADMIN_USER_PASSWORD_AUTH',
                 AuthParameters={
-                    'USERNAME': username,
+                    'USERNAME': email,
                     'PASSWORD': password
                 }
             )
@@ -159,7 +167,10 @@ class UserService:
         Returns:
 
         """
-        return self.user_repository.get_user(user_id)
+        return self.user_repository.get_user(user_id=user_id)
+
+    def get_user_by_email(self, email):
+        return self.user_repository.get_user(email=email)
 
     def extract_token(self, token, public_keys, verify=False) -> dict:
         """

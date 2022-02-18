@@ -11,7 +11,7 @@ from pydantic import BaseModel, validator
 from app.models.user import MAX_USERNAME_LEN, User
 from app.web.services import user_service
 from .entry import (
-    app,
+    jsonrpc_app,
     api_v1_noauth
 )
 from ..exceptions import EmptyValue
@@ -23,18 +23,30 @@ def get_revision() -> str:
 
 
 class LoginInput(BaseModel):
-    username: str
+    email: pydantic.EmailStr
     password: pydantic.SecretStr
+
+    @validator('email')
+    def email_validator(cls, v):
+        """
+        Alawys use lower case for emails.
+        Args:
+            v:
+
+        Returns:
+
+        """
+        return v.lower()
+
+
+class SignUpInput(LoginInput):
+    username: str
 
     @validator('username', allow_reuse=True)
     def regex_validator(cls, v):
         if len(v) < 2 or len(v) > MAX_USERNAME_LEN or not re.match(r'[a-zA-Z0-9_]', v):
             raise ValueError(f'Username length should be between 2 and {MAX_USERNAME_LEN}.')
         return v
-
-
-class SignUpInput(LoginInput):
-    email: pydantic.EmailStr
 
 
 @api_v1_noauth.method(errors=[EmptyValue])
@@ -67,9 +79,9 @@ def login(
         raise EmptyValue
     else:
         access_token, refresh_token = user_service.login(
-            username=data.username, password=data.password.get_secret_value()
+            email=data.email, password=data.password.get_secret_value()
         )
         return {'access_token': access_token, 'refresh_token': refresh_token}
 
 
-app.bind_entrypoint(api_v1_noauth)
+jsonrpc_app.bind_entrypoint(api_v1_noauth)
