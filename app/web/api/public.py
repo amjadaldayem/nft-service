@@ -59,9 +59,9 @@ def sign_up(
 
 @api_v1_noauth.method(errors=[EmptyValue])
 def login(
-        data: LoginInput = Body(..., example="""
-         'data': {'username': 'doe', 'password': '*****'}
-        """),
+        data: LoginInput = Body(..., example={
+            'username': 'doe', 'password': '*****'
+        }),
 ) -> Dict[str, str]:
     if not data:
         raise EmptyValue

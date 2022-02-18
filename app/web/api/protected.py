@@ -1,3 +1,4 @@
+import orjson
 from fastapi import (
     Body,
     Depends
@@ -23,7 +24,7 @@ def echo(
     if not data:
         raise ValueError("Empty data")
     else:
-        return f"From authenticated user {user.user_id} : {data}"
+        return f"From authenticated user : {data} {orjson.dumps(user)}"
 
 
 @api_v1_auth.method(errors=[EmptyValue])
