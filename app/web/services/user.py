@@ -4,11 +4,11 @@ import uuid
 from typing import Optional
 
 import orjson
-import pybase64 as base64
 from jose import jwt, jwk
 from jose.utils import base64url_decode
 
 from app.models.user import User, UserRepository
+from app.web.api.exceptions import AuthenticationError
 
 
 class PublicKeyNotFound(Exception):
@@ -72,13 +72,14 @@ class UserService:
             )
         except Exception as e:
             raise ErrorCreatingUserInPool(data={'details': str(e)})
-        # User Id is the Sub from Cognito
-        for item in user_data['User']['Attributes']:
-            if item['Name'] == 'sub':
-                user_id = item['Value']
-                break
         else:
-            raise UnknownError(data={'details': 'Idp does not return value sub.'})
+            # User Id is the Sub from Cognito
+            for item in user_data['User']['Attributes']:
+                if item['Name'] == 'sub':
+                    user_id = item['Value']
+                    break
+            else:
+                raise UnknownError(data={'details': 'Idp does not return value sub.'})
         try:
             self.cognito_client.admin_set_user_password(
                 UserPoolId=self.user_pool_id,
@@ -86,6 +87,11 @@ class UserService:
                 Permanent=True,
                 Password=password
             )
+        except Exception as e:
+            self.cognito_delete_user(user_id)
+            raise ErrorCreatingUserInPool()
+
+        try:
             user = User(
                 user_id=user_id,
                 username=username,
@@ -95,11 +101,11 @@ class UserService:
             )
             self.user_repository.save_user_profile(user)
         except Exception as e:
-            self.delete_user_from_pool(username)
+            self.cognito_delete_user(user_id)
             raise ErrorCreatingUser(data={'details': str(e)})
         return user
 
-    def delete_user_from_pool(self, username):
+    def cognito_delete_user(self, username):
         """
         Only deletes the user from the Cognito pool.
 
@@ -121,18 +127,24 @@ class UserService:
             )
 
     def login(self, username, password):
-        resp = self.cognito_client.initiate_auth(
-            AuthFlow='USER_PASSWORD_AUTH',
-            ClientId=self.user_pool_client_id,
-            AuthParameters={
-                'USERNAME': username,
-                'PASSWORD': password
-            }
-        )
-        result = resp['AuthenticationResult']
-        access_token = result['AccessToken']
-        refresh_token = result['RefreshToken']
-        return access_token, refresh_token
+        try:
+            resp = self.cognito_client.admin_initiate_auth(
+                UserPoolId=self.user_pool_id,
+                ClientId=self.user_pool_client_id,
+                AuthFlow='USER_PASSWORD_AUTH',
+                AuthParameters={
+                    'USERNAME': username,
+                    'PASSWORD': password
+                }
+            )
+            result = resp['AuthenticationResult']
+            access_token = result['AccessToken']
+            refresh_token = result['RefreshToken']
+            return access_token, refresh_token
+        except Exception as e:
+            raise AuthenticationError(
+                data={'details': str(e)}
+            )
 
     def get_user(self, user_id) -> Optional[User]:
         """
@@ -183,7 +195,7 @@ class UserService:
             }
         """
         if not verify:
-            return orjson.loads(base64.urlsafe_b64decode(str(token).split('.')[1]))
+            return orjson.loads(base64url_decode(str(token).split('.')[1]))
         # get the kid from the headers prior to verification
         headers = jwt.get_unverified_headers(token)
         kid = headers['kid']

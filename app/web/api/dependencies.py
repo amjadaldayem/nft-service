@@ -14,7 +14,7 @@ def get_auth_user(
         user_data = services.user_service.extract_token(
             authorization,
             orjson.loads(os.environ['COGNITO_PUBLIC_KEYS']),
-            os.environ.get('VERIFY_TOKEN', False)
+            int(os.environ.get('VERIFY_TOKEN', '0'))
         )
     except Exception as e:
         raise AuthenticationError(data={'details': str(e)})
