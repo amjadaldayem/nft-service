@@ -208,10 +208,13 @@ class UserService:
               "email": "anaya@example.com"
             }
         """
+        logger.info("**** " + token)
         if not verify:
             data = str(token).split('.')[1]
             decoded = base64url_decode(data.encode('utf8'))
             return orjson.loads(decoded)
+
+        logger.info("++++ " + token)
         # get the kid from the headers prior to verification
         headers = jwt.get_unverified_headers(token)
         kid = headers['kid']
