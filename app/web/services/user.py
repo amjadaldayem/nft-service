@@ -210,10 +210,7 @@ class UserService:
         """
         if not verify:
             data = str(token).split('.')[1]
-            logger.info("Token: %s", str(token))
-            logger.info("Splitted %s", data)
-            decoded = base64url_decode(data)
-            logger.info("Decoded: %s", decoded)
+            decoded = base64url_decode(data.encode('utf8'))
             return orjson.loads(decoded)
         # get the kid from the headers prior to verification
         headers = jwt.get_unverified_headers(token)
