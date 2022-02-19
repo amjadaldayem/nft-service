@@ -63,11 +63,11 @@ class UserService:
             dynamodb_resource
         )
 
-    def sign_up(self, email, username, password) -> User:
+    def sign_up(self, email, nickname, password) -> User:
         if self.user_repository.get_user(email=email):
-            raise DuplicateEmail(data={'details': f"Email {email} already exists."})
-        if self.user_repository.get_user(nickname=username):
-            raise DuplicateUsername(data={'details': f"User name {username} already exists."})
+            raise DuplicateEmail(data={'details': f"Email '{email}' already exists."})
+        if self.user_repository.get_user(nickname=nickname):
+            raise DuplicateUsername(data={'details': f"The nickname '{nickname}' already exists."})
 
         try:
             user_data = self.cognito_client.admin_create_user(
@@ -108,7 +108,7 @@ class UserService:
                 username=email,  # This field is used for deduping only
                 preferred_username=email,
                 email=email,
-                nickname=username,
+                nickname=nickname,
                 joined_on=datetime.datetime.now()
             )
             self.user_repository.save_user_profile(user)
@@ -117,12 +117,12 @@ class UserService:
             raise ErrorCreatingUser(data={'details': str(e)})
         return user
 
-    def cognito_delete_user(self, username):
+    def cognito_delete_user(self, user_id):
         """
         Only deletes the user from the Cognito pool.
 
         Args:
-            username:
+            user_id: The `sub` (user_id)
 
         Returns:
 
@@ -130,11 +130,11 @@ class UserService:
         try:
             self.cognito_client.admin_delete_user(
                 UserPoolId=self.user_pool_id,
-                Username=username
+                Username=user_id
             )
         except Exception as e:
             raise ErrorDeletingUserFromPool(
-                data={'details': f'Error deleting user username={username}. {str(e)}'}
+                data={'details': f'Error deleting user username={user_id}. {str(e)}'}
             )
 
     def login(self, email, password):

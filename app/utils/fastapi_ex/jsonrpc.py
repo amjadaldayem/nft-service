@@ -13,6 +13,7 @@ from typing import List, Union, Any, Callable, Type, Optional, Dict, Sequence, A
 
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_oauth2_redirect_html, get_swagger_ui_html
 from fastapi.responses import ORJSONResponse
+from humps import camelize
 from pydantic import DictError  # noqa
 from pydantic import StrictStr, ValidationError
 from pydantic import BaseModel, BaseConfig
@@ -1293,7 +1294,7 @@ class Entrypoint(APIRouter):
         name: str = None,
         **kwargs,
     ) -> None:
-        name = name or func.__name__
+        name = name or camelize(func.__name__)
         route = self.method_route_class(
             self,
             self.entrypoint_route.path + '/' + name,

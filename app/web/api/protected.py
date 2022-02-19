@@ -24,7 +24,7 @@ def echo(
     if not data:
         raise ValueError("Empty data")
     else:
-        return f"From authenticated user : {data} {orjson.dumps(user)}"
+        return f"From authenticated user : {data} {user.json()}"
 
 
 @api_v1_auth.method(errors=[EmptyValue])

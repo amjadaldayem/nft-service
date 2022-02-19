@@ -113,8 +113,8 @@ def assert_events_for(test_case, market_id, generate_expected=False):
         with open(os.path.join(market_id_dir_map[market_id],
                                'txns-expected.json'), 'rb') as fd:
             test_case.assertEqual(
-                orjson.dumps(results, option=orjson.OPT_INDENT_2),
-                fd.read()
+                results,
+                orjson.loads(fd.read())
             )
 
 

@@ -121,7 +121,7 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
             services.user_service.user_repository,
             resource=cls.dynamodb_resource
         )
-        cls.foo_username = 'foo'
+        cls.foo_nickname = 'foo'
         cls.foo_email = 'foo@example.com'
         cls.foo_password = 'abc123'
 
@@ -131,7 +131,7 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
 
         cls.user = services.user_service.sign_up(
             email=cls.foo_email,
-            username=cls.foo_username,
+            nickname=cls.foo_nickname,
             password=cls.foo_password
         )
 
@@ -164,7 +164,7 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
 
     def test_get_revision(self):
         result, error = self.rpc(
-            method='get_revision',
+            method='getRevision',
             params={}
         )
         self.assertIsNone(error)
@@ -191,31 +191,32 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
 
     def test_sign_up(self):
         result, error = self.rpc(
-            method='sign_up',
+            method='signUp',
             params={
                 'data': {
                     'email': self.bar_email,
-                    'username': self.bar_username,
+                    'nickname': self.bar_username,
                     'password': self.bar_password
                 }
             }
         )
         self.assertIsNone(error)
-        user_id = result['user_id']
+        user_id = result['userId']
         readback = services.user_service.get_user(user_id)
-        result['joined_on'] = datetime.datetime.fromisoformat(result['joined_on'])
+        result['joinedOn'] = datetime.datetime.fromisoformat(result['joinedOn'])
+
         self.assertEqual(
-            readback,
-            User(**result)
+            readback.dict(by_alias=True),
+            result
         )
 
     def test_sign_up_bad_username(self):
         result, error = self.rpc(
-            method='sign_up',
+            method='signUp',
             params={
                 'data': {
                     'email': "a@a.com",
-                    'username': "1",
+                    'nickname': "1",
                     'password': "abc12345"
                 }
             }
@@ -223,11 +224,11 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
         self.assertIsNotNone(error)
         self.assertEqual(error['code'], -32602)
         result, error = self.rpc(
-            method='sign_up',
+            method='signUp',
             params={
                 'data': {
                     'email': "a@a.com",
-                    'username': "a" * 99,
+                    'nickname': "a" * 99,
                     'password': "abc12345"
                 }
             }
@@ -237,11 +238,11 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
 
     def test_sign_up_bad_email(self):
         result, error = self.rpc(
-            method='sign_up',
+            method='signUp',
             params={
                 'data': {
                     'email': "not-valid-email",
-                    'username': "qfasdfdF",
+                    'nickname': "qfasdfdF",
                     'password': "abc12345"
                 }
             }
@@ -251,11 +252,11 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
 
     def test_sign_up_with_dupe_email(self):
         result, error = self.rpc(
-            method='sign_up',
+            method='signUp',
             params={
                 'data': {
                     'email': self.foo_email,
-                    'username': str(uuid.uuid4()),
+                    'nickname': str(uuid.uuid4()),
                     'password': "abc12345"
                 }
             }
@@ -265,11 +266,11 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
 
     def test_sign_up_with_dupe_username(self):
         result, error = self.rpc(
-            method='sign_up',
+            method='signUp',
             params={
                 'data': {
                     'email': str(uuid.uuid4()) + "@example.com",
-                    'username': self.foo_username,
+                    'nickname': self.foo_nickname,
                     'password': "abc12345"
                 }
             }
@@ -288,16 +289,20 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
             },
         )
         self.assertIsNone(error)
-        auth = result['access_token']
+        auth = result['accessToken']
         result, error = self._rpc(
-            method='get_user_data',
+            method='getUserData',
             params={},
             authorization=auth
         )
         self.assertIsNone(error)
         self.assertEqual(
             result['nickname'],
-            self.foo_username
+            self.foo_nickname
+        )
+        self.assertEqual(
+            result['email'],
+            self.foo_email
         )
 
     def test_get_user_data(self):
@@ -305,12 +310,12 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
             self.foo_email, self.foo_password
         )
         result, error = self._rpc(
-            method='get_user_data',
+            method='getUserData',
             params={},
             authorization=auth
         )
         self.assertIsNone(error)
         self.assertEqual(
             result['nickname'],
-            self.foo_username
+            self.foo_nickname
         )

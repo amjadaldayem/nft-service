@@ -1,8 +1,6 @@
-import copy
-from typing import Union, FrozenSet, Set, Optional, Dict
-
 import orjson
-from pydantic import dataclasses
+from humps import camelize
+from pydantic import BaseModel
 
 
 def orjson_dumps(v, *, default):
@@ -10,11 +8,11 @@ def orjson_dumps(v, *, default):
     return orjson.dumps(v, default=default).decode()
 
 
-@dataclasses.dataclass
-class DataclassBase:
-    # For performant (de)serialization with Fastapi / Pydantic
+class DataClassBase(BaseModel):
     class Config:
         extra = 'ignore'
         json_loads = orjson.loads
         json_dumps = orjson_dumps
         underscore_attrs_are_private = True
+        allow_population_by_field_name = True
+        alias_generator = camelize

@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 def main():
     pass
 
+
 main.add_command(toolkit)
 main.add_command(indexer)
 

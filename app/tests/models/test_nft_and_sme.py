@@ -40,8 +40,8 @@ class SMESaveTestCase(unittest.TestCase):
             for (p1, p2) in data:
                 ret.append(
                     (
-                        dacite.from_dict(data_class=SecondaryMarketEvent, data=p1),
-                        dacite.from_dict(data_class=NftData, data=p2)
+                        SecondaryMarketEvent(**p1),
+                        NftData(**p2)
                     )
                 )
         return ret

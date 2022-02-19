@@ -22,26 +22,26 @@ from app.models import meta
 from app.models.dynamo import DynamoDBRepositoryBase
 from app.settings import SME_AGGREGATION_WINDOW
 from app.utils import full_stacktrace
-from .shared import DataclassBase
+from .shared import DataClassBase
 
 logger = logging.getLogger(__name__)
 
 
-@dataclasses.dataclass
-class MediaFile(DataclassBase):
+# @dataclasses.dataclass(config=DataClassConfig)
+class MediaFile(DataClassBase):
     uri: str
     file_type: str = ''
 
 
-@dataclasses.dataclass
-class NftCreator(DataclassBase):
+# @dataclasses.dataclass(config=DataClassConfig)
+class NftCreator(DataClassBase):
     address: str
     verified: bool = False
     share: int = 0
 
 
-@dataclasses.dataclass
-class NftData(DataclassBase):
+# @dataclasses.dataclass(config=DataClassConfig)
+class NftData(DataClassBase):
     blockchain_id: int
     token_address: str
     collection_key: str  # Unique address or something that identifies this collection scoped to that chain
@@ -93,8 +93,8 @@ class NftData(DataclassBase):
         return self.files[0].uri
 
 
-@dataclasses.dataclass
-class SecondaryMarketEvent(DataclassBase):
+# @dataclasses.dataclass(config=DataClassConfig)
+class SecondaryMarketEvent(DataClassBase):
     blockchain_id: int  # The Index for the blockchain
     market_id: int  # The secondary market ID, e.g. SOLANA_MAGIC_EDEN
     timestamp: int  # Approx. unix timestamp (seconds since epoch)

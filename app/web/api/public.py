@@ -6,7 +6,7 @@ import pydantic
 from fastapi import (
     Body
 )
-from pydantic import BaseModel, validator
+from pydantic import validator
 
 from app.models.user import MAX_USERNAME_LEN, User
 from app.web.services import user_service
@@ -15,6 +15,7 @@ from .entry import (
     api_v1_noauth
 )
 from ..exceptions import EmptyValue
+from ...models.shared import DataClassBase
 
 
 @api_v1_noauth.method()
@@ -22,7 +23,7 @@ def get_revision() -> str:
     return os.getenv('GITHUB_SHA', 'NONE')
 
 
-class LoginInput(BaseModel):
+class LoginInput(DataClassBase):
     email: pydantic.EmailStr
     password: pydantic.SecretStr
 
@@ -40,16 +41,16 @@ class LoginInput(BaseModel):
 
 
 class SignUpInput(LoginInput):
-    username: str
+    nickname: str
 
-    @validator('username', allow_reuse=True)
+    @validator('nickname', allow_reuse=True)
     def regex_validator(cls, v):
         if len(v) < 2 or len(v) > MAX_USERNAME_LEN or not re.match(r'[a-zA-Z0-9_]', v):
-            raise ValueError(f'Username length should be between 2 and {MAX_USERNAME_LEN}.')
+            raise ValueError(f'Nickname length should be between 2 and {MAX_USERNAME_LEN}.')
         return v
 
 
-@api_v1_noauth.method(errors=[EmptyValue])
+@api_v1_noauth.method(errors=[EmptyValue], response_model_by_alias=True)
 def sign_up(
         data: SignUpInput = Body(
             ...,
@@ -63,7 +64,7 @@ def sign_up(
     else:
         user = user_service.sign_up(
             data.email,
-            data.username,
+            data.nickname,
             data.password.get_secret_value()
         )
         return user
@@ -72,7 +73,7 @@ def sign_up(
 @api_v1_noauth.method(errors=[EmptyValue])
 def login(
         data: LoginInput = Body(..., example={
-            'username': 'doe', 'password': '*****'
+            'username': 'doe@example.com', 'password': '*****'
         }),
 ) -> Dict[str, str]:
     if not data:
@@ -81,7 +82,7 @@ def login(
         access_token, refresh_token = user_service.login(
             email=data.email, password=data.password.get_secret_value()
         )
-        return {'access_token': access_token, 'refresh_token': refresh_token}
+        return {'accessToken': access_token, 'refreshToken': refresh_token}
 
 
 jsonrpc_app.bind_entrypoint(api_v1_noauth)

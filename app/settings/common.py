@@ -43,6 +43,3 @@ SME_AGGREGATION_WINDOW = int(os.getenv('SME_AGGREGATION_WINDOW', '5'))
 # delay when fetching SMEs. However this can be overridden per user
 # case.
 SME_FETCH_DEFAULT_LAG = int(os.getenv('SME_FETCH_DEFAULT_LAG', '300'))
-
-
-
