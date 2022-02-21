@@ -124,6 +124,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
             max_retries -= 1
 
     succeeded_items_to_commit = []
+    logger.info("**** Got SME ID list: %s", len(sme_list))
     if sme_list:
         # Metadata is Solana specific, can be None if fetching failed
         client = CustomClient(
@@ -151,6 +152,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 else:
                     raise
     if succeeded_items_to_commit:
+        logger.info("**** Number of items retrieved: %s", len(succeeded_items_to_commit))
         dynamodb_resource = boto3.resource('dynamodb')
         sme_repository = SMERepository(
             dynamodb_resource

@@ -9,10 +9,8 @@ def initialize():
     from app import settings
     from app.utils import setup_logging
     setup_logging(settings.DEBUG)
-    integrations = []
     sentry_sdk.init(
         dsn=settings.SENTRY_IO_DSN,
-        integrations=integrations,
         traces_sample_rate=settings.SENTRY_IO_TRACE_SAMPLERATE,
         debug=settings.SENTRY_IO_DEBUG,
         with_locals=settings.SENTRY_IO_WITH_LOCALS,
