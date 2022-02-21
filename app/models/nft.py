@@ -70,8 +70,8 @@ class NftData(DataClassBase):
                 collection_name, _ = name.rsplit('#', 10)
             except:
                 collection_name = name
-
-        return collection_name.strip()
+        collection_name = collection_name.strip()
+        return collection_name if collection_name else "Unknown"
 
     @property
     def nft_id(self):
