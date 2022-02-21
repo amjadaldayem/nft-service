@@ -155,20 +155,6 @@ class SecondaryMarketEvent(DataClassBase):
         """
         return f"et#{self.event_type}#{self.timestamp}"
 
-    @property
-    def eblt(self) -> Optional[str]:
-        """
-        Event Buy & Listing
-
-        Returns:
-             eblt#<timestamp>
-        """
-        return (
-            f"eblt#{self.timestamp}"
-            if self.event_type == SECONDARY_MARKET_EVENT_LISTING
-               or self.event_type == SECONDARY_MARKET_EVENT_SALE else ""
-        )
-
 
 class NFTRepository(DynamoDBRepositoryBase, meta.DTNftMeta):
 
@@ -403,7 +389,6 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
             cls.SK: sme.btt,
             cls.GSI_SME_SME_ID_PK: sme.sme_id,
             cls.LSI_SME_ET_SK: sme.et,
-            cls.LSI_SME_EBLT_SK: sme.eblt,
         }
         # Shallow copy here
         d.update(copy.copy(sme.__dict__))

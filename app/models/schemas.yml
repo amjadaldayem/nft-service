@@ -20,11 +20,6 @@
 #            lsi_sort_key
 #            et = et#<event_type>#<timestamp>  (filter by single event)
 #
-#        - Lsi: Event Buy & Listing
-#
-#            lsi_sort_key
-#            eblt = eblt#<timestamp>
-#                (filter by buy and listing only, optimized common case)
 #    - Gsi: Transaction Events
 #
 #        gsi_pk = sme_id
@@ -83,10 +78,6 @@ sme:
       sk:
         name: et
         value: e.et
-    - name: sme_lsi_eblt
-      sk:
-        name: eblt
-        value: e.eblt
   gsi:
     - name: sme_gsi_sme_id
       pk:

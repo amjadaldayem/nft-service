@@ -32,9 +32,9 @@ class DTSmeMeta:
     
     GSI_SME_COLLECTION_EVENTS_SK = 'timestamp'  # e.timestamp
     
-    LSI_SME_NFT_NAME = 'sme_lsi_nft_name'  # 
+    LSI_SME_COLLECTION_NAME = 'sme_lsi_collection_name'  # 
     
-    LSI_SME_NFT_NAME_SK = 'name'  # n.name
+    LSI_SME_COLLECTION_NAME_SK = 'collection_name'  # n.collection_name
     
     LSI_SME_TIMESTAMP = 'sme_lsi_timestamp'  # 
     
@@ -43,10 +43,6 @@ class DTSmeMeta:
     LSI_SME_ET = 'sme_lsi_et'  # 
     
     LSI_SME_ET_SK = 'et'  # e.et
-    
-    LSI_SME_EBLT = 'sme_lsi_eblt'  # 
-    
-    LSI_SME_EBLT_SK = 'eblt'  # e.eblt
     
 
 class DTNftMeta:
