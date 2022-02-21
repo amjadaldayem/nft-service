@@ -1,14 +1,15 @@
 import copy
 import logging
+import time
 from datetime import datetime
 from typing import (
     List,
-    Optional
+    Optional, Union, FrozenSet, Set, Any
 )
 from typing import Tuple
 
 import pylru
-from boto3.dynamodb.conditions import Attr
+from boto3.dynamodb.conditions import Attr, Key
 from pydantic import dataclasses
 
 from app.blockchains import (
@@ -27,20 +28,17 @@ from .shared import DataClassBase
 logger = logging.getLogger(__name__)
 
 
-# @dataclasses.dataclass(config=DataClassConfig)
 class MediaFile(DataClassBase):
     uri: str
     file_type: str = ''
 
 
-# @dataclasses.dataclass(config=DataClassConfig)
 class NftCreator(DataClassBase):
     address: str
     verified: bool = False
     share: int = 0
 
 
-# @dataclasses.dataclass(config=DataClassConfig)
 class NftData(DataClassBase):
     blockchain_id: int
     token_address: str
@@ -93,7 +91,6 @@ class NftData(DataClassBase):
         return self.files[0].uri
 
 
-# @dataclasses.dataclass(config=DataClassConfig)
 class SecondaryMarketEvent(DataClassBase):
     blockchain_id: int  # The Index for the blockchain
     market_id: int  # The secondary market ID, e.g. SOLANA_MAGIC_EDEN
@@ -104,7 +101,27 @@ class SecondaryMarketEvent(DataClassBase):
     owner: str = EMPTY_PUBLIC_KEY  # Account that owns this piece, who liste / sells this.
     buyer: str = EMPTY_PUBLIC_KEY
     transaction_hash: str = EMPTY_TRANSACTION_HASH
-    data: Optional[dict] = None  # Extra information
+    data: Optional[Any] = None  # Extra information
+
+    @staticmethod
+    def get_time_window_key(timestamp):
+        """
+        Generates the time window key used as PK in sme table.
+
+        Args:
+            timestamp:
+
+        Returns:
+
+        """
+        try:
+            # By default, on server this should be in UTC always.
+            dt = datetime.fromtimestamp(timestamp)
+            minute_marker = dt.minute % SME_AGGREGATION_WINDOW
+            s = dt.strftime('%Y-%m-%d-%H-')
+            return f"w#{s}{minute_marker:02d}"
+        except:
+            return 'unknown'
 
     @property
     def sme_id(self):
@@ -117,14 +134,7 @@ class SecondaryMarketEvent(DataClassBase):
         Returns:
             w#<date-hour-5min_window>
         """
-
-        try:
-            dt = datetime.fromtimestamp(self.timestamp)
-            minute_marker = dt.minute % SME_AGGREGATION_WINDOW
-            s = dt.strftime('%Y-%m-%d-%H-')
-            return f"w#{s}{minute_marker:02d}"
-        except:
-            return 'unknown'
+        return self.get_time_window_key(self.timestamp)
 
     @property
     def btt(self) -> str:
@@ -156,7 +166,7 @@ class SecondaryMarketEvent(DataClassBase):
         return (
             f"eblt#{self.timestamp}"
             if self.event_type == SECONDARY_MARKET_EVENT_LISTING
-            or self.event_type == SECONDARY_MARKET_EVENT_SALE else None
+               or self.event_type == SECONDARY_MARKET_EVENT_SALE else None
         )
 
 
@@ -265,6 +275,7 @@ class NFTRepository(DynamoDBRepositoryBase, meta.DTNftMeta):
             cls.GSI_NFT_COLLECTION_NFTS_PK: nft_data.collection_id,
             'nft_id': nft_data.nft_id,
             'media_url': nft_data.media_url,
+            'collection_name': nft_data.collection_name,
         }
         if field_as_pk:
             ret[cls.PK] = getattr(nft_data, field_as_pk)
@@ -336,6 +347,54 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
                     logger.error(str(e) + "\n" + full_stacktrace())
 
         return c, failed
+
+    def get_smes(self,
+                 before: int = 0,
+                 until: int = 0,
+                 blockchain_ids: Union[FrozenSet[int], Set[int]] = frozenset(),
+                 event_types: Union[FrozenSet[int], Set[int]] = frozenset(),
+                 collection_ids: Union[FrozenSet[str], Set[str]] = frozenset(),
+                 limit: int = 50) -> Tuple[List[SecondaryMarketEvent], Optional[Tuple[str, str]]]:
+        """
+
+        Args:
+            before: Timestamp (UTC). If 0 (default), will fetch from the latest.
+            until: Timestamp (UTC). Stop at this timestamp
+            blockchain_ids: Set of blockchains to query. This parameter will be
+                omitted if the secondary_market_ids set is given.
+            event_types: Set of event types to filter
+            collection_ids: Set of collection IDs to filter.
+            limit: Maximum results to return
+
+        Examples:
+
+            for page in nft_service.iter_smes(...):
+                # return the page
+
+
+        Returns:
+
+        """
+        table = self.table
+        # Let's figure out the Pks to cover,
+        items_to_return = 0
+        exclusive_start_key = None
+        before = before or int(time.time() + 0.501)
+
+        while items_to_return < limit:
+            start_pk = SecondaryMarketEvent.get_time_window_key(before)
+            key_cond = Key(self.PK).eq(start_pk) & Key('timestamp').between(
+                until, before
+            )
+            kwargs = {
+                'Select': "ALL_ATTRIBUTES",
+                'ScanIndexForward': False,
+                'KeyConditionExpression': key_cond,
+                'Limit': max((limit - items_to_return) * 2, 16),
+            }
+            if exclusive_start_key:
+                kwargs['ExclusiveStartKey'] = exclusive_start_key
+            resp = table.query(**kwargs)
 
     @classmethod
     def sme_to_dynamo(cls, sme: SecondaryMarketEvent, fields_to_remove=None) -> dict:

@@ -40,6 +40,11 @@ COGNITO_APP_CLIENT_ID = os.getenv('COGNITO_APP_CLIENT_ID')
 # be saved under the same Partition (in DynamoDb).
 SME_AGGREGATION_WINDOW = int(os.getenv('SME_AGGREGATION_WINDOW', '5'))
 # The seconds to deduct from current time to make aritificial
-# delay when fetching SMEs. However this can be overridden per user
+# delay when fetching SMEs. Even client specifies a more recent timestamp to start.
+# However, this can be overridden per user
 # case.
-SME_FETCH_DEFAULT_LAG = int(os.getenv('SME_FETCH_DEFAULT_LAG', '300'))
+SME_FETCH_DEFAULT_LAG = int(os.getenv('SME_FETCH_DEFAULT_LAG', '180'))
+# The maximum historical records to keep in Postgres for quick history query.
+# The event history table will wrap around after reaching this number, essentially
+# making it a FIFO table with fixed number of items.
+SME_MAX_HISTORY_IN_DB = 1000000

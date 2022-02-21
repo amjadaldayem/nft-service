@@ -37,21 +37,27 @@ jobs:
           GITHUB_SHORT_SHA="$(echo ${GITHUB_SHA} | cut -c1-7)"
           echo "::set-output name=github_short_sha::$GITHUB_SHORT_SHA"
 
-      - name: Build API Lambda Image
+      - name: Build API Lambda Image and Normal Image
         id: build-image
         env:
           # Tagging format:
-          #  repo:<env>-<hash|latest>
-          # e.g., dev-latest, dev-17ae13a
-          TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-
+          #  repo:<env>-[lambda|ecs]/<hash|latest>
+          # e.g., dev-lambda latest, dev-17ae13a
+          LAMBDA_TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-lambda-
+          ECS_TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-ecs-
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           GITHUB_SHORT_SHA: ${{ steps.get-github-short-sha.outputs.github_short_sha }}
           KINESIS_PRODUCER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-p-
           KINESIS_CONSUMER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-c-
         run: |
-          IMAGE_TAG_LATEST="${TAG_PREFIX}latest"
-          IMAGE_TAG_HASH="${TAG_PREFIX}${GITHUB_SHORT_SHA}"
-          docker build -f Dockerfile -t $ECR_REPO_URI:$IMAGE_TAG_LATEST -t $ECR_REPO_URI:$IMAGE_TAG_HASH .
+          LAMBDA_IMAGE_TAG_LATEST="${LAMBDA_TAG_PREFIX}latest"
+          LAMBDA_IMAGE_TAG_HASH="${LAMBDA_TAG_PREFIX}${GITHUB_SHORT_SHA}"
+          docker build -f Dockerfile-lambda -t $ECR_REPO_URI:$LAMBDA_IMAGE_TAG_LATEST -t $ECR_REPO_URI:$LAMBDA_IMAGE_TAG_HASH .
+          
+          ECS_IMAGE_TAG_LATEST="${ECS_TAG_PREFIX}latest"
+          ECS_IMAGE_TAG_HASH="${ECS_TAG_PREFIX}${GITHUB_SHORT_SHA}"
+          docker build -f Dockerfile-ecs -t $ECR_REPO_URI:$ECS_IMAGE_TAG_LATEST -t $ECR_REPO_URI:$ECS_IMAGE_TAG_HASH .
+
 
       - name: Login to Amazon ECR and Push All
         id: login-ecr

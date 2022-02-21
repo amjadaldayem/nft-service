@@ -63,10 +63,10 @@ sme:
     min: 1
     max: 20
   lsi:
-    - name: sme_lsi_nft_name
+    - name: sme_lsi_collection_name
       sk:
-        name: name
-        value: n.name
+        name: collection_name
+        value: n.collection_name
       ## If no projection given, it will default to all
       # projection:
       #   keys_only
