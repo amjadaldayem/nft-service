@@ -1,6 +1,7 @@
 # Lambda Handler for consuming the Kinesis data stream
 import asyncio
 import logging
+import os
 from typing import List, Tuple, Optional
 
 import boto3
@@ -22,6 +23,8 @@ from app.utils import notify_error
 from app.utils.streamer import KinesisStreamer, KinesisStreamRecord
 
 logger = logging.getLogger(__name__)
+
+no_raise = os.getenv('CONSUMER_NO_RAISE')
 
 
 async def get_sme(client, transaction_hash: str) -> Tuple[str, bool, Optional[SecondaryMarketEvent]]:
@@ -53,8 +56,10 @@ async def get_sme(client, transaction_hash: str) -> Tuple[str, bool, Optional[Se
         event = pt.event
         return transaction_hash, True, event
     except Exception as e:
-        logger.error(str(e))
-        # logger.error(full_stacktrace())
+        if no_raise:
+            logger.error(str(e))
+        else:
+            raise
         # Non-captured error, but do not retry
         return transaction_hash, True, None
 
@@ -140,8 +145,11 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 )
                 succeeded_items_to_commit.append((event, nft_data))
             except Exception as e:
-                failed_transaction_hashes.append(event.transaction_hash)
-                logger.error(str(e))
+                if no_raise:
+                    logger.error(str(e))
+                    failed_transaction_hashes.append(event.transaction_hash)
+                else:
+                    raise
 
     dynamodb_resource = boto3.resource('dynamodb')
     sme_repository = SMERepository(

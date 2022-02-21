@@ -37,7 +37,7 @@ jobs:
           GITHUB_SHORT_SHA="$(echo ${GITHUB_SHA} | cut -c1-7)"
           echo "::set-output name=github_short_sha::$GITHUB_SHORT_SHA"
 
-      - name: Build API Lambda Image and Normal Image
+      - name: Build API Lambda Image and ECS Image
         id: build-image
         env:
           # Tagging format:
