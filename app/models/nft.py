@@ -166,7 +166,7 @@ class SecondaryMarketEvent(DataClassBase):
         return (
             f"eblt#{self.timestamp}"
             if self.event_type == SECONDARY_MARKET_EVENT_LISTING
-               or self.event_type == SECONDARY_MARKET_EVENT_SALE else None
+               or self.event_type == SECONDARY_MARKET_EVENT_SALE else ""
         )
 
 
