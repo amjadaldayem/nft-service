@@ -150,30 +150,30 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                     failed_transaction_hashes.append(event.transaction_hash)
                 else:
                     raise
+    if succeeded_items_to_commit:
+        dynamodb_resource = boto3.resource('dynamodb')
+        sme_repository = SMERepository(
+            dynamodb_resource
+        )
+        nft_repository = NFTRepository(
+            dynamodb_resource
+        )
+        _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
+        if failed:
+            notify_error(IOError(
+                f"Error saving some items: {sme_repository.NAME}"
+            ), metadata={
+                'details': orjson.dumps(failed).decode('utf8'),
+            })
 
-    dynamodb_resource = boto3.resource('dynamodb')
-    sme_repository = SMERepository(
-        dynamodb_resource
-    )
-    nft_repository = NFTRepository(
-        dynamodb_resource
-    )
-    _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
-    if failed:
-        notify_error(IOError(
-            f"Error saving some items: {sme_repository.NAME}"
-        ), metadata={
-            'details': orjson.dumps(failed).decode('utf8'),
-        })
-
-    _, nft_data_list = zip(*succeeded_items_to_commit)
-    _, failed = nft_repository.save_nfts(nft_data_list)
-    if failed:
-        notify_error(IOError(
-            f"Error saving some items:  {nft_repository.NAME}"
-        ), metadata={
-            'details': orjson.dumps(failed).decode('utf8'),
-        })
+        _, nft_data_list = zip(*succeeded_items_to_commit)
+        _, failed = nft_repository.save_nfts(nft_data_list)
+        if failed:
+            notify_error(IOError(
+                f"Error saving some items:  {nft_repository.NAME}"
+            ), metadata={
+                'details': orjson.dumps(failed).decode('utf8'),
+            })
 
     if failed_transaction_hashes:
         # Pin the failed record from where we want to retry next

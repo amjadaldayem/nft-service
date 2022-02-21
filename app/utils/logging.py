@@ -15,7 +15,8 @@ NOISY_MODULES = (
     "mangum.lifespan",
     "mangum.http",
     "sentry_sdk.errors",
-    "asyncio"
+    "asyncio",
+    "websockets.client"
 )
 
 
