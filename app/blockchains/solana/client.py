@@ -303,7 +303,7 @@ def nft_get_nft_data(metadata: SolanaNFTMetaData, current_owner: str = "") -> Nf
     files = []
     image_uri = more_data.get('image', '')
     if image_uri:
-        files.append(MediaFile(image_uri))
+        files.append(MediaFile(uri=image_uri))
 
     files_raw = more_data.get('properties', {}).get('files')
     if files_raw:
