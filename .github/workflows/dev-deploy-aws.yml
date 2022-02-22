@@ -12,6 +12,8 @@ env:
   AWS_REGION: us-west-2
   ECR_REPO_URI: 391319738221.dkr.ecr.us-west-2.amazonaws.com/nft-service
   DEPLOYMENT_ENV: dev
+  SLACK_CHANNEL_BUILD_FINISH: releases-dev
+  SLACK_WEBHOOK_BUILD_FINISH: https://hooks.slack.com/services/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
 
 jobs:
   deploy:
@@ -57,7 +59,9 @@ jobs:
           ECS_IMAGE_TAG_LATEST="${ECS_TAG_PREFIX}latest"
           ECS_IMAGE_TAG_HASH="${ECS_TAG_PREFIX}${GITHUB_SHORT_SHA}"
           docker build -f Dockerfile-ecs -t $ECR_REPO_URI:$ECS_IMAGE_TAG_LATEST -t $ECR_REPO_URI:$ECS_IMAGE_TAG_HASH .
-
+          
+          echo "::set-output name=ecs-image::$ECS_IMAGE_TAG_HASH"
+          echo "::set-output name=lambda-image::$LAMBDA_IMAGE_TAG_HASH"
 
       - name: Login to Amazon ECR and Push All
         id: login-ecr
@@ -66,3 +70,16 @@ jobs:
         run: |
           aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $ECR_REPO_URI
           docker push --all-tags $ECR_REPO_URI 
+
+      - name: Slack Notify Image Ready
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_CHANNEL: ${{ env.SLACK_CHANNEL_BUILD_FINISH }}
+          SLACK_COLOR: green
+          SLACK_MESSAGE: |
+            :rocket: Image Ready.
+            ECS: ${{steps.build-image.outputs.ECS_IMAGE_TAG_HASH}}
+            Lambda: ${{steps.build-image.outputs.LAMBDA_IMAGE_TAG_HASH}}
+          SLACK_TITLE: Post Title
+          SLACK_USERNAME: rtCamp
+          SLACK_WEBHOOK: ${{ env.SLACK_WEBHOOK_BUILD_FINISH }}

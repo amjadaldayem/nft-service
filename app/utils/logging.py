@@ -1,7 +1,7 @@
 import logging
 import os
 
-from logtail import LogtailHandler
+from .logtail import LogtailHandler
 
 NOISY_MODULES = (
     "botocore",
