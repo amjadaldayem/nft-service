@@ -60,8 +60,8 @@ jobs:
           ECS_IMAGE_TAG_HASH="${ECS_TAG_PREFIX}${GITHUB_SHORT_SHA}"
           docker build -f Dockerfile-ecs -t $ECR_REPO_URI:$ECS_IMAGE_TAG_LATEST -t $ECR_REPO_URI:$ECS_IMAGE_TAG_HASH .
           
-          echo "::set-output name=ecs-image::$ECS_IMAGE_TAG_HASH"
-          echo "::set-output name=lambda-image::$LAMBDA_IMAGE_TAG_HASH"
+          echo "::set-output name=ecs_image::$ECS_IMAGE_TAG_HASH"
+          echo "::set-output name=lambda_image::$LAMBDA_IMAGE_TAG_HASH"
 
       - name: Login to Amazon ECR and Push All
         id: login-ecr
@@ -78,8 +78,8 @@ jobs:
           SLACK_COLOR: green
           SLACK_MESSAGE: |
             :rocket: Image Ready.
-            ECS: ${{steps.build-image.outputs.ECS_IMAGE_TAG_HASH}}
-            Lambda: ${{steps.build-image.outputs.LAMBDA_IMAGE_TAG_HASH}}
-          SLACK_TITLE: Post Title
-          SLACK_USERNAME: rtCamp
+            ECS Image Tag: ${{steps.build-image.outputs.ecs_image}}
+            Lambda Image Tag: ${{steps.build-image.outputs.lambda_image}}
+          SLACK_TITLE: Images Ready
+          SLACK_USERNAME: Github Actions
           SLACK_WEBHOOK: ${{ env.SLACK_WEBHOOK_BUILD_FINISH }}
