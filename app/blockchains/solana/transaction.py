@@ -9,7 +9,7 @@ from app.blockchains import (
     SOLANA_ALPHA_ART,
     SOLANA_DIGITAL_EYES,
     SOLANA_SOLANART, SOLANA_SOLSEA, BLOCKCHAIN_SOLANA, SECONDARY_MARKET_EVENT_LISTING, SECONDARY_MARKET_EVENT_DELISTING,
-    SECONDARY_MARKET_EVENT_SALE, SECONDARY_MARKET_EVENT_PRICE_UPDATE, EMPTY_PUBLIC_KEY,
+    SECONDARY_MARKET_EVENT_SALE, SECONDARY_MARKET_EVENT_PRICE_UPDATE, EMPTY_PUBLIC_KEY, SECONDARY_MARKET_EVENT_UNKNOWN,
 )
 from app.blockchains.solana import (
     MARKET_PROGRAM_ID_MAP,
@@ -344,7 +344,7 @@ class ParsedTransaction:
         if not matched_pi:
             return None
 
-        event_type = None
+        event_type = SECONDARY_MARKET_EVENT_UNKNOWN
         data = None
         token_key = None
         owner = EMPTY_PUBLIC_KEY  # Not use this as default value instead of None
@@ -399,7 +399,7 @@ class ParsedTransaction:
             data=data,
             timestamp=self.block_time,
             transaction_hash=self.signature
-        ) if event_type else None
+        ) if event_type and token_key   else None
 
     def _parse_solsea(self, solsea_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """

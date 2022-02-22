@@ -15,9 +15,7 @@ from pydantic import dataclasses
 from app.blockchains import (
     SECONDARY_MARKET_EVENT_UNKNOWN,
     EMPTY_PUBLIC_KEY,
-    EMPTY_TRANSACTION_HASH,
-    SECONDARY_MARKET_EVENT_LISTING,
-    SECONDARY_MARKET_EVENT_SALE
+    EMPTY_TRANSACTION_HASH
 )
 from app.models import meta
 from app.models.dynamo import DynamoDBRepositoryBase
@@ -26,6 +24,8 @@ from app.utils import full_stacktrace
 from .shared import DataClassBase
 
 logger = logging.getLogger(__name__)
+
+NO_VALUE = '__NO_VALUE__'
 
 
 class MediaFile(DataClassBase):
@@ -71,7 +71,7 @@ class NftData(DataClassBase):
             except:
                 collection_name = name
         collection_name = collection_name.strip()
-        return collection_name if collection_name else "Unknown"
+        return collection_name if collection_name else NO_VALUE
 
     @property
     def nft_id(self):
@@ -88,7 +88,7 @@ class NftData(DataClassBase):
         Returns:
             The 1st URL in the files array.
         """
-        return self.files[0].uri
+        return self.files[0].uri or ''
 
 
 class SecondaryMarketEvent(DataClassBase):

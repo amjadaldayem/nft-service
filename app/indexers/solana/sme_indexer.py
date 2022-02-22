@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import os
+import time
 from typing import List, Tuple, Optional
 
 import boto3
@@ -109,11 +110,12 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         for record in records
     ]
     failed_transaction_hashes = []
+    sme_list = []  # List of Secondary Market Events
     async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT, timeout=60) as client:
         await client.is_connected()
         max_retries = 3
         while max_retries > 0:
-            sme_list, failed_transaction_hashes = await get_smes(
+            sme_list_temp, failed_transaction_hashes = await get_smes(
                 client,
                 transaction_hashes,
                 loop
@@ -122,9 +124,11 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 break
             transaction_hashes = failed_transaction_hashes
             max_retries -= 1
+            time.sleep(1)
+            sme_list.extend(sme_list_temp)
 
     succeeded_items_to_commit = []
-    logger.info("**** Got SME ID list: %s", len(sme_list))
+    logger.info("SME List Len = %s", len(sme_list))
     if sme_list:
         # Metadata is Solana specific, can be None if fetching failed
         client = CustomClient(
@@ -152,7 +156,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 else:
                     raise
     if succeeded_items_to_commit:
-        logger.info("**** Number of items retrieved: %s", len(succeeded_items_to_commit))
+        logger.info("Succeeded Items To Commit = %s", len(succeeded_items_to_commit))
         dynamodb_resource = boto3.resource('dynamodb')
         sme_repository = SMERepository(
             dynamodb_resource
