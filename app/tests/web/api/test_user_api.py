@@ -1,17 +1,11 @@
 import datetime
 import functools
-import unittest
 import uuid
-from typing import Union
 
-import boto3
-import orjson
-import requests
+from boto3.dynamodb.conditions import Key
 from starlette.testclient import TestClient
 
-from app.models import User
-from app.tests.mixins import BasePatcherMixin, JsonRpcTestMixin
-from app.tests.shared import create_tables
+from app.tests.mixins import JsonRpcTestMixin, BaseTestCase
 from app.web import services
 from app.web.api import app
 from app.web.exceptions import (
@@ -21,126 +15,33 @@ from app.web.exceptions import (
 )
 
 
-class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
-
-    @classmethod
-    def cognito_get_public_keys(cls, user_pool_id, region):
-        url = f"https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json"
-        resp = requests.get(url)
-        return resp.json()['keys']
-
-    @classmethod
-    def cognito_create_user_pool_and_client(cls, cognito_client) -> Union[str, str]:
-        user_pool_creation_args = {
-            'Policies': {
-                'PasswordPolicy': {
-                    'MinimumLength': 6,
-                    'RequireNumbers': True
-                }
-            },
-            'PoolName': 'test-user-pool',
-            'AdminCreateUserConfig': {
-                'AllowAdminCreateUserOnly': True
-            },
-            'AutoVerifiedAttributes': [
-                'email',
-            ],
-            'AliasAttributes': [
-                'phone_number',
-                'email',
-                'preferred_username'
-            ],
-            'Schema': [
-                {
-                    'Name': 'email',
-                    'Required': True,
-                    'Mutable': True,
-                    'AttributeDataType': 'String'
-                },
-                {
-                    'Name': 'preferred_username',
-                    'Required': True,
-                    'Mutable': True,
-                    'AttributeDataType': 'String'
-                },
-                {
-                    'Name': 'phone_number',
-                    'Required': False,
-                    'Mutable': True,
-                    'AttributeDataType': 'String'
-                },
-                {
-                    'Name': 'joined_on',
-                    'Required': False,
-                    'Mutable': False,
-                    'AttributeDataType': 'DateTime'
-                }
-            ],
-        }
-        user_pool = cognito_client.create_user_pool(
-            **user_pool_creation_args
-        )['UserPool']
-        user_pool_id = user_pool['Id']
-        user_pool_client = cognito_client.create_user_pool_client(
-            UserPoolId=user_pool_id,
-            ClientName='test-user-pool-client',
-        )['UserPoolClient']
-        return user_pool_id, user_pool_client['ClientId']
+class UserAPITestCase(JsonRpcTestMixin, BaseTestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.env_dict = super().start({})
-        cls.env_dict['AWS_DEFAULT_REGION'] = 'us-west-2'
-        cls.cognito_client = boto3.client('cognito-idp')
-        cls.dynamodb_resource = boto3.resource('dynamodb')
-        create_tables(cls.dynamodb_resource.meta.client)
-        cls.user_pool_id, cls.user_pool_client_id = \
-            cls.cognito_create_user_pool_and_client(cls.cognito_client)
-
-        # Update and add env vars
-        cls.env_dict['COGNITO_PUBLIC_KEYS'] = orjson.dumps(
-            cls.cognito_get_public_keys(
-                cls.user_pool_id,
-                cls.env_dict.get('AWS_REGION', 'us-west-2'),
-            )
-        ).decode('utf8')
-        cls.env_dict['COGNITO_APP_CLIENT_ID'] = cls.user_pool_client_id
-        cls.env_dict['VERIFY_TOKEN'] = '1'
-
-        # Creates DynamoDb table
-
-        # Patch the global `user_service` instance
-        cls.patch_object_fields(
-            services.user_service,
-            user_pool_id=cls.user_pool_id,
-            user_pool_client_id=cls.user_pool_client_id,
-            cognito_client=cls.cognito_client,
-            dynamodb_resource=cls.dynamodb_resource
-        )
-        cls.patch_object_fields(
-            services.user_service.user_repository,
-            resource=cls.dynamodb_resource
-        )
-        cls.foo_nickname = 'foo'
-        cls.foo_email = 'foo@example.com'
-        cls.foo_password = 'abc123'
-
-        cls.bar_email = 'bar@example.com'
-        cls.bar_username = 'bar'
-        cls.bar_password = 'abc123456'
-
-        cls.user = services.user_service.sign_up(
-            email=cls.foo_email,
-            nickname=cls.foo_nickname,
-            password=cls.foo_password
-        )
+        super().setUpClass()
 
     @classmethod
     def tearDownClass(cls) -> None:
-        super().stop()
+        super().tearDownClass()
 
     def setUp(self) -> None:
         self.client = TestClient(app)
+        # Data Setup
+        self.foo_nickname = 'foo'
+        self.foo_email = 'foo@example.com'
+        self.foo_password = 'abc123'
+
+        self.bar_email = 'bar@example.com'
+        self.bar_username = 'bar'
+        self.bar_password = 'abc123456'
+
+        self.user = services.user_service.sign_up(
+            email=self.foo_email,
+            nickname=self.foo_nickname,
+            password=self.foo_password
+        )
+
         self.rpc = functools.partial(
             self.jsonrpc,
             self.client,
@@ -151,6 +52,37 @@ class TestUserAPI(JsonRpcTestMixin, BasePatcherMixin, unittest.TestCase):
             self.client,
             path='/v1/_rpc'
         )
+        table = self.dynamodb_resource.Table('user')
+        resp = table.query(
+            KeyConditionExpression=Key('pk').eq(self.user.user_id)
+        )
+        items = resp['Items']
+
+    def tearDown(self) -> None:
+        """
+        Deletes the foo user.
+        Returns:
+
+        """
+        user_id = self.user.user_id
+        self.cognito_client.admin_delete_user(
+            UserPoolId=self.user_pool_id,
+            # Note: this will be `user_id` in real Cognito environment.
+            Username=self.user.username
+        )
+        table = self.dynamodb_resource.Table('user')
+        resp = table.query(
+            KeyConditionExpression=Key('pk').eq(user_id)
+        )
+        items = resp['Items']
+        for item in items:
+            key_map = {
+                'pk': item['pk'],
+                'sk': item['sk']
+            }
+            table.delete_item(
+                Key=key_map
+            )
 
     def test_non_existent_paths(self):
         resp = self.client.get('/123')

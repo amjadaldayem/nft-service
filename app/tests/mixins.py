@@ -1,9 +1,19 @@
 import os
+import unittest
 import uuid
 from typing import Mapping
 from unittest import mock
 
+import boto3
 import moto
+import orjson
+import requests
+
+from app.tests.shared import (
+    create_tables,
+    cognito_create_user_pool_and_client
+)
+from app.web import services
 
 
 class BasePatcherMixin:
@@ -137,3 +147,53 @@ class JsonRpcTestMixin:
         self.assertEqual(resp.status_code, 200)
         json_resp = resp.json()
         return json_resp.get('result'), json_resp.get('error')
+
+
+class BaseTestCase(BasePatcherMixin, unittest.TestCase):
+    """
+    Base test case with cognito user pool and all dynamodb tables setup
+    correctly via the class level setup methods.
+
+    """
+
+    @classmethod
+    def cognito_get_public_keys(cls, user_pool_id, region):
+        url = f"https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json"
+        resp = requests.get(url)
+        return resp.json()['keys']
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.env_dict = super().start({})
+        cls.env_dict['AWS_DEFAULT_REGION'] = 'us-west-2'
+        cls.cognito_client = boto3.client('cognito-idp')
+        cls.dynamodb_resource = boto3.resource('dynamodb')
+        create_tables(cls.dynamodb_resource.meta.client)
+        cls.user_pool_id, cls.user_pool_client_id = \
+            cognito_create_user_pool_and_client(cls.cognito_client)
+        # Update and add env vars
+        cls.env_dict['COGNITO_PUBLIC_KEYS'] = orjson.dumps(
+            cls.cognito_get_public_keys(
+                cls.user_pool_id,
+                cls.env_dict.get('AWS_REGION', 'us-west-2'),
+            )
+        ).decode('utf8')
+        cls.env_dict['COGNITO_APP_CLIENT_ID'] = cls.user_pool_client_id
+        cls.env_dict['VERIFY_TOKEN'] = '1'
+
+        # Patch the global `user_service` instance
+        cls.patch_object_fields(
+            services.user_service,
+            user_pool_id=cls.user_pool_id,
+            user_pool_client_id=cls.user_pool_client_id,
+            cognito_client=cls.cognito_client,
+            dynamodb_resource=cls.dynamodb_resource
+        )
+        cls.patch_object_fields(
+            services.user_service.user_repository,
+            resource=cls.dynamodb_resource
+        )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        super().stop()
