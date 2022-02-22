@@ -117,7 +117,7 @@ class SecondaryMarketEvent(DataClassBase):
         try:
             # By default, on server this should be in UTC always.
             dt = datetime.fromtimestamp(timestamp)
-            minute_marker = dt.minute % SME_AGGREGATION_WINDOW
+            minute_marker = dt.minute // SME_AGGREGATION_WINDOW
             s = dt.strftime('%Y-%m-%d-%H-')
             return f"w#{s}{minute_marker:02d}"
         except:
