@@ -120,12 +120,12 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 transaction_hashes,
                 loop
             )
+            sme_list.extend(sme_list_temp)
             if not failed_transaction_hashes:
                 break
             transaction_hashes = failed_transaction_hashes
             max_retries -= 1
             time.sleep(1)
-            sme_list.extend(sme_list_temp)
 
     succeeded_items_to_commit = []
     logger.info("SME List Len = %s", len(sme_list))

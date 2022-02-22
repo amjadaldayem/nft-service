@@ -30,6 +30,7 @@ def notify_error(e: Union[str, Exception], metadata=None):
     metadata = metadata or {}
     if _fn:
         try:
+            logger.error("%s\n%s", str(e), full_stacktrace())
             _fn(e, metadata)
         except Exception as e:
             logger.fatal(
