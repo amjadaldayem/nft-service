@@ -20,5 +20,6 @@ class CollectionFetchingTestCase(unittest.IsolatedAsyncioTestCase):
         with open("pandas.json", 'wb') as c:
             c.write(orjson.dumps(nft_meta_list, option=orjson.OPT_INDENT_2))
 
+    @unittest.skip(reason="RPC servers timing out at 60 seconds.")
     def test_nft_get_metadata_by_token_key(self):
         print(solana.nft_get_metadata_by_token_key('Hzw9pp9WXDKjZ1mczjqGdVzfkKehUjrBP9d6QeRSs2rA'))

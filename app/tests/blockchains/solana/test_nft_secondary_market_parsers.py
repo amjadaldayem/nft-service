@@ -1,7 +1,8 @@
-import orjson
 import os
 import unittest
 from typing import Tuple
+
+import orjson
 
 from app.blockchains import (
     SOLANA_MAGIC_EDEN,
@@ -15,17 +16,16 @@ from app.blockchains import (
     SECONDARY_MARKET_EVENT_PRICE_UPDATE,
     BLOCKCHAIN_SOLANA,
 )
-from app.models import SecondaryMarketEvent
 from app.blockchains.solana import ParsedTransaction
-
-data_basedir = 'data'
+from app.models import SecondaryMarketEvent
+from app.tests.shared import get_data_path
 
 market_id_dir_map = {
-    SOLANA_MAGIC_EDEN: os.path.join(data_basedir, 'magic_eden'),
-    SOLANA_ALPHA_ART: os.path.join(data_basedir, 'alpha_art'),
-    SOLANA_SOLANART: os.path.join(data_basedir, 'solanart'),
-    SOLANA_DIGITAL_EYES: os.path.join(data_basedir, 'digital_eyes'),
-    SOLANA_SOLSEA: os.path.join(data_basedir, 'solsea'),
+    SOLANA_MAGIC_EDEN: get_data_path('solana', 'transactions', 'magic_eden'),
+    SOLANA_ALPHA_ART: get_data_path('solana', 'transactions', 'alpha_art'),
+    SOLANA_SOLANART: get_data_path('solana', 'transactions', 'solanart'),
+    SOLANA_DIGITAL_EYES: get_data_path('solana', 'transactions', 'digital_eyes'),
+    SOLANA_SOLSEA: get_data_path('solana', 'transactions', 'solsea'),
 }
 
 event_type_dir_map = {

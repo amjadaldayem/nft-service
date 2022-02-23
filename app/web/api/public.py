@@ -1,53 +1,27 @@
 import os
-import re
 from typing import Dict
 
-import pydantic
 from fastapi import (
     Body
 )
-from pydantic import validator
 
-from app.models.user import MAX_USERNAME_LEN, User
+from app.models.user import User
 from app.web.services import user_service
 from .entry import (
     jsonrpc_app,
     api_v1_noauth
 )
+from .params import (
+    LoginInput,
+    SignUpInput,
+    SecondaryMarketEventsInput,
+)
 from ..exceptions import EmptyValue
-from ...models.shared import DataClassBase
 
 
 @api_v1_noauth.method()
 def get_revision() -> str:
     return os.getenv('GITHUB_SHA', 'NONE')
-
-
-class LoginInput(DataClassBase):
-    email: pydantic.EmailStr
-    password: pydantic.SecretStr
-
-    @validator('email')
-    def email_validator(cls, v):
-        """
-        Alawys use lower case for emails.
-        Args:
-            v:
-
-        Returns:
-
-        """
-        return v.lower()
-
-
-class SignUpInput(LoginInput):
-    nickname: str
-
-    @validator('nickname', allow_reuse=True)
-    def regex_validator(cls, v):
-        if len(v) < 2 or len(v) > MAX_USERNAME_LEN or not re.match(r'[a-zA-Z0-9_]', v):
-            raise ValueError(f'Nickname length should be between 2 and {MAX_USERNAME_LEN}.')
-        return v
 
 
 @api_v1_noauth.method(errors=[EmptyValue], response_model_by_alias=True)
@@ -83,6 +57,17 @@ def login(
             email=data.email, password=data.password.get_secret_value()
         )
         return {'accessToken': access_token, 'refreshToken': refresh_token}
+
+
+@api_v1_noauth.method(errors=[EmptyValue])
+def get_secondary_market_events(
+        data: SecondaryMarketEventsInput = Body(
+            ..., example={
+
+            }
+        )
+):
+    ...
 
 
 jsonrpc_app.bind_entrypoint(api_v1_noauth)

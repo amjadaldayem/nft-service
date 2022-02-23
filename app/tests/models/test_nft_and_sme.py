@@ -1,9 +1,7 @@
-import os.path
 import unittest
 from collections import Counter
 
 import boto3
-import dacite
 import moto
 import orjson
 from boto3.dynamodb.conditions import Key, Attr
@@ -15,36 +13,10 @@ from app.models import (
     NftData,
     meta,
 )
-from ..shared import create_tables
-
-data_path = os.path.join(os.path.dirname(__file__), 'data')
+from ..shared import create_tables, get_data_path, load_sme_and_nft_data_list_from_file
 
 
 class SMESaveTestCase(unittest.TestCase):
-
-    @classmethod
-    def load_sme_and_nft_data_list_from_file(cls, blockchain, filename):
-        """
-        Loads a list of (sme, nft_data) pair from a json file.
-        Args:
-            blockchain:
-            filename:
-
-        Returns:
-
-        """
-        p = os.path.join(data_path, blockchain, filename)
-        ret = []
-        with open(p, 'r') as fd:
-            data = orjson.loads(fd.read())
-            for (p1, p2) in data:
-                ret.append(
-                    (
-                        SecondaryMarketEvent(**p1),
-                        NftData(**p2)
-                    )
-                )
-        return ret
 
     def setUp(self) -> None:
         self.mock_dynamo = moto.mock_dynamodb2()
@@ -67,7 +39,7 @@ class SMESaveTestCase(unittest.TestCase):
         self.mock_dynamo.stop()
 
     def test_save_sme_and_nft_events_solana(self):
-        sme_and_nft_data_list = self.load_sme_and_nft_data_list_from_file(
+        sme_and_nft_data_list = load_sme_and_nft_data_list_from_file(
             'solana',
             'sme_nft_01.json'
         )
@@ -79,7 +51,7 @@ class SMESaveTestCase(unittest.TestCase):
         )
 
     def test_save_sme_and_nft_events_solana_dupes(self):
-        sme_and_nft_data_list = self.load_sme_and_nft_data_list_from_file(
+        sme_and_nft_data_list = load_sme_and_nft_data_list_from_file(
             'solana',
             'sme_nft_01.json'
         )
@@ -98,7 +70,7 @@ class SMESaveTestCase(unittest.TestCase):
         self._assert_smes_success(sme_and_nft_data_list, count, failed)
 
     def test_save_nft_data_solana(self):
-        sme_and_nft_data_list = self.load_sme_and_nft_data_list_from_file(
+        sme_and_nft_data_list = load_sme_and_nft_data_list_from_file(
             'solana',
             'sme_nft_01.json'
         )
@@ -108,7 +80,7 @@ class SMESaveTestCase(unittest.TestCase):
         self._assert_nfts_success(nft_data_list, count, failed)
 
     def test_save_nft_data_solana_dupes(self):
-        sme_and_nft_data_list = self.load_sme_and_nft_data_list_from_file(
+        sme_and_nft_data_list = load_sme_and_nft_data_list_from_file(
             'solana',
             'sme_nft_01.json'
         )

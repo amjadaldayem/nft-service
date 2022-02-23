@@ -109,6 +109,8 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         record.data[0]
         for record in records
     ]
+
+    logger.info("Number of Transactions = %s", len(transaction_hashes))
     failed_transaction_hashes = []
     sme_list = []  # List of Secondary Market Events
     async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT, timeout=60) as client:
@@ -128,7 +130,6 @@ async def handle_transactions(records: List[KinesisStreamRecord],
             time.sleep(1)
 
     succeeded_items_to_commit = []
-    logger.info("SME List Len = %s", len(sme_list))
     if sme_list:
         # Metadata is Solana specific, can be None if fetching failed
         client = CustomClient(

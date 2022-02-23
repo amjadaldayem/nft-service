@@ -68,6 +68,14 @@ class DuplicateUsername(jsonrpc.BaseError):
         details: str
 
 
+class ValueOutOfRange(jsonrpc.BaseError):
+    CODE = 5008
+    MESSAGE = 'The value is out of range.'
+
+    class DataModel(BaseModel):
+        details: str
+
+
 class UnknownError(jsonrpc.BaseError):
     CODE = 9000
     MESSAGE = 'Unknown error'
