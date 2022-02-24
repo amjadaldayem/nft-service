@@ -8,8 +8,18 @@ from app.blockchains import (
     SOLANA_MAGIC_EDEN,
     SOLANA_ALPHA_ART,
     SOLANA_DIGITAL_EYES,
-    SOLANA_SOLANART, SOLANA_SOLSEA, BLOCKCHAIN_SOLANA, SECONDARY_MARKET_EVENT_LISTING, SECONDARY_MARKET_EVENT_DELISTING,
-    SECONDARY_MARKET_EVENT_SALE, SECONDARY_MARKET_EVENT_PRICE_UPDATE, EMPTY_PUBLIC_KEY, SECONDARY_MARKET_EVENT_UNKNOWN,
+    SOLANA_SOLANART,
+    SOLANA_SOLSEA,
+    BLOCKCHAIN_SOLANA,
+    SECONDARY_MARKET_EVENT_LISTING,
+    SECONDARY_MARKET_EVENT_DELISTING,
+    SECONDARY_MARKET_EVENT_SALE,
+    SECONDARY_MARKET_EVENT_SALE_AUCTION,
+    SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+    EMPTY_PUBLIC_KEY,
+    SECONDARY_MARKET_EVENT_UNKNOWN,
+    SECONDARY_MARKET_EVENT_BID,
+    SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
 )
 from app.blockchains.solana import (
     MARKET_PROGRAM_ID_MAP,
@@ -159,7 +169,7 @@ class ParsedTransaction:
         # Because usually the token has to be carried by a "Token Account",
         # which is a PDA from the Market Place Authority, so the balance change
         # will have to reflect on that account.
-        event.token_key = self.find_token_address(token_account_to_match)
+        event.token_key, _ = self.find_token_address_and_owner(token_account_to_match)
         return event if event.token_key and (event.owner or event.buyer) else None
 
     def _parse_alpha_art(self, alpha_art_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
@@ -241,18 +251,22 @@ class ParsedTransaction:
         # Because usually the token has to be carried by a "Token Account",
         # which is a PDA from the Market Place Authority, so the balance change
         # will have to reflect on that account.
-        event.token_key = self.find_token_address(token_account_to_match)
+        event.token_key, _ = self.find_token_address_and_owner(token_account_to_match)
         return event
 
     def _parse_solanart(self, solanart_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
         Solnart Program:
          - u8: instruction offset
-            04 - Listing
+            0x00 - create auction
+            0x01 - auction bid
+            0x02 - close auction
+            0x03 - cancel bidding
+            0x04 - Listing
                 - u64: listing price
-            05 - Sale/delisting:
+            0x05 - Sale/delisting:
                 - u64: sales price. If 0, it is delisting
-            06 - Price update
+            0x06 - Price update
                 - u64: updated price
          - u64:
         Args:
@@ -263,27 +277,99 @@ class ParsedTransaction:
 
         """
         matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
-            program_key=solanart_program_key
+            program_key=solanart_program_key,
         )
         if not matched_pi:
             return None
+
+        # For Solanart, Buy now will contain only 1 instruction matching the program
+        # But there is another "winning" an auction, where there will be 2 instructions
+        # and the first one is similar to Buy, while the 2nd one is Close Auction
         owner, buyer = EMPTY_PUBLIC_KEY, EMPTY_PUBLIC_KEY
+        token_key = EMPTY_PUBLIC_KEY
         price = matched_pi.get_int(1)
-        if matched_pi.get_function_offset() == 0x04:
+        offset = matched_pi.get_function_offset()
+        if offset == 0x00 or offset == 0x01:
+            # 0x00 for creating auction (first bid)
+            # 0x01 for next biddings
+            buyer = matched_pi.account_list[0]
+            token_key = matched_pi.account_list[3]
+            event_type = SECONDARY_MARKET_EVENT_BID
+        elif offset == 0x03:
+            # Cancel Bidding
+            event_type = SECONDARY_MARKET_EVENT_CANCEL_BIDDING
+            # Who cancelled it
+            buyer = matched_pi.account_list[0]
+            token_key = matched_pi.account_list[3]
+        elif offset == 0x04:
+            # Listing
             event_type = SECONDARY_MARKET_EVENT_LISTING
             owner = matched_pi.account_list[0]
-        elif matched_pi.get_function_offset() == 0x05:
-            if price:
-                event_type = SECONDARY_MARKET_EVENT_SALE
-                buyer = matched_pi.account_list[0]
-            else:
-                # Price == 0, delisting
+            token_key = matched_pi.account_list[4]
+        elif offset == 0x05:
+            # For Solanart, Auction Buy is done through 2 steps.
+            # The actual data is carried in the second step: Close Auction
+            # Delisting is the same offset as buy, only that the buyer (0) and seller (4)
+            # are the same one.
+            buyer = matched_pi.account_list[0]
+            seller = matched_pi.account_list[3]
+
+            close_auction_pi, close_auction_inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key=solanart_program_key,
+                # Close Auction!
+                offset=0x02
+            )
+
+            if buyer == seller and not close_auction_pi:
+                # De-listing
                 event_type = SECONDARY_MARKET_EVENT_DELISTING
-                owner = matched_pi.account_list[0]
-        elif matched_pi.get_function_offset() == 0x06:
+                price = 0
+                # Figure out the token key from the Token Transfer inner ins
+                ii = ParsedInstruction.from_instruction_dict(
+                    inner_ins_array[0],
+                    self.account_keys
+                )
+                if ii:
+                    token_key, _ = self.find_token_address_and_owner(ii.account_list[1])
+                    # Sets the owner and unsets the buyer
+                    owner = matched_pi.account_list[0]
+                    buyer = EMPTY_PUBLIC_KEY
+            else:
+                if close_auction_pi:
+                    # Auction Buy, price is from the 2nd instruction
+                    event_type = SECONDARY_MARKET_EVENT_SALE_AUCTION
+                    price = close_auction_pi.get_int(1)
+                    for ins_dict in close_auction_inner_ins_array:
+                        ii = ParsedInstruction.from_instruction_dict(
+                            ins_dict,
+                            self.account_keys
+                        )
+                        if (ii.is_token_program_instruction
+                                and ii.get_function_offset() == 0x03):
+                            # Tries to find the token address from the eventual owner
+                            token_key, buyer = self.find_token_address_and_owner(ii.account_list[1])
+                            break
+                else:
+                    # Buy Now
+                    event_type = SECONDARY_MARKET_EVENT_SALE
+                    buyer = matched_pi.account_list[0]
+                    token_key = matched_pi.account_list[3]
+                    for ins_dict in inner_ins_array:
+                        ii = ParsedInstruction.from_instruction_dict(
+                            ins_dict,
+                            self.account_keys
+                        )
+                        if (ii.is_token_program_instruction
+                                and ii.get_function_offset() == 0x03):
+                            # Tries to find the token address from the eventual owner
+                            token_key, _ = self.find_token_address_and_owner(ii.account_list[1])
+                            break
+        elif offset == 0x06:
+            # Price update!
             event_type = SECONDARY_MARKET_EVENT_PRICE_UPDATE
             owner = matched_pi.account_list[0]
-        # elif TODO: Need to figure out the delisting event
+            token_key = matched_pi.account_list[2]
+            price = matched_pi.get_int(1)
         else:
             return None
 
@@ -295,35 +381,10 @@ class ParsedTransaction:
             price=price,
             owner=owner,
             buyer=buyer,
-            transaction_hash=self.signature
+            transaction_hash=self.signature,
+            token_key=token_key
         )
 
-        if (event_type == SECONDARY_MARKET_EVENT_LISTING
-                or event_type == SECONDARY_MARKET_EVENT_SALE):
-            token_account_to_match = None  # for finding token address.
-            for ins in inner_ins_array:
-                pi = ParsedInstruction(ins, self.account_keys)
-                if not pi:
-                    # TODO: Capture this exception
-                    raise
-                if pi.is_token_program_instruction:
-                    if (pi.get_function_offset() == TOKEN_SET_AUTHORITY
-                            and pi.get_int(1, 1) == TOKEN_AUTHORITY_TYPE_ACCOUNT_OWNER
-                            and event_type == SECONDARY_MARKET_EVENT_LISTING):
-                        token_account_to_match = pi.account_list[0]
-                        break
-                    elif (pi.get_function_offset() == TOKEN_TRANSFER
-                          and event_type == SECONDARY_MARKET_EVENT_SALE):
-                        token_account_to_match = pi.account_list[1]
-                        break
-
-            event.token_key = self.find_token_address(token_account_to_match)
-        elif event_type == SECONDARY_MARKET_EVENT_PRICE_UPDATE:
-            event.token_key = matched_pi.account_list[-1]
-        elif event_type == SECONDARY_MARKET_EVENT_DELISTING:
-            event.token_key = self.find_token_address(owner)
-        else:
-            return None
         return event if event.token_key and (event.owner or event.buyer) else None
 
     def _parse_digital_eyes(self, digital_eyes_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
@@ -362,7 +423,7 @@ class ParsedTransaction:
                         acc_price += pii.get_int(4, 8)
                 price = int(round(acc_price, 3))
                 buyer = matched_pi.account_list[0]
-                token_key = self.find_token_address(None)
+                token_key, _ = self.find_token_address_and_owner(None)
                 if price > 0:
                     # Okay, there are lots of events without any transfers
                     # apparently they are not counted as a Sale.
@@ -454,7 +515,7 @@ class ParsedTransaction:
                         # The buyer is the one transferring out from.
                         buyer = pii.account_list[0]
             price = round(price, 3)
-            token_key = self.find_token_address(buyer)
+            token_key, _ = self.find_token_address_and_owner(buyer)
         else:
             event_type = None
         if event_type and token_key:
@@ -477,10 +538,14 @@ class ParsedTransaction:
     def event(self):
         return self._parse()
 
-    def find_token_address(self, token_account_to_match: Optional[str]):
+    def find_token_address_and_owner(self, token_account_to_match: Optional[str]):
         """
         Common method to figure out the actual token address reglardless of the
-        market.
+        market. This is inferred from the "token account", usually the 2nd param
+        from the Token transfer program, that for any post balances if its index
+        matches the token account index, we know this balance is for the "receiver".
+
+        This works for events with token transfer happened.
 
         Args:
             token_account_to_match:
@@ -498,10 +563,10 @@ class ParsedTransaction:
                     or balance['owner'] == token_account_to_match
             )
             if matched and balance['uiTokenAmount']['amount'] == '1':
-                return balance['mint']
-        return None
+                return balance['mint'], balance['owner'] if 'owner' in balance else None
+        return None, None
 
-    def find_secondary_market_program_instructions(self, program_key) -> \
+    def find_secondary_market_program_instructions(self, program_key, offset=None) -> \
             Tuple[Optional[ParsedInstruction], Optional[List[Dict]]]:
         """
         Find the instruction from the secondary market program and its inner
@@ -509,6 +574,8 @@ class ParsedTransaction:
 
         Args:
             program_key:
+            offset: In addition which offset to match. If None, will match the first
+                instruction with the program key.
 
         Returns:
 
@@ -516,7 +583,8 @@ class ParsedTransaction:
         for ins_index, ins in enumerate(self.instructions):
             matched_pi = ParsedInstruction.from_instruction_dict(ins, self.account_keys)
             if matched_pi.program_account_key == program_key:
-                break
+                if offset is None or matched_pi.get_function_offset(1) == offset:
+                    break
         else:
             return None, None
 

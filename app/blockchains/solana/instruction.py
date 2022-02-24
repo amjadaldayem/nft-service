@@ -79,6 +79,16 @@ class ParsedInstruction:
             return int.from_bytes(self.data_decoded[:unknown_width], 'little')
 
     def get_int(self, start, length=None):
+        """
+
+        Args:
+            start: Which byte to start with, e.g., "0b d1 cc 00" if start = 1
+                then we get int.from_bytes(bytes.fromhex("d1cc00"), 'little')
+            length:
+
+        Returns:
+
+        """
         self.data_decoded = self.data_decoded or base58.b58decode(self.data)
         end = None if length is None else start + length
         return int.from_bytes(self.data_decoded[start:end], 'little')

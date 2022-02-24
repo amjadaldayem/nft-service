@@ -1,26 +1,30 @@
 {
-  "blockTime": 1639023882,
+  "blockTime": 1645664369,
   "meta": {
     "err": null,
     "fee": 5000,
     "innerInstructions": [],
     "logMessages": [
       "Program CJsLwbP1iu5DuUikHEJnLfANgKy6stB2uFgvBBHoyxwz invoke [1]",
-      "Program log: Instruction: Update price",
-      "Program log: Old / New price: 10000000000 100000000000000",
-      "Program CJsLwbP1iu5DuUikHEJnLfANgKy6stB2uFgvBBHoyxwz consumed 5951 of 200000 compute units",
+      "Program log: Instruction: Cancel Bid",
+      "Program log: Closing the PDA info account...",
+      "Program CJsLwbP1iu5DuUikHEJnLfANgKy6stB2uFgvBBHoyxwz consumed 6575 of 200000 compute units",
       "Program CJsLwbP1iu5DuUikHEJnLfANgKy6stB2uFgvBBHoyxwz success"
     ],
     "postBalances": [
-      6899223300,
-      1398960,
+      13347770760,
+      37347644664,
+      0,
+      1,
       1461600,
       1141440
     ],
     "postTokenBalances": [],
     "preBalances": [
-      6899228300,
-      1398960,
+      13157775760,
+      37345132104,
+      192512560,
+      1,
       1461600,
       1141440
     ],
@@ -30,35 +34,39 @@
       "Ok": null
     }
   },
-  "slot": 110708717,
+  "slot": 122206073,
   "transaction": {
     "message": {
       "accountKeys": [
+        "HvpKPZE423dAscvC48kMW2hbWR8xXthZzYT2hHnh93w",
         "CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4",
-        "HW5khAoBj7xkH3XutCFHhkFRiJNSEQNeCjgY47yK7unD",
-        "CjpknwfKuLnJGELurHgioq4FSw1WoBJzZh8rfKtJaMnA",
+        "HrL6RZKaDe1HB5B4Dpym3zja2MSSWdfyGL6mR3oUrTk1",
+        "11111111111111111111111111111111",
+        "8hbco5nJC1tSXgkk2XoA94YqaV7w5Y77XETEt6i1AsVC",
         "CJsLwbP1iu5DuUikHEJnLfANgKy6stB2uFgvBBHoyxwz"
       ],
       "header": {
         "numReadonlySignedAccounts": 0,
-        "numReadonlyUnsignedAccounts": 2,
+        "numReadonlyUnsignedAccounts": 3,
         "numRequiredSignatures": 1
       },
       "instructions": [
         {
           "accounts": [
             0,
+            2,
             1,
-            2
+            4,
+            3
           ],
-          "data": "5RxZuv9aE9Gb",
-          "programIdIndex": 3
+          "data": "4",
+          "programIdIndex": 5
         }
       ],
-      "recentBlockhash": "58dX5RRZw9hYRZTRNB9Sp927EGJeRGQ7bCr1B78WAVVQ"
+      "recentBlockhash": "8ArjD1fZXkqSxtdYLEfHqqthYRSeej7Pb5LPhLADoeND"
     },
     "signatures": [
-      "2zq31Sd8YdfWMQmo8QifsR9e8u5LLvpbi7FzwasjneXdafXFQQt2NxGCzofAohqWwGws6RBhknM5NT4e2NnP5zcq"
+      "5egfZHdhr2L5vEpb4Cx8WTK3oBQRTWt9zD3TSMMv368u9ngwuqiv6TRTX59VEoK8PogroGXqB9MkjT7Wk8kEnXyh"
     ]
   }
 }

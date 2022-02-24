@@ -14,6 +14,9 @@ from app.blockchains import (
     SECONDARY_MARKET_EVENT_DELISTING,
     SECONDARY_MARKET_EVENT_SALE,
     SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+    SECONDARY_MARKET_EVENT_BID,
+    SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+    SECONDARY_MARKET_EVENT_SALE_AUCTION,
     BLOCKCHAIN_SOLANA,
 )
 from app.blockchains.solana import ParsedTransaction
@@ -33,6 +36,9 @@ event_type_dir_map = {
     SECONDARY_MARKET_EVENT_DELISTING: 'delisting',
     SECONDARY_MARKET_EVENT_SALE: 'sale',
     SECONDARY_MARKET_EVENT_PRICE_UPDATE: 'price_update',
+    SECONDARY_MARKET_EVENT_BID: 'bid',
+    SECONDARY_MARKET_EVENT_CANCEL_BIDDING: 'cancel_bidding',
+    SECONDARY_MARKET_EVENT_SALE_AUCTION: 'sale_auction',
 }
 
 
@@ -60,7 +66,10 @@ def make_expected(market_id, event_type_id, token_key, price, owner_or_buyer, ti
         token_key=token_key,
         transaction_hash=signature
     )
-    if event_type_id == SECONDARY_MARKET_EVENT_SALE:
+    if event_type_id in {SECONDARY_MARKET_EVENT_SALE,
+                         SECONDARY_MARKET_EVENT_SALE_AUCTION,
+                         SECONDARY_MARKET_EVENT_BID,
+                         SECONDARY_MARKET_EVENT_CANCEL_BIDDING}:
         evt.buyer = owner_or_buyer
         evt.price = price
     elif event_type_id in (SECONDARY_MARKET_EVENT_LISTING,
@@ -68,7 +77,7 @@ def make_expected(market_id, event_type_id, token_key, price, owner_or_buyer, ti
         evt.owner = owner_or_buyer
         evt.price = price
     else:
-        # Delisting
+        # Delisting, price update etc
         evt.owner = owner_or_buyer
     return evt
 
@@ -107,7 +116,7 @@ def assert_events_for(test_case, market_id, generate_expected=False):
         # only upon initial test run.
         with open(os.path.join(market_id_dir_map[market_id],
                                'txns-expected.json'), 'wb') as fd:
-            fd.write(orjson.dumps(results, option=orjson.OPT_INDENT_2))
+            fd.write(orjson.dumps([r.dict() for r in results], option=orjson.OPT_INDENT_2))
     else:
 
         with open(os.path.join(market_id_dir_map[market_id],
@@ -455,6 +464,40 @@ class AlphaArtTestCase(unittest.TestCase):
 
 class SolanartTestCase(unittest.TestCase):
 
+    def test_solanart_bid_event_01(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SOLANART,
+            SECONDARY_MARKET_EVENT_BID,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_SOLANART,
+            SECONDARY_MARKET_EVENT_BID,
+            token_key='8hbco5nJC1tSXgkk2XoA94YqaV7w5Y77XETEt6i1AsVC',
+            price=187500000,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_solanart_bid_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SOLANART,
+            SECONDARY_MARKET_EVENT_BID,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_SOLANART,
+            SECONDARY_MARKET_EVENT_BID,
+            token_key='8hbco5nJC1tSXgkk2XoA94YqaV7w5Y77XETEt6i1AsVC',
+            price=190000000,
+            owner_or_buyer='HvpKPZE423dAscvC48kMW2hbWR8xXthZzYT2hHnh93w',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
     def test_solanart_listing_event_01(self):
         event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
@@ -464,8 +507,8 @@ class SolanartTestCase(unittest.TestCase):
         expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_LISTING,
-            token_key='CjpknwfKuLnJGELurHgioq4FSw1WoBJzZh8rfKtJaMnA',
-            price=10000000000,
+            token_key='5xMBU72azWpXC9VSvrJBBZDTd5F2h6Wztrx386pwr3Uo',
+            price=1000000000,
             owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
             timestamp=timestamp,
             signature=signature
@@ -490,6 +533,7 @@ class SolanartTestCase(unittest.TestCase):
         self.assertEqual(event, expected)
 
     def test_solanart_sale_event_01(self):
+        # Buy now
         event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
@@ -498,77 +542,43 @@ class SolanartTestCase(unittest.TestCase):
         expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_SALE,
-            token_key='2Pw69uefPXeqD2PvLjDMD3CohKWFixKVwkf5yJSzAu5K',
-            price=32000000000,
-            owner_or_buyer='okkVSrkBXGfMHvEfKGUW73XmJYbP4ojPbWsBXbYjvZf',
-            timestamp=timestamp,
-            signature=signature
-        )
-        self.assertEqual(event, expected)
-
-    def test_solanart_sale_event_02(self):
-        event, timestamp, signature = load_and_parse(
-            SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_SALE,
-            '02.json'
-        )
-        expected = make_expected(
-            SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_SALE,
-            token_key='nnsyke25QR3yJAmAuQhjESEHHjs93iyUqKaKPhGWtQh',
-            price=45000000000,
-            owner_or_buyer='2K482avagGyeeRKgymNsfRrR46pWXCTxKFHSZG7zkVpB',
-            timestamp=timestamp,
-            signature=signature
-        )
-        self.assertEqual(event, expected)
-
-    def test_solanart_sale_event_03(self):
-        event, timestamp, signature = load_and_parse(
-            SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_SALE,
-            '03.json'
-        )
-        expected = make_expected(
-            SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_SALE,
-            token_key='5m4HCYXN4E7hCc8i5ojMRhYAwyv91WQQX58vv3Fggop6',
-            price=20000000000,
-            owner_or_buyer='DZvw8KcBV4c5KQJY4qmyVBBPutorJtVQZUoHVb7WLPX3',
-            timestamp=timestamp,
-            signature=signature
-        )
-        self.assertEqual(event, expected)
-
-    def test_solanart_sale_event_04(self):
-        event, timestamp, signature = load_and_parse(
-            SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_SALE,
-            '04.json'
-        )
-        expected = make_expected(
-            SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_SALE,
-            token_key='CqkUbXgnYhwxfzJRqPVJGparRRsrzMJKGGUuL59Gsajj',
-            price=180000000,
+            token_key='8hbco5nJC1tSXgkk2XoA94YqaV7w5Y77XETEt6i1AsVC',
+            price=375000000,
             owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
             timestamp=timestamp,
             signature=signature
         )
         self.assertEqual(event, expected)
 
-    def test_solanart_sale_event_05(self):
+    def test_solanart_sale_auction_event_01(self):
         event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_SALE,
-            '05.json'
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            '01.json'
         )
         expected = make_expected(
             SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_SALE,
-            token_key='CjpknwfKuLnJGELurHgioq4FSw1WoBJzZh8rfKtJaMnA',
-            price=1000000,
-            owner_or_buyer='BQYdVG7u7YSnKeH65LuQKy8EWUnzC27XUenhV6CmFTtR',
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            token_key='HD4oEubiYoiGwkp2kMxpqMYcQfh4EFuW3viTJVZv6Pec',
+            price=175000000000,
+            owner_or_buyer='7sb2osoKiUNSPQzpU4SK8J5HnVmKRf9UWj5y8ZUjTNL1',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_solanart_sale_auction_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SOLANART,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_SOLANART,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            token_key='2UGFEiGEBXTELtZ8qXXMuEPhZ2Z8oXTGpxz6cQigtKrX',
+            price=200000000,
+            owner_or_buyer='6UKxMPEQRSS99Gc2TDoigbrSfJY5hnnzRGBEANY6y4Y',
             timestamp=timestamp,
             signature=signature
         )
@@ -583,43 +593,26 @@ class SolanartTestCase(unittest.TestCase):
         expected = make_expected(
             SOLANA_SOLANART,
             SECONDARY_MARKET_EVENT_PRICE_UPDATE,
-            token_key='CjpknwfKuLnJGELurHgioq4FSw1WoBJzZh8rfKtJaMnA',
-            price=10000000000,
-            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            token_key='qrxtayzUUVh3iQXGUskzXapokkoLBEsBirxBpssL2g8',
+            price=20000000,
+            owner_or_buyer='DQ9C6V1RAaUJd9EbLyomgH3bqS7rpJD8AgwkBcpndGFP',
             timestamp=timestamp,
             signature=signature
         )
         self.assertEqual(event, expected)
 
-    def test_solanart_price_update_event_02(self):
+    def test_solanart_cancel_bidding_event_01(self):
         event, timestamp, signature = load_and_parse(
             SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
-            '02.json'
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            '01.json'
         )
         expected = make_expected(
             SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
-            token_key='CjpknwfKuLnJGELurHgioq4FSw1WoBJzZh8rfKtJaMnA',
-            price=100000000000000,
-            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
-            timestamp=timestamp,
-            signature=signature
-        )
-        self.assertEqual(event, expected)
-
-    def test_solanart_price_update_event_03(self):
-        event, timestamp, signature = load_and_parse(
-            SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
-            '03.json'
-        )
-        expected = make_expected(
-            SOLANA_SOLANART,
-            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
-            token_key='CjpknwfKuLnJGELurHgioq4FSw1WoBJzZh8rfKtJaMnA',
-            price=1000000,
-            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            token_key='8hbco5nJC1tSXgkk2XoA94YqaV7w5Y77XETEt6i1AsVC',
+            price=0,
+            owner_or_buyer='HvpKPZE423dAscvC48kMW2hbWR8xXthZzYT2hHnh93w',
             timestamp=timestamp,
             signature=signature
         )

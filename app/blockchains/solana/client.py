@@ -7,6 +7,7 @@ from typing import Optional, List, Mapping, Union, Dict
 
 import base58
 import multiprocess as mp
+import orjson
 from solana.publickey import PublicKey
 from solana.rpc import commitment
 from solana.rpc.api import MemcmpOpt, Client
@@ -20,6 +21,7 @@ from app.models import (
     NftCreator,
     MediaFile
 )
+from app.utils import notify_error
 
 logger = logging.getLogger(__name__)
 
@@ -308,18 +310,23 @@ def nft_get_nft_data(metadata: SolanaNFTMetaData, current_owner: str = "") -> Nf
     files_raw = more_data.get('properties', {}).get('files')
     if files_raw:
         for d in files_raw:
-            if not d.get('uri'):
-                continue
-            if d['uri'] == image_uri:
-                # If repeated the image uri, just replace the type.
-                files[0].file_type = d.get('type')
-                continue
-            files.append(
-                MediaFile(
-                    uri=d['uri'],
-                    file_type=d.get('type', '')
+            try:
+                if not d.get('uri'):
+                    continue
+                if d['uri'] == image_uri:
+                    # If repeated the image uri, just replace the type.
+                    files[0].file_type = d.get('type')
+                    continue
+                files.append(
+                    MediaFile(
+                        uri=d['uri'],
+                        file_type=d.get('type', '')
+                    )
                 )
-            )
+            except Exception as e:
+                notify_error(e, metadata={
+                    'metadata': orjson.dumps(metadata)
+                })
 
     nft_data = NftData(
         blockchain_id=BLOCKCHAIN_SOLANA,

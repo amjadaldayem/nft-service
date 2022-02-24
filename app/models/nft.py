@@ -141,9 +141,18 @@ class SecondaryMarketEvent(DataClassBase):
         """
         Blockchain - timestamp attribute
         Returns:
-            bt#<blockchain_id>#<timestamp>#transaction_hash
+            btt#<blockchain_id>#<timestamp>#transaction_hash
         """
         return f"btt#{self.blockchain_id}#{self.timestamp}#{self.transaction_hash}"
+
+    @property
+    def tbt(self) -> str:
+        """
+        Timestamp - blockchain id - transaction id
+        Returns:
+            tbt#<timestamp>#<blockchain_id>#transaction_hash
+        """
+        return f"tbt#{self.timestamp}#{self.blockchain_id}#{self.transaction_hash}"
 
     @property
     def et(self) -> str:
@@ -295,7 +304,7 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
             self.NAME,
             dynamodb_resource,
         )
-        # A temporary cache for skipping dupes in a time window
+        # A temporary cache for skipping dupes in a time window when ingesting
         # (which is more likely to happen)
         self._seen = pylru.lrucache(10000)
 
@@ -340,7 +349,7 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
                  blockchain_ids: Union[FrozenSet[int], Set[int]] = frozenset(),
                  event_types: Union[FrozenSet[int], Set[int]] = frozenset(),
                  collection_ids: Union[FrozenSet[str], Set[str]] = frozenset(),
-                 limit: int = 50) -> Tuple[List[SecondaryMarketEvent], Optional[Tuple[str, str]]]:
+                 limit: int = 300) -> Tuple[List[SecondaryMarketEvent], Optional[Tuple[str, str]]]:
         """
 
         Args:
@@ -389,6 +398,7 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
             cls.SK: sme.btt,
             cls.GSI_SME_SME_ID_PK: sme.sme_id,
             cls.LSI_SME_ET_SK: sme.et,
+            cls.LSI_SME_TBT_SK: sme.tbt,
         }
         # Shallow copy here
         d.update(copy.copy(sme.__dict__))
