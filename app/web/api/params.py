@@ -19,8 +19,12 @@ class SecondaryMarketEventsInput(DataClassBase):
     #
     # If not set, will choose the latest event from 6 minutes ago
     # from the current timestamp.
-    exclusive_start_key: Optional[str] = None
+    exclusive_start_key: Optional[str] = pydantic.Field(None, alias="exclusiveStartKey")
 
+    # The key to which we stop fetching. This value *should be*
+    # the `last_evaluated_key` returned from previous call to
+    # get_secondary_market_events API.
+    exclusive_stop_key: Optional[str] = pydantic.Field(None, alias="exclusiveStopKey")
     # The `direction` we want to go from the anchor (exclusive_start_key)
     # By default, always go to more recent events.
     forward: bool = True

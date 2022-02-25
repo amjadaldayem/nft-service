@@ -10,7 +10,10 @@ import orjson
 from solana.rpc import commitment
 
 from app import settings
-from app.blockchains import SECONDARY_MARKET_EVENT_SALE
+from app.blockchains import (
+    SECONDARY_MARKET_EVENT_SALE,
+    SECONDARY_MARKET_EVENT_SALE_AUCTION
+)
 from app.blockchains.solana import ParsedTransaction, nft_get_metadata_by_token_key, CustomAsyncClient, CustomClient
 from app.blockchains.solana.client import (
     nft_get_nft_data
@@ -86,16 +89,16 @@ async def get_smes(client, transaction_hashes: List[str], loop) -> Tuple[List[Se
     return succeeded_events, failed_retriable
 
 
-def write_to_local(succeeded_items_to_commit):
+def write_to_local(succeeded_items_to_commit, file_name='smes.json'):
     """
     For local testing purpose only.
 
     Returns:
 
     """
-    with open('smes.json', 'a') as fd:
+    with open(file_name, 'a') as fd:
         for e, n in succeeded_items_to_commit:
-            fd.write(orjson.dumps((e, n)).decode('utf8'))
+            fd.write(orjson.dumps((e.dict(), n.dict())).decode('utf8'))
             fd.write(',')
             fd.flush()
 
@@ -145,7 +148,10 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 nft_data = nft_get_nft_data(
                     metadata,
                     current_owner=(
-                        event.buyer if event.event_type == SECONDARY_MARKET_EVENT_SALE
+                        event.buyer if event.event_type in {
+                            SECONDARY_MARKET_EVENT_SALE,
+                            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+                        }
                         else event.owner
                     )
                 )
@@ -157,39 +163,40 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 else:
                     raise
     if succeeded_items_to_commit:
+        write_to_local(succeeded_items_to_commit, 'smes-solanart.json')
         logger.info("Succeeded Items To Commit = %s", len(succeeded_items_to_commit))
-        dynamodb_resource = boto3.resource('dynamodb')
-        sme_repository = SMERepository(
-            dynamodb_resource
-        )
-        nft_repository = NFTRepository(
-            dynamodb_resource
-        )
-        _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
-        if failed:
-            notify_error(IOError(
-                f"Error saving some items: {sme_repository.NAME}"
-            ), metadata={
-                'details': orjson.dumps(failed).decode('utf8'),
-            })
-
-        _, nft_data_list = zip(*succeeded_items_to_commit)
-        _, failed = nft_repository.save_nfts(nft_data_list)
-        if failed:
-            notify_error(IOError(
-                f"Error saving some items:  {nft_repository.NAME}"
-            ), metadata={
-                'details': orjson.dumps(failed).decode('utf8'),
-            })
-
-    if failed_transaction_hashes:
-        # Pin the failed record from where we want to retry next
-        # We just throw in multiple records, and kinesis will take the
-        # one with the lowest sequence id
-        failed_transaction_hashes = set(failed_transaction_hashes)
-        return [
-            record for record in records if record.data[0] in failed_transaction_hashes
-        ]
+    #     dynamodb_resource = boto3.resource('dynamodb')
+    #     sme_repository = SMERepository(
+    #         dynamodb_resource
+    #     )
+    #     nft_repository = NFTRepository(
+    #         dynamodb_resource
+    #     )
+    #     _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
+    #     if failed:
+    #         notify_error(IOError(
+    #             f"Error saving some items: {sme_repository.NAME}"
+    #         ), metadata={
+    #             'details': orjson.dumps(failed).decode('utf8'),
+    #         })
+    #
+    #     _, nft_data_list = zip(*succeeded_items_to_commit)
+    #     _, failed = nft_repository.save_nfts(nft_data_list)
+    #     if failed:
+    #         notify_error(IOError(
+    #             f"Error saving some items:  {nft_repository.NAME}"
+    #         ), metadata={
+    #             'details': orjson.dumps(failed).decode('utf8'),
+    #         })
+    #
+    # if failed_transaction_hashes:
+    #     # Pin the failed record from where we want to retry next
+    #     # We just throw in multiple records, and kinesis will take the
+    #     # one with the lowest sequence id
+    #     failed_transaction_hashes = set(failed_transaction_hashes)
+    #     return [
+    #         record for record in records if record.data[0] in failed_transaction_hashes
+    #     ]
     return
 
 

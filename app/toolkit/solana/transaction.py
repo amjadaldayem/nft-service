@@ -50,7 +50,7 @@ def do_get_transactions_for(public_key, filename, limit, before, until):
         logger.warning(
             "There are %s failed fetches. Retrying those.", num_failed_signatures
         )
-        time.sleep(1)
+        time.sleep(2)
         retried_result = get_multi_transactions(
             signatures=failed_signatures,
             batch_size=min(num_failed_signatures, batch_size)
@@ -59,9 +59,8 @@ def do_get_transactions_for(public_key, filename, limit, before, until):
         succeeded, failed = partition(lambda t: t[1], retried_result.items())
         for k, v in succeeded:
             all_result[k] = v
-        failed, _ = zip(*failed)
         num_total = len(all_result)
-        num_failed = len(failed)
+        num_failed = len(list(failed))
         logger.info("%s/%s transactions retrieved.", num_total - num_failed, num_total)
         logger.warning("Failed signatures: %s", '\n'.join(failed))
 
@@ -70,4 +69,4 @@ def do_get_transactions_for(public_key, filename, limit, before, until):
         os.makedirs(dir_name, exist_ok=True)
 
     with open(filename, 'wb') as fd:
-        fd.write(orjson.dumps(all_result, option=orjson.OPT_INDENT_2))
+        fd.write(orjson.dumps(list(all_result.values()), option=orjson.OPT_INDENT_2))

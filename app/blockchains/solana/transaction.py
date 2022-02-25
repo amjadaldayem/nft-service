@@ -28,7 +28,7 @@ from app.blockchains.solana import (
     TOKEN_SET_AUTHORITY,
     TOKEN_AUTHORITY_TYPE_ACCOUNT_OWNER,
     TOKEN_TRANSFER,
-    DIGITAL_EYES_SALE_PROGRAM_ACCOUNT,
+    DIGITAL_EYES_NFT_MARKETPLACE_PROGRAM_ACCOUNT,
 )
 from app.blockchains.solana.instruction import (
     T_KEY_INDEX,
@@ -251,7 +251,10 @@ class ParsedTransaction:
         # Because usually the token has to be carried by a "Token Account",
         # which is a PDA from the Market Place Authority, so the balance change
         # will have to reflect on that account.
-        event.token_key, _ = self.find_token_address_and_owner(token_account_to_match)
+        if event and not event.token_key:
+            event.token_key, _ = self.find_token_address_and_owner(token_account_to_match)
+        if not event:
+            print(self.signature)
         return event
 
     def _parse_solanart(self, solanart_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
@@ -389,8 +392,7 @@ class ParsedTransaction:
 
     def _parse_digital_eyes(self, digital_eyes_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
-        DigitalEyes has two program account, one for listing/delisting/price-update
-        and the other for sale.
+        DigitalEyes has two program account: Direct Sale and NFT marketplace.
 
         Args:
             digital_eyes_program_key:
@@ -412,42 +414,75 @@ class ParsedTransaction:
         buyer = EMPTY_PUBLIC_KEY
         price = 0
 
-        if digital_eyes_program_key == DIGITAL_EYES_SALE_PROGRAM_ACCOUNT:
-            if matched_pi.get_int(0) == 257:  # 0x010100000000000000
+        if digital_eyes_program_key == DIGITAL_EYES_NFT_MARKETPLACE_PROGRAM_ACCOUNT:
+            func_offset = matched_pi.get_function_offset(1)
+            if func_offset == 0x00:
+                event_type = SECONDARY_MARKET_EVENT_LISTING
+                owner = matched_pi.account_list[0]
+                token_key = matched_pi.account_list[2]
+                price = matched_pi.get_int(1)
+            elif func_offset == 0x01:
+                # This is an Escrow exchange event, can be delisting or
+                # sale, if there is any SOL transfer, then this is a sale
+                # otherwise it is delisting
+                token_key = matched_pi.account_list[6]
                 # Add up all SOL transfers, and round up to 4th digit after the dot
                 acc_price = 0
+                has_sol_transfer = False
                 for ins in inner_ins_array:
                     pii = ParsedInstruction.from_instruction_dict(ins, self.account_keys)
                     if (pii.is_system_program_instruction
                             and pii.get_function_offset() == SYS_TRANSFER):
+                        has_sol_transfer = True
                         acc_price += pii.get_int(4, 8)
+
                 price = int(round(acc_price, 3))
-                buyer = matched_pi.account_list[0]
-                token_key, _ = self.find_token_address_and_owner(None)
-                if price > 0:
+
+                if has_sol_transfer:
                     # Okay, there are lots of events without any transfers
                     # apparently they are not counted as a Sale.
                     event_type = SECONDARY_MARKET_EVENT_SALE
+                    buyer = matched_pi.account_list[0]
+                else:
+                    event_type = SECONDARY_MARKET_EVENT_DELISTING
+                    owner = matched_pi.account_list[0]
         else:
+            # Implict digital_eyes_program_key == DIGITAL_EYES_DIRECT_SALE_PROGRAM_ACCOUNT
             # For listing/ulisting event, the account[2] is the mint key
             # For price_update event, the account[1] is the mint key
+            direct_sale_listing_func_offset = 0xad837f01a485e633
+            direct_sale_price_update_func_offset = 0x19977ce0408fbd00
+            direct_sale_delisting_func_offset = 0xbedcecdb29dfdbe8
+            direct_sale_sale_func_offset = 0xeaebda01123d0666
+            direct_sale_delisting_with_authority = 0x102aee56ce64b81e
+
             func_offset = matched_pi.get_function_offset(8)
-            if func_offset == 12502976635542562355:  # 0x33e685a4017f83ad
+            if func_offset == direct_sale_listing_func_offset:
                 # if the lasts 2bytes == feff, then the price is not visible
-                # it will displayed as "contact owner"
+                # it will display as "contact owner"
                 event_type = SECONDARY_MARKET_EVENT_LISTING
                 token_key = matched_pi.account_list[2]
                 owner = matched_pi.account_list[0]
                 price = matched_pi.get_int(8, 8)
-            elif func_offset == 1844079875029187840:  # 0x00bd8f40e07c9719
+            elif func_offset == direct_sale_price_update_func_offset:
                 event_type = SECONDARY_MARKET_EVENT_PRICE_UPDATE
                 token_key = matched_pi.account_list[1]
                 price = matched_pi.get_int(8, 8)
                 owner = matched_pi.account_list[0]
-            elif func_offset == 13753127788127181800:  # 0xe8dbdf29dbecdcbe
+            elif func_offset == direct_sale_delisting_func_offset:
                 event_type = SECONDARY_MARKET_EVENT_DELISTING
                 token_key = matched_pi.account_list[2]
                 owner = matched_pi.account_list[0]
+            elif func_offset == direct_sale_sale_func_offset:
+                event_type = SECONDARY_MARKET_EVENT_SALE
+                token_key = matched_pi.account_list[4]
+                buyer = matched_pi.account_list[0]
+                price = matched_pi.get_int(8, 8)
+            elif func_offset == direct_sale_delisting_with_authority:
+                event_type = SECONDARY_MARKET_EVENT_DELISTING
+                token_key = matched_pi.account_list[2]
+                owner = matched_pi.account_list[1]
+                price = matched_pi.get_int(8, 8)
 
         return SecondaryMarketEvent(
             blockchain_id=BLOCKCHAIN_SOLANA,

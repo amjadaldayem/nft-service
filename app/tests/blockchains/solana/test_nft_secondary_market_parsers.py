@@ -650,9 +650,9 @@ class DigitalEyesTestCase(unittest.TestCase):
         expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_LISTING,
-            token_key='9H3ncfCp31nA9bTnaEUezkMGgtc869HCCjF5riH7iWTP',
-            price=570000000,
-            owner_or_buyer='9qAeEjpQTLtrXcbnPvFwS3nvuApiQNMUauzfYx1CxpU5',
+            token_key='872JekNfK9MtsKs28XBNfkHxg5GwzqNXyWWt6mhex7RH',
+            price=90000000,
+            owner_or_buyer='2F4yS8odiuQMk94zfx548h7RJiD5NUwbYsBbfmcc8Rff',
             timestamp=timestamp,
             signature=signature
         )
@@ -667,9 +667,9 @@ class DigitalEyesTestCase(unittest.TestCase):
         expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_LISTING,
-            token_key='B3yBqWgc7krrUpkGRiZuSQJWrkPCCXpoB3JJPMVmjwC6',
-            price=690000000,
-            owner_or_buyer='CXXXajBynVVezT4GeAtmjcJojcy4QSb7XqPHYNCa6BsK',
+            token_key='Kyt8aPm6xEWHv4KxcgPJZzYYhqGL3NLJ4YjG2ip8Pfx',
+            price=33000000000,
+            owner_or_buyer='6EeR8NS7zFCWAspSKVcE6UcEj4TZH4wpEtC6Pd9CffEP',
             timestamp=timestamp,
             signature=signature
         )
@@ -769,9 +769,26 @@ class DigitalEyesTestCase(unittest.TestCase):
         expected = make_expected(
             SOLANA_DIGITAL_EYES,
             SECONDARY_MARKET_EVENT_DELISTING,
-            token_key='5xMBU72azWpXC9VSvrJBBZDTd5F2h6Wztrx386pwr3Uo',
+            token_key='Kyt8aPm6xEWHv4KxcgPJZzYYhqGL3NLJ4YjG2ip8Pfx',
             price=0,
-            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            owner_or_buyer='6EeR8NS7zFCWAspSKVcE6UcEj4TZH4wpEtC6Pd9CffEP',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_digital_eyes_delisting_event_03(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='BQzHuj5uyUEXDsK4GGQPA25pXudGhoKhFeqvnhLcbeuB',
+            price=0,
+            owner_or_buyer='5dq2T5Zx3jU9n1Ja9rrUzCGfybcrAYgGKCA7uf45Wqqs',
             timestamp=timestamp,
             signature=signature
         )
@@ -794,8 +811,25 @@ class DigitalEyesTestCase(unittest.TestCase):
         )
         self.assertEqual(event, expected)
 
+    def test_digital_eyes_sale_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_SALE,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_DIGITAL_EYES,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='872JekNfK9MtsKs28XBNfkHxg5GwzqNXyWWt6mhex7RH',
+            price=90000000,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
     def test_digital_eyes_events(self):
-        assert_events_for(self, SOLANA_DIGITAL_EYES)
+        assert_events_for(self, SOLANA_DIGITAL_EYES, generate_expected=True)
 
 
 class SolseaTestCase(unittest.TestCase):
