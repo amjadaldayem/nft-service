@@ -78,6 +78,12 @@ sme:
       sk:
         name: et
         value: e.et
+    # This is another combo of the blockchain id, transaction hash and timestamp,
+    # With timestamp at the beginning to give some definitely ordering across chain.
+    - name: sme_lsi_tbt
+      sk:
+        name: tbt
+        value: e.tbt
   gsi:
     - name: sme_gsi_sme_id
       pk:

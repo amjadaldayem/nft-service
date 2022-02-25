@@ -44,6 +44,10 @@ class DTSmeMeta:
     
     LSI_SME_ET_SK = 'et'  # e.et
     
+    LSI_SME_TBT = 'sme_lsi_tbt'  # 
+    
+    LSI_SME_TBT_SK = 'tbt'  # e.tbt
+    
 
 class DTNftMeta:
     """

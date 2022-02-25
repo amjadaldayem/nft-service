@@ -1,10 +1,10 @@
 import copy
 import logging
-import time
 from datetime import datetime
 from typing import (
     List,
-    Optional, Union, FrozenSet, Set, Any
+    Optional,
+    Any
 )
 from typing import Tuple
 
@@ -238,6 +238,18 @@ class NFTRepository(DynamoDBRepositoryBase, meta.DTNftMeta):
 
     @classmethod
     def get_qfi(cls, nft_data: NftData):
+        """
+        Generate an item to store as a Quick Filter Index in the `nft` table.
+        A qfi has a parition key of one letter, which is the initial letter
+        of the NFT collection name, then the sort key being the actual collection
+        name if any (or NO_VALUE if empty).
+
+        Args:
+            nft_data:
+
+        Returns:
+
+        """
         qfi = {}
         collection_name = nft_data.collection_name
         if collection_name:
@@ -321,14 +333,16 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
         table = self.table
         c = 0
 
+        fn_sme_to_dynamo = self.sme_to_dynamo
+        fn_nft_data_to_dynamo = NFTRepository.nft_data_to_dynamo
         with table.batch_writer() as batch:
             for sme, nft_data in smes_and_nfts:
                 if sme.sme_id in self._seen:
                     continue
                 self._seen[sme.sme_id] = 1
-                item = self.sme_to_dynamo(sme, ('data',))
+                item = fn_sme_to_dynamo(sme, ('data',))
                 item.update(
-                    NFTRepository.nft_data_to_dynamo(
+                    fn_nft_data_to_dynamo(
                         nft_data, ('blockchain_id', 'files')
                     )
                 )
@@ -343,53 +357,55 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
 
         return c, failed
 
-    def get_smes(self,
-                 before: int = 0,
-                 until: int = 0,
-                 blockchain_ids: Union[FrozenSet[int], Set[int]] = frozenset(),
-                 event_types: Union[FrozenSet[int], Set[int]] = frozenset(),
-                 collection_ids: Union[FrozenSet[str], Set[str]] = frozenset(),
-                 limit: int = 300) -> Tuple[List[SecondaryMarketEvent], Optional[Tuple[str, str]]]:
+    def get_smes_in_time_window(self,
+                                w: str,
+                                tbt=None,
+                                forward: bool = True,
+                                filter_expression=None) -> List[dict]:
         """
+
+        Retrieves Secondary Market Events that falls in the given time window key.
 
         Args:
-            before: Timestamp (UTC). If 0 (default), will fetch from the latest.
-            until: Timestamp (UTC). Stop at this timestamp
-            blockchain_ids: Set of blockchains to query. This parameter will be
-                omitted if the secondary_market_ids set is given.
-            event_types: Set of event types to filter
-            collection_ids: Set of collection IDs to filter.
-            limit: Maximum results to return
-
-        Examples:
-
-            for page in nft_service.iter_smes(...):
-                # return the page
-
+            w:
+            tbt: Timestamp - <blockchain_id>#<transaction_hash> sort key.
+            forward: If true, will go forward (from older to newer)
+                another wise go "backward". Exclusive.
+            filter_expression:
 
         Returns:
-
         """
         table = self.table
-        # Let's figure out the Pks to cover,
-        items_to_return = 0
-        exclusive_start_key = None
-        before = before or int(time.time() + 0.501)
+        key_cond = Key(self.PK).eq(w)
+        index_name = None
+        if tbt:
+            index_name = self.LSI_SME_TBT
+            if forward:
+                # Travelling forward to newer items
+                key_cond &= Key(self.LSI_SME_TBT_SK).gt(tbt)
+            else:
+                key_cond &= Key(self.LSI_SME_TBT_SK).lt(tbt)
 
-        while items_to_return < limit:
-            start_pk = SecondaryMarketEvent.get_time_window_key(before)
-            key_cond = Key(self.PK).eq(start_pk) & Key('timestamp').between(
-                until, before
-            )
-            kwargs = {
-                'Select': "ALL_ATTRIBUTES",
-                'ScanIndexForward': False,
-                'KeyConditionExpression': key_cond,
-                'Limit': max((limit - items_to_return) * 2, 16),
-            }
-            if exclusive_start_key:
-                kwargs['ExclusiveStartKey'] = exclusive_start_key
-            resp = table.query(**kwargs)
+        query_params = {
+            "KeyConditionExpression": key_cond,
+            "Select": "ALL_ATTRIBUTES"
+        }
+        if index_name:
+            query_params['IndexName'] = index_name
+        if filter_expression:
+            query_params['FilterExpression'] = filter_expression
+
+        items = []
+        while True:
+            resp = table.query(**query_params)
+            items.extend(resp['Items'])
+            exclusive_start_key = resp['LastEvaluatedKey']
+            if not exclusive_start_key:
+                break
+            query_params['ExclusiveStartKey'] = exclusive_start_key
+
+        items.sort(key=lambda i: i['tbt'], reverse=not forward)
+        return items
 
     @classmethod
     def sme_to_dynamo(cls, sme: SecondaryMarketEvent, fields_to_remove=None) -> dict:
