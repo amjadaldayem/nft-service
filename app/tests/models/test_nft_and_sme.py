@@ -228,7 +228,7 @@ class SMEGetTestCase(unittest.TestCase):
         # Get time range (newest, oldest) from the loaded events.
         latest_ts = -1
         oldest_ts = 99999999999999999
-        for sme in sme_list:
+        for sme, _ in sme_and_nft_data_list:
             if sme.timestamp > latest_ts:
                 latest_ts = sme.timestamp
             if sme.timestamp < oldest_ts:

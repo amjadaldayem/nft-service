@@ -181,6 +181,7 @@ class MagicEdenTestCase(unittest.TestCase):
         self.assertEqual(event, expected)
 
     def test_magic_eden_listing_event_04(self):
+        # V2
         event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
@@ -189,15 +190,16 @@ class MagicEdenTestCase(unittest.TestCase):
         expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
-            token_key='CiF2QP7NUfz3t7ZpoTavtRvZRdWadxaUFQKZK6EA6Tjm',
-            price=3990000000,
-            owner_or_buyer='2b9MDayv83BYeuChcrD1CJuQMxzcd1ALSXiRQ6o4YgGF',
+            token_key='As1cySAyfeesM4MBrYZhs46DFMfnHH3ySU32C2xfSgPv',
+            price=8000000000,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
             timestamp=timestamp,
             signature=signature
         )
         self.assertEqual(event, expected)
 
     def test_magic_eden_listing_event_05(self):
+        # V2
         event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
@@ -206,9 +208,63 @@ class MagicEdenTestCase(unittest.TestCase):
         expected = make_expected(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_LISTING,
-            token_key='5jcY8Ekvi8frZVPy9rHTtaNBzDvKNb94L9xH7bGJR68b',
-            price=800000000,
-            owner_or_buyer='4rfMxcVTKwsx8jexi52nSQG8eCtr8B9yAjcormoVwGFL',
+            token_key='CX1uZr5eLcjD4vkcW158TZeAb7sgceYoHDGYwTpqNvSN',
+            price=2500000000,
+            owner_or_buyer='Hm7DNow95Ln5NYkTVb6WK4jprcxhZxrdzAnNEqRCRxtx',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_magic_eden_listing_event_06(self):
+        # V2
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '06.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='8qhdQC6pS7GjvAMA2xWV4EPsQkHPuDeei2UWPJSZ4CYD',
+            price=2250000000,
+            owner_or_buyer='7kyRyzHy1jdXKoGHsgbLSdAGdbKmw2hsSvEGNAfG8qBh',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_magic_eden_price_update_event_01(self):
+        # V2
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+            token_key='CqkUbXgnYhwxfzJRqPVJGparRRsrzMJKGGUuL59Gsajj',
+            price=50000000,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_magic_eden_bid_event_01(self):
+        # V2
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_BID,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_BID,
+            token_key='CqkUbXgnYhwxfzJRqPVJGparRRsrzMJKGGUuL59Gsajj',
+            price=30000000,
+            owner_or_buyer='2ivnxDtJ3KbyYF2EivgMNFfKZrUNMviumPqnvL9T77aZ',
             timestamp=timestamp,
             signature=signature
         )
@@ -299,6 +355,40 @@ class MagicEdenTestCase(unittest.TestCase):
         )
         self.assertEqual(event, expected)
 
+    def test_magic_eden_sale_event_06(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE,
+            '06.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='CqkUbXgnYhwxfzJRqPVJGparRRsrzMJKGGUuL59Gsajj',
+            price=30000000,
+            owner_or_buyer='2ivnxDtJ3KbyYF2EivgMNFfKZrUNMviumPqnvL9T77aZ',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_magic_eden_sale_event_07(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE,
+            '07.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='BLPdBeUbVD4pX6H9kURxyhgaJR9XHFRWB3WixwwKqRm3',
+            price=12300000000,
+            owner_or_buyer='5MtT8THrJYLNbxgbpPZUjZchMdmvMTkCT8VR8TQzorMk',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
     def test_magic_eden_delisting_event_01(self):
         event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
@@ -309,6 +399,24 @@ class MagicEdenTestCase(unittest.TestCase):
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_DELISTING,
             token_key='rp9gXpW4zAetpWBvJY62uTSw1bRwqNd39b2f3hzaNwk',
+            price=0,
+            owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_magic_eden_delisting_event_02(self):
+        # V2
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='As1cySAyfeesM4MBrYZhs46DFMfnHH3ySU32C2xfSgPv',
             price=0,
             owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
             timestamp=timestamp,

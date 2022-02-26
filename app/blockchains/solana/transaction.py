@@ -28,7 +28,8 @@ from app.blockchains.solana import (
     TOKEN_SET_AUTHORITY,
     TOKEN_AUTHORITY_TYPE_ACCOUNT_OWNER,
     TOKEN_TRANSFER,
-    DIGITAL_EYES_NFT_MARKETPLACE_PROGRAM_ACCOUNT,
+    DIGITAL_EYES_NFT_MARKETPLACE_PROGRAM_ACCOUNT, MAGIC_EDEN_PROGRAM_ACCOUNT, MAGIC_EDEN_PROGRAM_ACCOUNT_V2,
+    MAGIC_EDEN_AUCTION_PROGRAM_ACCOUNT,
 )
 from app.blockchains.solana.instruction import (
     T_KEY_INDEX,
@@ -117,8 +118,24 @@ class ParsedTransaction:
         matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
             program_key=magic_eden_program_key
         )
-        if not matched_pi or not inner_ins_array:
+        if not matched_pi or (inner_ins_array is None):
             return None
+
+        if magic_eden_program_key == MAGIC_EDEN_PROGRAM_ACCOUNT:
+            event = self._parse_magic_eden_v1(matched_pi, inner_ins_array, authority_address)
+        elif magic_eden_program_key == MAGIC_EDEN_PROGRAM_ACCOUNT_V2:
+            event = self._parse_magic_eden_v2(magic_eden_program_key)
+        elif magic_eden_program_key == MAGIC_EDEN_AUCTION_PROGRAM_ACCOUNT:
+            event = self._parse_magic_eden_auction(matched_pi, inner_ins_array)
+        else:
+            return None
+
+        return event if event.token_key and (event.owner or event.buyer) else None
+
+    def _parse_magic_eden_v1(self, matched_pi: ParsedInstruction, inner_ins_array, authority_address):
+        # If the inner instruction array contains `transfer`s, this is a
+        # sale; otherwise, if the length of the array is 2, it is a listing or
+        # delisting
         event = SecondaryMarketEvent(
             blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_MAGIC_EDEN,
@@ -126,9 +143,6 @@ class ParsedTransaction:
             event_type=SECONDARY_MARKET_EVENT_SALE,
             transaction_hash=self.signature
         )
-        # If the inner instruction array contains `transfer`s, this is a
-        # sale; otherwise, if the length of the array is 2, it is a listing or
-        # delisting
         acc_price = 0
         token_account_to_match = None  # for finding token address.
         for ins in inner_ins_array:
@@ -170,7 +184,87 @@ class ParsedTransaction:
         # which is a PDA from the Market Place Authority, so the balance change
         # will have to reflect on that account.
         event.token_key, _ = self.find_token_address_and_owner(token_account_to_match)
-        return event if event.token_key and (event.owner or event.buyer) else None
+        return event
+
+    def _parse_magic_eden_v2(self, program_key):
+        magic_eden_listing = 0xad837f01a485e633
+        magic_eden_delisting = 0x4baf5fa3cb82c6c6
+        magic_eden_bid = 0xeaebda01123d0666
+        magic_eden_cancel_bid = 0xe9e0b184da244cee
+        magic_eden_sale = 0x623314f9dd94a25
+
+        # So for sales event there could be variable number of
+        # instructions that all match, we need to check and match to see if
+        # any of the instruction matches.
+        # There could be a case that a single event contains "bid" and "sale"
+        # instructions both, in this case we categorize them as "sale".
+        # The matching precendence will be sale comes before bid.
+        matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+            program_key,
+            offset=magic_eden_sale,
+            width=8
+        )
+
+        if not matched_pi:
+            matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key,
+            )
+            if not matched_pi:
+                return None
+
+        offset = matched_pi.get_function_offset(8)
+        buyer, owner = EMPTY_PUBLIC_KEY, EMPTY_PUBLIC_KEY
+        price = 0
+        token_key = EMPTY_PUBLIC_KEY
+        event_type = None
+
+        if offset == magic_eden_listing:
+            owner = matched_pi.account_list[0]
+            token_key = matched_pi.account_list[4]
+            price = matched_pi.get_int(10, 8)
+            event_type = SECONDARY_MARKET_EVENT_PRICE_UPDATE
+            # Try find if there is any set authority inner instruction,
+            # if so, it is a listing otherwise it is a price update
+            for ins in inner_ins_array:
+                pi = ParsedInstruction(
+                    ins,
+                    self.account_keys
+                )
+                if (pi and pi.is_token_program_instruction
+                        and pi.get_function_offset() == TOKEN_SET_AUTHORITY):
+                    event_type = SECONDARY_MARKET_EVENT_LISTING
+                    break
+        elif offset == magic_eden_delisting:
+            owner = matched_pi.account_list[0]
+            token_key = matched_pi.account_list[3]
+            event_type = SECONDARY_MARKET_EVENT_DELISTING
+        elif offset == magic_eden_bid:
+            buyer = matched_pi.account_list[0]
+            price = matched_pi.get_int(10, 8)
+            event_type = SECONDARY_MARKET_EVENT_BID
+            token_key = matched_pi.account_list[2]
+        elif offset == magic_eden_sale:
+            event_type = SECONDARY_MARKET_EVENT_SALE
+            buyer = matched_pi.account_list[0]
+            price = matched_pi.get_int(10, 8)
+            token_key = matched_pi.account_list[4]
+        elif offset == magic_eden_cancel_bid:
+            pass
+
+        return SecondaryMarketEvent(
+            blockchain_id=BLOCKCHAIN_SOLANA,
+            market_id=SOLANA_MAGIC_EDEN,
+            timestamp=self.block_time,
+            event_type=event_type,
+            transaction_hash=self.signature,
+            owner=owner,
+            buyer=buyer,
+            price=price,
+            token_key=token_key
+        ) if event_type and token_key and (owner or buyer) else None
+
+    def _parse_magic_eden_auction(self, matched_pi: ParsedInstruction, inner_ins_array):
+        ...
 
     def _parse_alpha_art(self, alpha_art_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
@@ -601,24 +695,24 @@ class ParsedTransaction:
                 return balance['mint'], balance['owner'] if 'owner' in balance else None
         return None, None
 
-    def find_secondary_market_program_instructions(self, program_key, offset=None) -> \
+    def find_secondary_market_program_instructions(self, program_key, offset=None, width=1) -> \
             Tuple[Optional[ParsedInstruction], Optional[List[Dict]]]:
         """
-        Find the instruction from the secondary market program and its inner
-        instructions (list of dict)
+        Find the first instruction from the secondary market program and its inner
+        instructions (list of dict) that matches the program key.
+        Or the one that matches the specific function offset.
 
         Args:
             program_key:
-            offset: In addition which offset to match. If None, will match the first
-                instruction with the program key.
-
+            offset:the offset value
+            width: Function offset width
         Returns:
 
         """
         for ins_index, ins in enumerate(self.instructions):
             matched_pi = ParsedInstruction.from_instruction_dict(ins, self.account_keys)
             if matched_pi.program_account_key == program_key:
-                if offset is None or matched_pi.get_function_offset(1) == offset:
+                if offset is None or offset == matched_pi.get_function_offset(width):
                     break
         else:
             return None, None
