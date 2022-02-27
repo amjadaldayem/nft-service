@@ -38,7 +38,6 @@ async def _do_listent_to_market_events(market_id, streamer):
             if len(local_cache) >= 100000:
                 local_cache.clear()
             streamer.put([(sig, timestamp_ns)])
-
     except asyncio.CancelledError:
         raise
 

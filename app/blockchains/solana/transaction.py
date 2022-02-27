@@ -130,7 +130,7 @@ class ParsedTransaction:
         else:
             return None
 
-        return event if event.token_key and (event.owner or event.buyer) else None
+        return event
 
     def _parse_magic_eden_v1(self, matched_pi: ParsedInstruction, inner_ins_array, authority_address):
         # If the inner instruction array contains `transfer`s, this is a

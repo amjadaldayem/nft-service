@@ -26,7 +26,7 @@ def _poller(q, handler):
     loop = asyncio.new_event_loop()
     while True:
         try:
-            event = q.get(True, 2)
+            event = q.get(True, 1)
         except mp.queues.Empty:
             continue
         if event == END_MARKER:
