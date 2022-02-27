@@ -253,7 +253,7 @@ class MagicEdenTestCase(unittest.TestCase):
         self.assertEqual(event, expected)
 
     def test_magic_eden_bid_event_01(self):
-        # V2
+        # V2 - Direct Sell offering
         event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
             SECONDARY_MARKET_EVENT_BID,
@@ -265,6 +265,60 @@ class MagicEdenTestCase(unittest.TestCase):
             token_key='CqkUbXgnYhwxfzJRqPVJGparRRsrzMJKGGUuL59Gsajj',
             price=30000000,
             owner_or_buyer='2ivnxDtJ3KbyYF2EivgMNFfKZrUNMviumPqnvL9T77aZ',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_magic_eden_sale_auction_event_01(self):
+        # V1 auction settle
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            token_key='DgQB3MHh4vr4tK876zv91Zd7GittRwCEJdKpjikRShvF',
+            price=700000000,
+            owner_or_buyer='52srbq1g4zKyUftKcWngzpFkNmwvUVJW5KG1GwZZL21J',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_magic_eden_sale_auction_event_02(self):
+        # V2 auction settle
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            token_key='HSJiW3MPPg5PrUg4qdo9jXxiTkX7WZ9tTt5JFUdDXgUp',
+            price=121000000000,
+            owner_or_buyer='ppTeamTpw1cbC8ybJpppbnoL7xXD9froJNFb5uvoPvb',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_magic_eden_sale_auction_event_03(self):
+        # V2 auction settle
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            token_key='8qdn8Ft3gD146eY5UCetbpsaXGj4QXb8V1oJw2ycGzjV',
+            price=51750000000,
+            owner_or_buyer='daoXo7FeRBb4gonerEKhGB5X8rkC9ag16s7cspLYR9g',
             timestamp=timestamp,
             signature=signature
         )
@@ -389,6 +443,42 @@ class MagicEdenTestCase(unittest.TestCase):
         )
         self.assertEqual(event, expected)
 
+    def test_magic_eden_sale_event_08(self):
+        # V2, sale from an accepted offer.
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE,
+            '08.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='CqkUbXgnYhwxfzJRqPVJGparRRsrzMJKGGUuL59Gsajj',
+            price=30000000,
+            owner_or_buyer='2ivnxDtJ3KbyYF2EivgMNFfKZrUNMviumPqnvL9T77aZ',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_magic_eden_sale_event_09(self):
+        # V1, sale from an accepted offer.
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE,
+            '09.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='2EvZ77q5ot3e63nUpGkZaCFKZaQm4u2ciWyRwiKMF1rX',
+            price=3400000000,
+            owner_or_buyer='2ivnxDtJ3KbyYF2EivgMNFfKZrUNMviumPqnvL9T77aZ',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
     def test_magic_eden_delisting_event_01(self):
         event, timestamp, signature = load_and_parse(
             SOLANA_MAGIC_EDEN,
@@ -419,6 +509,42 @@ class MagicEdenTestCase(unittest.TestCase):
             token_key='As1cySAyfeesM4MBrYZhs46DFMfnHH3ySU32C2xfSgPv',
             price=0,
             owner_or_buyer='CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_magic_eden_cancel_bidding_event_01(self):
+        # V2
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            token_key='8hUyid6kgBRwTe54wBmQEEGZpbdneWei6e3ZXJcN6oRb',
+            price=0,
+            owner_or_buyer='75EAivjBWfHZ5LnM1VfqqMZCsgeiAAWZQiqgFQkQQUwm',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_magic_eden_cancel_bidding_event_02(self):
+        # V2
+        event, timestamp, signature = load_and_parse(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_MAGIC_EDEN,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            token_key='52tS6BhUM4eFKHm6TJuemVU1QLmmocZ1JQNQiNojE8GH',
+            price=0,
+            owner_or_buyer='4PaeHjgX7nKUYpRhE7eb2TChkxQYDwKXs8wgYsJ7xxUV',
             timestamp=timestamp,
             signature=signature
         )

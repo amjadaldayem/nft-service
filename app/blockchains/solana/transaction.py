@@ -126,7 +126,7 @@ class ParsedTransaction:
         elif magic_eden_program_key == MAGIC_EDEN_PROGRAM_ACCOUNT_V2:
             event = self._parse_magic_eden_v2(magic_eden_program_key)
         elif magic_eden_program_key == MAGIC_EDEN_AUCTION_PROGRAM_ACCOUNT:
-            event = self._parse_magic_eden_auction(matched_pi, inner_ins_array)
+            event = self._parse_magic_eden_auction(magic_eden_program_key)
         else:
             return None
 
@@ -136,6 +136,13 @@ class ParsedTransaction:
         # If the inner instruction array contains `transfer`s, this is a
         # sale; otherwise, if the length of the array is 2, it is a listing or
         # delisting
+
+        offset = matched_pi.get_function_offset(8)
+
+        event_type = SECONDARY_MARKET_EVENT_SALE  # Default value
+        if offset == 0x925c97c85b944dee:
+            event_type = SECONDARY_MARKET_EVENT_BID
+
         event = SecondaryMarketEvent(
             blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_MAGIC_EDEN,
@@ -190,7 +197,7 @@ class ParsedTransaction:
         magic_eden_listing = 0xad837f01a485e633
         magic_eden_delisting = 0x4baf5fa3cb82c6c6
         magic_eden_bid = 0xeaebda01123d0666
-        magic_eden_cancel_bid = 0xe9e0b184da244cee
+        magic_eden_cancel_bidding = 0xe9e0b184da244cee
         magic_eden_sale = 0x623314f9dd94a25
 
         # So for sales event there could be variable number of
@@ -204,6 +211,12 @@ class ParsedTransaction:
             offset=magic_eden_sale,
             width=8
         )
+        if not matched_pi:
+            matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key,
+                offset=magic_eden_cancel_bidding,
+                width=8
+            )
 
         if not matched_pi:
             matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
@@ -248,8 +261,11 @@ class ParsedTransaction:
             buyer = matched_pi.account_list[0]
             price = matched_pi.get_int(10, 8)
             token_key = matched_pi.account_list[4]
-        elif offset == magic_eden_cancel_bid:
-            pass
+        elif offset == magic_eden_cancel_bidding:
+            event_type = SECONDARY_MARKET_EVENT_CANCEL_BIDDING
+            buyer = matched_pi.account_list[0]
+            price = 0
+            token_key = matched_pi.account_list[2]
 
         return SecondaryMarketEvent(
             blockchain_id=BLOCKCHAIN_SOLANA,
@@ -263,8 +279,60 @@ class ParsedTransaction:
             token_key=token_key
         ) if event_type and token_key and (owner or buyer) else None
 
-    def _parse_magic_eden_auction(self, matched_pi: ParsedInstruction, inner_ins_array):
-        ...
+    def _parse_magic_eden_auction(self, program_key):
+        # TODO: Later we should capture PlaceBid and PlaceBidv2
+        #   Now only captures the settlements.
+        magic_eden_auction_settle_v1 = 0xd466839057b92aaf
+        magic_eden_auction_settle_v2 = 0x912751db8dee2905
+
+        matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+            program_key,
+            offset=magic_eden_auction_settle_v2,
+            width=8
+        )
+        if not matched_pi:
+            matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key,
+                offset=magic_eden_auction_settle_v1,
+                width=8
+            )
+
+        if not matched_pi:
+            return None
+
+        owner = EMPTY_PUBLIC_KEY
+        buyer = matched_pi.account_list[0]
+        event_type = SECONDARY_MARKET_EVENT_SALE_AUCTION
+
+        price = 0
+        token_account = None
+
+        for instruction_dict in inner_ins_array:
+            pi = ParsedInstruction(instruction_dict, self.account_keys)
+            if not pi:
+                return None
+            if (pi.is_token_program_instruction
+                    and pi.get_function_offset() == TOKEN_TRANSFER):
+                token_account = matched_pi.account_list[0]
+            elif (pi.is_system_program_instruction
+                    and pi.get_function_offset() == SYS_TRANSFER):
+                if pi.account_list[0] != buyer:
+                    # Exclude the tiny amount directly transferred from buyer
+                    # for fee.
+                    price += pi.get_int(4, 8)
+
+        token_key, _ = self.find_token_address_and_owner(token_account)
+        return SecondaryMarketEvent(
+            blockchain_id=BLOCKCHAIN_SOLANA,
+            market_id=SOLANA_MAGIC_EDEN,
+            timestamp=self.block_time,
+            event_type=event_type,
+            transaction_hash=self.signature,
+            owner=owner,
+            buyer=buyer,
+            price=price,
+            token_key=token_key
+        ) if token_key and (buyer or owner) else None
 
     def _parse_alpha_art(self, alpha_art_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
