@@ -1,5 +1,6 @@
 import os
-from typing import Dict
+import time
+from typing import Dict, List
 
 from fastapi import (
     Body
@@ -17,6 +18,8 @@ from .params import (
     SecondaryMarketEventsInput,
 )
 from ..exceptions import EmptyValue
+from ..services.nft import SmeNftResponseModel
+from ... import settings
 
 
 @api_v1_noauth.method()
@@ -60,14 +63,17 @@ def login(
 
 
 @api_v1_noauth.method(errors=[EmptyValue])
-def get_secondary_market_events(
-        data: SecondaryMarketEventsInput = Body(
-            ..., example={
+def get_secondary_market_events() -> List[SmeNftResponseModel]:
+    from app.web.services import nft_service
 
-            }
-        )
-):
-    ...
+    starting_timestamp = int(time.time()) - settings.SME_FETCH_DEFAULT_LAG
+    exclusive_start_key = (starting_timestamp, None, None)
+    exclusive_stop_key = (starting_timestamp - 30, None, None)
+    return nft_service.get_secondary_market_events(
+        exclusive_start_key=exclusive_start_key,
+        exclusive_stop_key=exclusive_stop_key,
+        limit=15
+    )
 
 
 jsonrpc_app.bind_entrypoint(api_v1_noauth)

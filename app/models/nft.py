@@ -15,7 +15,7 @@ from pydantic import dataclasses
 from app.blockchains import (
     SECONDARY_MARKET_EVENT_UNKNOWN,
     EMPTY_PUBLIC_KEY,
-    EMPTY_TRANSACTION_HASH
+    EMPTY_TRANSACTION_HASH, BLOCKCHAIN_ALL
 )
 from app.models import meta
 from app.models.dynamo import DynamoDBRepositoryBase
@@ -123,6 +123,24 @@ class SecondaryMarketEvent(DataClassBase):
         except:
             return 'unknown'
 
+    @classmethod
+    def get_timestamp_blockchain_transaction_key(cls,
+                                                 timestamp,
+                                                 blockchain_id,
+                                                 transaction_hash):
+        blockchain_id = blockchain_id or ''
+        transaction_hash = transaction_hash or ''
+        return f"tbt#{timestamp}#{blockchain_id}#{transaction_hash}".rstrip('#')
+
+    @classmethod
+    def get_blockchain_timestamp_transaction_key(cls,
+                                                 blockchain_id,
+                                                 timestamp,
+                                                 transaction_hash):
+        blockchain_id = blockchain_id or ''
+        transaction_hash = transaction_hash or ''
+        return f"btt#{blockchain_id}#{timestamp}#{transaction_hash}".rstrip('#')
+
     @property
     def sme_id(self):
         return f'be#{self.blockchain_id}#{self.transaction_hash}'
@@ -143,7 +161,11 @@ class SecondaryMarketEvent(DataClassBase):
         Returns:
             btt#<blockchain_id>#<timestamp>#transaction_hash
         """
-        return f"btt#{self.blockchain_id}#{self.timestamp}#{self.transaction_hash}"
+        return self.get_blockchain_timestamp_transaction_key(
+            self.blockchain_id,
+            self.timestamp,
+            self.transaction_hash
+        )
 
     @property
     def tbt(self) -> str:
@@ -152,7 +174,11 @@ class SecondaryMarketEvent(DataClassBase):
         Returns:
             tbt#<timestamp>#<blockchain_id>#transaction_hash
         """
-        return f"tbt#{self.timestamp}#{self.blockchain_id}#{self.transaction_hash}"
+        return self.get_timestamp_blockchain_transaction_key(
+            self.timestamp,
+            self.blockchain_id,
+            self.transaction_hash
+        )
 
     @property
     def et(self) -> str:
@@ -359,18 +385,21 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
 
     def get_smes_in_time_window(self,
                                 w: str,
-                                tbt=None,
-                                forward: bool = True,
+                                tbt_lb=None,
+                                tbt_ub=None,
                                 filter_expression=None) -> List[dict]:
         """
 
         Retrieves Secondary Market Events that falls in the given time window key.
 
+        Later we might want to watchout for the actual performance and RCU consumptions.
+
         Args:
-            w:
-            tbt: Timestamp - <blockchain_id>#<transaction_hash> sort key.
-            forward: If true, will go forward (from older to newer)
-                another wise go "backward". Exclusive.
+            w: Time Window
+            tbt_lb: The lower bound <timestamp>#<blockchain_id>#<transaction_hash> sort key.
+                Inclusive
+            tbt_ub: The upper bound <timestamp>#<blockchain_id>#<transaction_hash> sort key.
+                Inclusive
             filter_expression:
 
         Returns:
@@ -378,17 +407,21 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
         table = self.table
         key_cond = Key(self.PK).eq(w)
         index_name = None
-        if tbt:
+        if tbt_lb and not tbt_ub:
             index_name = self.LSI_SME_TBT
-            if forward:
-                # Travelling forward to newer items
-                key_cond &= Key(self.LSI_SME_TBT_SK).gt(tbt)
-            else:
-                key_cond &= Key(self.LSI_SME_TBT_SK).lt(tbt)
+            key_cond &= Key(self.LSI_SME_TBT_SK).gt(tbt_lb)
+
+        if tbt_ub and not tbt_lb:
+            index_name = self.LSI_SME_TBT
+            key_cond &= Key(self.LSI_SME_TBT_SK).lt(tbt_ub)
+
+        if tbt_lb and tbt_ub:
+            index_name = self.LSI_SME_TBT
+            key_cond &= Key(self.LSI_SME_TBT_SK).between(tbt_lb, tbt_ub)
 
         query_params = {
             "KeyConditionExpression": key_cond,
-            "Select": "ALL_ATTRIBUTES"
+            "Select": "ALL_ATTRIBUTES",
         }
         if index_name:
             query_params['IndexName'] = index_name
@@ -399,12 +432,12 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
         while True:
             resp = table.query(**query_params)
             items.extend(resp['Items'])
-            exclusive_start_key = resp['LastEvaluatedKey']
+            exclusive_start_key = resp.get('LastEvaluatedKey')
             if not exclusive_start_key:
                 break
             query_params['ExclusiveStartKey'] = exclusive_start_key
 
-        items.sort(key=lambda i: i['tbt'], reverse=not forward)
+        items.sort(key=lambda i: i['tbt'], reverse=True)
         return items
 
     @classmethod

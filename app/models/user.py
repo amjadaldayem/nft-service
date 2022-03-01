@@ -23,6 +23,15 @@ class User(DataClassBase):
     nickname: str = ''
     joined_on: datetime.datetime = datetime.datetime(year=1970, month=1, day=1)
 
+    @property
+    def bookmarked_nft_ids(self):
+        """
+        TODO: Implement the fetching here or in the model
+        Returns:
+
+        """
+        return set()
+
 
 class UserRepository(DynamoDBRepositoryBase, meta.DTUserMeta):
     """

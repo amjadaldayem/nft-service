@@ -52,11 +52,6 @@ class UserAPITestCase(JsonRpcTestMixin, BaseTestCase):
             self.client,
             path='/v1/_rpc'
         )
-        table = self.dynamodb_resource.Table('user')
-        resp = table.query(
-            KeyConditionExpression=Key('pk').eq(self.user.user_id)
-        )
-        items = resp['Items']
 
     def tearDown(self) -> None:
         """

@@ -1,10 +1,22 @@
 # Centralized place for API input models & validators.
 import re
-from typing import Optional
+import time
+from typing import Optional, Tuple, Set
 
 import pydantic
 from pydantic import validator
 
+from app import settings
+from app.blockchains import (
+    BLOCKCHAIN_SOLANA,
+    SECONDARY_MARKET_EVENT_LISTING,
+    SECONDARY_MARKET_EVENT_DELISTING,
+    SECONDARY_MARKET_EVENT_BID,
+    SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+    SECONDARY_MARKET_EVENT_SALE,
+    SECONDARY_MARKET_EVENT_SALE_AUCTION,
+    SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+)
 from app.models.shared import DataClassBase
 from app.models.user import MAX_USERNAME_LEN
 from app.web.exceptions import ValueOutOfRange
@@ -16,58 +28,59 @@ class SecondaryMarketEventsInput(DataClassBase):
     # get_secondary_market_events API.
     #
     # Imagine this as an anchor for fetching the "next" page.
+    # The format:
+    #   (timestamp, blockchain - can be None, transaction_hash - can be None).
+    # If not set, will choose the latest event from `settings.SME_FETCH_DEFAULT_LAG`
+    # seconds ago from the current timestamp.
+    # (
+    #   curr_timestamp - settings.SME_FETCH_DEFAULT_LAG, None, None
+    # )
     #
-    # If not set, will choose the latest event from 6 minutes ago
-    # from the current timestamp.
-    exclusive_start_key: Optional[str] = pydantic.Field(None, alias="exclusiveStartKey")
+    exclusive_start_key: Optional[Tuple[int, int, str]] = pydantic.Field(
+        alias="exclusiveStartKey",
+        default_factory=lambda: (
+            int(time.time()) - settings.SME_FETCH_DEFAULT_LAG,
+            None,
+            None,
+        )
+    )
 
-    # The key to which we stop fetching. This value *should be*
-    # the `last_evaluated_key` returned from previous call to
-    # get_secondary_market_events API.
-    exclusive_stop_key: Optional[str] = pydantic.Field(None, alias="exclusiveStopKey")
     # The `direction` we want to go from the anchor (exclusive_start_key)
-    # By default, always go to more recent events.
-    forward: bool = True
+    # By default, always go toward less recent transactions (go back in time).
+    forward: bool = False
 
     # The timespan of events we fetch. Depending on the direction we go,
-    # this can be either spanning backward or forward. By default, 3 minutes
-    # worth of data.
-    timespan: int = 180
+    # this can be either spanning backward or forward. By default, 1 minute
+    # worth of data. *This will be ignored when `exclusive_stop_key` is present.*
+    timespan: int = 60
 
-    @validator('timespan')
+    # The key to which we stop fetching.
+    exclusive_stop_key: Optional[Tuple[int, int, str]] = pydantic.Field(None, alias="exclusiveStopKey")
+
+    # Filters below,
+    # Might want to add to this list later once we support more blockchains
+    blockchain_ids: Set[int] = pydantic.Field(
+        default_factory={BLOCKCHAIN_SOLANA, }
+    )
+    event_types: Set[int] = pydantic.Field(
+        default_factory={
+            SECONDARY_MARKET_EVENT_LISTING,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            SECONDARY_MARKET_EVENT_SALE,
+            SECONDARY_MARKET_EVENT_PRICE_UPDATE,
+            SECONDARY_MARKET_EVENT_BID,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+        }
+    )
+
+    @validator('timespan', allow_reuse=True)
     def validate_timespan(cls, v):
         if v < 15 or v > 360:
             raise ValueOutOfRange(
                 data={'details': f'Value {v} is out of range [15, 360].'}
             )
         return v
-
-
-class SecondaryMarketEventsOutput(DataClassBase):
-
-    @classmethod
-    def make_key(cls, pk, sk):
-        """
-        Makes a user facing key out of (pk, sk) of an event to obfuscate
-        underlying data schema.
-
-        Returns:
-
-        """
-
-    @classmethod
-    def extract_key(cls, k):
-        """
-        Extracts the user facing key into (pk, sk).
-
-        Args:
-            k:
-
-        Returns:
-
-        """
-
-    last_evaluated_key: Optional[str] = None
 
 
 class LoginInput(DataClassBase):

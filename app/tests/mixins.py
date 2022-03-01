@@ -193,6 +193,14 @@ class BaseTestCase(BasePatcherMixin, unittest.TestCase):
             services.user_service.user_repository,
             resource=cls.dynamodb_resource
         )
+        cls.patch_object_fields(
+            services.nft_service.nft_repository,
+            resource=cls.dynamodb_resource
+        )
+        cls.patch_object_fields(
+            services.nft_service.sme_repository,
+            resource=cls.dynamodb_resource
+        )
 
     @classmethod
     def tearDownClass(cls) -> None:
