@@ -15,7 +15,7 @@ from pydantic import dataclasses
 from app.blockchains import (
     SECONDARY_MARKET_EVENT_UNKNOWN,
     EMPTY_PUBLIC_KEY,
-    EMPTY_TRANSACTION_HASH, BLOCKCHAIN_ALL
+    EMPTY_TRANSACTION_HASH
 )
 from app.models import meta
 from app.models.dynamo import DynamoDBRepositoryBase
@@ -428,23 +428,23 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
             key_cond &= Key(self.LSI_SME_TBT_SK).between(tbt_lb, tbt_ub)
 
         query_params = {
-            "KeyConditionExpression": key_cond,
             "Select": "ALL_ATTRIBUTES",
         }
         if index_name:
             query_params['IndexName'] = index_name
 
-        if tbt_ub_exclusive:
-            f = Attr(self.LSI_SME_TBT_SK).ne(tbt_ub)
-            filter_expression = f if not filter_expression else (filter_expression & f)
-
-        if tbt_lb_exclusive:
-            f = Attr(self.LSI_SME_TBT_SK).ne(tbt_lb)
-            filter_expression = f if not filter_expression else (filter_expression & f)
+        # if tbt_ub_exclusive:
+        #     f = Attr(self.LSI_SME_TBT_SK).ne(tbt_ub)
+        #     filter_expression = f if not filter_expression else (filter_expression & f)
+        #
+        # if tbt_lb_exclusive:
+        #     f = Attr(self.LSI_SME_TBT_SK).ne(tbt_lb)
+        #     filter_expression = f if not filter_expression else (filter_expression & f)
 
         if filter_expression:
             query_params['FilterExpression'] = filter_expression
 
+        query_params["KeyConditionExpression"] = key_cond
         items = []
         while True:
             resp = table.query(**query_params)
@@ -455,6 +455,11 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
             query_params['ExclusiveStartKey'] = exclusive_start_key
 
         items.sort(key=lambda i: i['tbt'], reverse=True)
+        if items and tbt_ub_exclusive and items[0]['tbt'] == tbt_ub:
+            items.pop(0)
+        if items and tbt_lb_exclusive and items[-1]['tbt'] == tbt_lb:
+            items.pop()
+
         return items
 
     @classmethod
