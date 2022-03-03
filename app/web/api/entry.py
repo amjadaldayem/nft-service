@@ -3,11 +3,12 @@ import os
 from fastapi.responses import ORJSONResponse
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
+from app import settings
 from app.utils.fastapi_ex import jsonrpc
 
 jsonrpc_app = jsonrpc.API(default_response_class=ORJSONResponse)
 
-if os.getenv('DEPLOYMENT_ENV') in ('local', 'test'):
+if settings.DEPLOYMENT_ENV in ('local', 'test'):
     app = jsonrpc_app
 else:
     app = SentryAsgiMiddleware(jsonrpc_app)

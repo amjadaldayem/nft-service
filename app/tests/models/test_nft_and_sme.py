@@ -1,5 +1,6 @@
 import unittest
 from collections import Counter
+from unittest import mock
 
 import boto3
 import moto
@@ -11,6 +12,7 @@ from app.models import (
     meta, SecondaryMarketEvent,
 )
 from ..shared import create_tables, load_sme_and_nft_data_list_from_file
+from ... import settings
 from ...blockchains import SOLANA_MAGIC_EDEN, SOLANA_SOLANART, SOLANA_SOLSEA
 
 
@@ -267,6 +269,27 @@ class SMEGetTestCase(unittest.TestCase):
         items_in_latest_window_after_tbt = [
             item for item in self.sme_and_nft_data_list
             if SecondaryMarketEvent.get_time_window_key(item[0].timestamp) == w
+               and item[0].tbt >= tbt_lb
+        ]
+        items_in_latest_window_after_tbt.sort(
+            key=lambda o: SecondaryMarketEvent.get_timestamp_blockchain_transaction_key(
+                o[0].timestamp, o[0].blockchain_id, o[0].transaction_hash
+            ))
+        self.assertEqual(len(items), len(items_in_latest_window_after_tbt))
+
+    def test_query_events_in_time_window_after_tbt_exclusive(self):
+        # Picked the 4th transaction
+        tbt_lb = "tbt#1645937421#65536#25G6yuKhkZmF1SrqGr5eMYVH1Eeo6zh1i5uxdDZ67Uyep3aiUBkHSuGFTKfQ2fBD153eQkTrTAfhER9zubb38A94"
+
+        w = SecondaryMarketEvent.get_time_window_key(self.latest_ts)
+        items = self.sme_repo.get_smes_in_time_window(
+            w,
+            tbt_lb=tbt_lb,
+            tbt_lb_exclusive=True
+        )
+        items_in_latest_window_after_tbt = [
+            item for item in self.sme_and_nft_data_list
+            if SecondaryMarketEvent.get_time_window_key(item[0].timestamp) == w
                and item[0].tbt > tbt_lb
         ]
         items_in_latest_window_after_tbt.sort(
@@ -287,7 +310,28 @@ class SMEGetTestCase(unittest.TestCase):
         items_in_latest_window_before_tbt = [
             item for item in self.sme_and_nft_data_list
             if SecondaryMarketEvent.get_time_window_key(item[0].timestamp) == w
-               and item[0].tbt < tbt_ub
+            and item[0].tbt <= tbt_ub
+        ]
+        items_in_latest_window_before_tbt.sort(
+            key=lambda o: SecondaryMarketEvent.get_timestamp_blockchain_transaction_key(
+                o[0].timestamp, o[0].blockchain_id, o[0].transaction_hash
+            ))
+        self.assertEqual(len(items), len(items_in_latest_window_before_tbt))
+
+    def test_query_events_in_time_window_before_tbt_exclusive(self):
+        # Picked the 4th transaction
+        tbt_ub = "tbt#1645937421#65536#25G6yuKhkZmF1SrqGr5eMYVH1Eeo6zh1i5uxdDZ67Uyep3aiUBkHSuGFTKfQ2fBD153eQkTrTAfhER9zubb38A94"
+
+        w = SecondaryMarketEvent.get_time_window_key(self.latest_ts)
+        items = self.sme_repo.get_smes_in_time_window(
+            w,
+            tbt_ub=tbt_ub,
+            tbt_ub_exclusive=True
+        )
+        items_in_latest_window_before_tbt = [
+            item for item in self.sme_and_nft_data_list
+            if SecondaryMarketEvent.get_time_window_key(item[0].timestamp) == w
+            and item[0].tbt < tbt_ub
         ]
         items_in_latest_window_before_tbt.sort(
             key=lambda o: SecondaryMarketEvent.get_timestamp_blockchain_transaction_key(
@@ -309,6 +353,20 @@ class SMEGetTestCase(unittest.TestCase):
         self.assertEqual(len(items), 1)
         self.assertEqual(items[0]['tbt'], tbt_lb)
 
+    def test_query_events_in_time_window_between_none_exclusive(self):
+        # Picked the 4th transaction
+        tbt_ub = "tbt#1645937421#65536#25G6yuKhkZmF1SrqGr5eMYVH1Eeo6zh1i5uxdDZ67Uyep3aiUBkHSuGFTKfQ2fBD153eQkTrTAfhER9zubb38A94"
+        tbt_lb = "tbt#1645937421#65536#25G6yuKhkZmF1SrqGr5eMYVH1Eeo6zh1i5uxdDZ67Uyep3aiUBkHSuGFTKfQ2fBD153eQkTrTAfhER9zubb38A94"
+
+        w = SecondaryMarketEvent.get_time_window_key(self.latest_ts)
+        items = self.sme_repo.get_smes_in_time_window(
+            w,
+            tbt_lb=tbt_lb,
+            tbt_ub=tbt_ub,
+            tbt_ub_exclusive=True,
+        )
+        self.assertEqual(len(items), 0)
+
     def test_query_events_in_time_window_between_tbt_three(self):
         # Picked the 4th transaction
         tbt_ub = "tbt#1645937464#65536#4QfNqyEuAJJ2ppoGLiCT3Z38V3dQLSX33htERPojsL3Hcv1dhjJG4C9CEY5Xht67KqeFVo1KgP9U4XjZc3XbmngP"
@@ -323,6 +381,53 @@ class SMEGetTestCase(unittest.TestCase):
         self.assertEqual(len(items), 3)
         self.assertEqual(items[0]['tbt'], tbt_ub)
         self.assertEqual(items[-1]['tbt'], tbt_lb)
+
+    def test_query_events_in_time_window_between_tbt_ub_exclusive(self):
+        tbt_ub = "tbt#1645937464#65536#4QfNqyEuAJJ2ppoGLiCT3Z38V3dQLSX33htERPojsL3Hcv1dhjJG4C9CEY5Xht67KqeFVo1KgP9U4XjZc3XbmngP"
+        tbt_lb = "tbt#1645937421#65536#25G6yuKhkZmF1SrqGr5eMYVH1Eeo6zh1i5uxdDZ67Uyep3aiUBkHSuGFTKfQ2fBD153eQkTrTAfhER9zubb38A94"
+
+        w = SecondaryMarketEvent.get_time_window_key(self.latest_ts)
+        items = self.sme_repo.get_smes_in_time_window(
+            w,
+            tbt_lb=tbt_lb,
+            tbt_ub=tbt_ub,
+            tbt_ub_exclusive=True
+        )
+        self.assertEqual(len(items), 2)
+        self.assertNotEqual(items[0]['tbt'], tbt_ub)
+        self.assertEqual(items[-1]['tbt'], tbt_lb)
+
+    def test_query_events_in_time_window_between_tbt_lb_exclusive(self):
+        tbt_ub = "tbt#1645937464#65536#4QfNqyEuAJJ2ppoGLiCT3Z38V3dQLSX33htERPojsL3Hcv1dhjJG4C9CEY5Xht67KqeFVo1KgP9U4XjZc3XbmngP"
+        tbt_lb = "tbt#1645937421#65536#25G6yuKhkZmF1SrqGr5eMYVH1Eeo6zh1i5uxdDZ67Uyep3aiUBkHSuGFTKfQ2fBD153eQkTrTAfhER9zubb38A94"
+
+        w = SecondaryMarketEvent.get_time_window_key(self.latest_ts)
+        items = self.sme_repo.get_smes_in_time_window(
+            w,
+            tbt_lb=tbt_lb,
+            tbt_ub=tbt_ub,
+            tbt_lb_exclusive=True
+        )
+        self.assertEqual(len(items), 2)
+        self.assertEqual(items[0]['tbt'], tbt_ub)
+        self.assertNotEqual(items[-1]['tbt'], tbt_lb)
+
+    def test_query_events_in_time_window_between_both_exclusive(self):
+        tbt_ub = "tbt#1645937464#65536#4QfNqyEuAJJ2ppoGLiCT3Z38V3dQLSX33htERPojsL3Hcv1dhjJG4C9CEY5Xht67KqeFVo1KgP9U4XjZc3XbmngP"
+        tbt_lb = "tbt#1645937421#65536#25G6yuKhkZmF1SrqGr5eMYVH1Eeo6zh1i5uxdDZ67Uyep3aiUBkHSuGFTKfQ2fBD153eQkTrTAfhER9zubb38A94"
+
+        w = SecondaryMarketEvent.get_time_window_key(self.latest_ts)
+        items = self.sme_repo.get_smes_in_time_window(
+            w,
+            tbt_lb=tbt_lb,
+            tbt_ub=tbt_ub,
+            tbt_ub_exclusive=True,
+            tbt_lb_exclusive=True
+        )
+        self.assertEqual(len(items), 1)
+        tbt = items[0]['tbt']
+        self.assertLess(tbt, tbt_ub)
+        self.assertGreater(tbt, tbt_lb)
 
     def test_query_events_in_time_window_filter_market_id(self):
         w = SecondaryMarketEvent.get_time_window_key(self.latest_ts)

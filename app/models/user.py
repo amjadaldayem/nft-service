@@ -1,5 +1,6 @@
 import copy
 import datetime
+from functools import cached_property
 from typing import Optional
 
 from boto3.dynamodb.conditions import Key
@@ -21,7 +22,23 @@ class User(DataClassBase):
     email: str
     phone_number: str = ''
     nickname: str = ''
+    is_admin: bool = False
     joined_on: datetime.datetime = datetime.datetime(year=1970, month=1, day=1)
+
+    @property
+    def sme_lagging(self):
+        """
+        Value in second. The minimal allowed lagging for querying the SME.
+
+        A user cannot query secondary market events that happend after the
+        following timestamp,
+
+            current_timestamp - user.sme_lagging
+
+        TODO: This could be a per user value. E.g., depending on payment status.
+
+        """
+        return 180 if not self.is_admin else 60
 
     @property
     def bookmarked_nft_ids(self):

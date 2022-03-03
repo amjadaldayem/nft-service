@@ -24,8 +24,8 @@ from app.web.exceptions import ValueOutOfRange
 
 class SecondaryMarketEventsInput(DataClassBase):
     # The key from which to continue fetching. This value *should be*
-    # the `last_evaluated_key` returned from previous call to
-    # get_secondary_market_events API.
+    # a tuple of (tiemstamp, blockchain_id, transaction_hash) which is
+    # all available on each item returned from previous API.
     #
     # Imagine this as an anchor for fetching the "next" page.
     # The format:
@@ -45,14 +45,12 @@ class SecondaryMarketEventsInput(DataClassBase):
         )
     )
 
-    # The `direction` we want to go from the anchor (exclusive_start_key)
-    # By default, always go toward less recent transactions (go back in time).
-    forward: bool = False
+    # The timespan of events we fetch.
+    # This param will be ignored when `exclusive_stop_key` is present, because
+    # we will eventually try to "stop" at that `exclusive_stop_key`.
+    timespan: int = 30
 
-    # The timespan of events we fetch. Depending on the direction we go,
-    # this can be either spanning backward or forward. By default, 1 minute
-    # worth of data. *This will be ignored when `exclusive_stop_key` is present.*
-    timespan: int = 60
+    page_size: int = 25
 
     # The key to which we stop fetching.
     exclusive_stop_key: Optional[Tuple[int, int, str]] = pydantic.Field(None, alias="exclusiveStopKey")
@@ -60,10 +58,10 @@ class SecondaryMarketEventsInput(DataClassBase):
     # Filters below,
     # Might want to add to this list later once we support more blockchains
     blockchain_ids: Set[int] = pydantic.Field(
-        default_factory={BLOCKCHAIN_SOLANA, }
+        default_factory=lambda: {BLOCKCHAIN_SOLANA, }
     )
     event_types: Set[int] = pydantic.Field(
-        default_factory={
+        default_factory=lambda: {
             SECONDARY_MARKET_EVENT_LISTING,
             SECONDARY_MARKET_EVENT_DELISTING,
             SECONDARY_MARKET_EVENT_SALE,
@@ -79,6 +77,14 @@ class SecondaryMarketEventsInput(DataClassBase):
         if v < 15 or v > 360:
             raise ValueOutOfRange(
                 data={'details': f'Value {v} is out of range [15, 360].'}
+            )
+        return v
+
+    @validator('page_size', allow_reuse=True)
+    def validate_page_size(cls, v):
+        if v > 50 or v < 1:
+            raise ValueOutOfRange(
+                data={'details': f'Value {v} is out of range [1, 50].'}
             )
         return v
 

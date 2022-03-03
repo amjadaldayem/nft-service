@@ -290,18 +290,6 @@
   {
     "blockchain_id": 65536,
     "market_id": 65793,
-    "timestamp": 1645938881,
-    "event_type": 3,
-    "token_key": null,
-    "price": 0,
-    "owner": "",
-    "buyer": "",
-    "transaction_hash": "4Q7oW1PaUijPFgSctWPhRotdQQ5Hj8AzsrGcVqZVq5j4moYaSGBV6pUJuiGCDA8cKHaS21VHkZnfVxedecj83aAU",
-    "data": null
-  },
-  {
-    "blockchain_id": 65536,
-    "market_id": 65793,
     "timestamp": 1645938860,
     "event_type": 2,
     "token_key": "888HVnqFwHBqhWvvTzXvpk1Dcu2zZnFMPwXzhEjoXJDK",
@@ -1142,18 +1130,6 @@
   {
     "blockchain_id": 65536,
     "market_id": 65793,
-    "timestamp": 1645938010,
-    "event_type": 3,
-    "token_key": null,
-    "price": 0,
-    "owner": "",
-    "buyer": "",
-    "transaction_hash": "2MBMqNi4mcyBvQdJpyACJZTg5gTnKQMQkaLsqa8adWfV6JLXhQskysxCYcwasH68L69y7mDixRt4bXGSpGxS99Bv",
-    "data": null
-  },
-  {
-    "blockchain_id": 65536,
-    "market_id": 65793,
     "timestamp": 1645938005,
     "event_type": 2,
     "token_key": "3bjMiDvHdNKRATzaC5A4Ws1sBG6G3c9ZYQo2jhMCMdyg",
@@ -1185,18 +1161,6 @@
     "owner": "",
     "buyer": "7mZeQPDYuLSsc5LQE1RJ7PYkwgaj42JdPgWp1LSzyjpy",
     "transaction_hash": "4h1arwZLjvx67LyK15MkWYAyE4pduJimeTYmGwTL9fXAnYf8nxE6gY6vqx7HxqiUGBTe3T8HfKZEqBRhbz2U38Pm",
-    "data": null
-  },
-  {
-    "blockchain_id": 65536,
-    "market_id": 65793,
-    "timestamp": 1645937928,
-    "event_type": 3,
-    "token_key": null,
-    "price": 0,
-    "owner": "",
-    "buyer": "",
-    "transaction_hash": "4dRGj9wbJMRgYdjpHhD2RuuFYXfZSQiN6NvDieFVByGLcbaKmvB67KBo4dCSpcFjhMXmG4suQCXU4b6Uh99o5QL",
     "data": null
   },
   {
@@ -1305,18 +1269,6 @@
     "owner": "4gy27oZqLpnhoNgPneBePBeif1ZLaygJECfVuUr85RFt",
     "buyer": "",
     "transaction_hash": "2JcDcjpW836CPfMpJU8ioQqnk1QkEsJ7QVEXxizMBW8LRd9MxdABWFcwutE3Tt94rYB4u17Ckn75oDEcx1CMM6MC",
-    "data": null
-  },
-  {
-    "blockchain_id": 65536,
-    "market_id": 65793,
-    "timestamp": 1645937806,
-    "event_type": 3,
-    "token_key": null,
-    "price": 0,
-    "owner": "",
-    "buyer": "",
-    "transaction_hash": "4pemivA4U8WNFUHf5nRTZmnfvmEU2aojx4qDTRFSd6TeMftGYPsggLLD9ZrJZkp1UARu7itYnME13Kc6RZUjQmWt",
     "data": null
   },
   {

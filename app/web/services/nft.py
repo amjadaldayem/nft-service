@@ -75,42 +75,41 @@ class NFTService:
         )
 
     def get_secondary_market_events(self, exclusive_start_key: Tuple[int, int, str],
-                                    exclusive_stop_key: Optional[Tuple[int, int, str]] = None,
-                                    timespan=settings.SME_FETCH_DEFAULT_TIMESPAN,
-                                    forward=False,
+                                    exclusive_stop_key: Optional[Tuple[int, int, str]],
                                     limit=50,
                                     user: Optional[User] = None,
                                     blockchain_ids=frozenset(),
                                     event_types=frozenset()) -> List[SmeNftResponseModel]:
+        """
+
+        Args:
+            exclusive_start_key:
+            exclusive_stop_key:
+            limit:
+            user:
+            blockchain_ids:
+            event_types:
+
+        Returns:
+
+        """
         start_timstamp = exclusive_start_key[0]
         fn_get_time_window_key = SecondaryMarketEvent.get_time_window_key
         fn_get_tbt_key = SecondaryMarketEvent.get_timestamp_blockchain_transaction_key
+
         w_start = fn_get_time_window_key(exclusive_start_key[0])
         tbt_start = fn_get_tbt_key(*exclusive_start_key)
-        if exclusive_stop_key:
-            stop_timestamp = exclusive_stop_key[0]
-            w_stop = fn_get_time_window_key(exclusive_stop_key[0])
-            tbt_stop = fn_get_tbt_key(*exclusive_stop_key)
-        else:
-            if forward:
-                stop_timestamp = start_timstamp + timespan
-                w_stop = fn_get_time_window_key(stop_timestamp)
-            else:
-                stop_timestamp = start_timstamp - timespan - 1
-                w_stop = fn_get_time_window_key(stop_timestamp)
 
-            tbt_stop = fn_get_tbt_key(stop_timestamp, None, None)
+        stop_timestamp = exclusive_stop_key[0]
+        w_stop = fn_get_time_window_key(exclusive_stop_key[0])
+        tbt_stop = fn_get_tbt_key(*exclusive_stop_key)
 
-        if forward:
-            start_params_name = 'tbt_lb'
-            stop_params_name = 'tbt_ub'
-            if w_stop < w_start:
-                return []
-        else:
-            start_params_name = 'tbt_ub'
-            stop_params_name = 'tbt_lb'
-            if w_stop > w_start:
-                return []
+        start_params_name = 'tbt_ub'
+        stop_params_name = 'tbt_lb'
+
+        if w_stop > w_start or tbt_stop > tbt_start:
+            return []
+
         ws_in_between = [
             fn_get_time_window_key(w)
             for w in range(start_timstamp, stop_timestamp, settings.SME_AGGREGATION_WINDOW)
@@ -128,6 +127,8 @@ class NFTService:
         kwargs = {
             'w': w_start,
             start_params_name: tbt_start,
+            'tbt_lb_exclusive': True,
+            'tbt_ub_exclusive': True,
         }
         if w_start == w_stop:
             kwargs[stop_params_name] = tbt_stop
@@ -137,11 +138,14 @@ class NFTService:
             **kwargs,
             filter_expression=filter_expression
         )
-        if len(curr_items) >= limit:
-            items = curr_items[:limit]
+
+        if not curr_items:
+            return []
+
+        items.extend(curr_items)
+
+        if len(items) >= limit:
             skip_next_queries = True
-        else:
-            items.extend(curr_items)
 
         if not skip_next_queries and w_start != w_stop:
             for w in ws_in_between:
@@ -151,12 +155,11 @@ class NFTService:
                 )
                 items.extend(curr_items)
                 if len(items) > limit:
-                    items = items[:limit]
                     skip_next_queries = True
                     break
             if not skip_next_queries:
                 kwargs = {
-                    'w': w_start,
+                    'w': w_stop,
                     stop_params_name: tbt_stop,
                 }
                 curr_items = self.sme_repository.get_smes_in_time_window(
@@ -164,11 +167,14 @@ class NFTService:
                     filter_expression=filter_expression
                 )
                 items.extend(curr_items)
-                if len(items) > limit:
-                    items = items[:limit]
 
+        items = items[:limit]
+
+        if not items:
+            return []
         # TODO: Later retreives the user_bookmarked_set.
         bookmarked_nft_ids = set() if not user else user.bookmarked_nft_ids
+
         return [
             self.dynamo_to_sme_nft_response_model(item, bookmarked_nft_ids)
             for item in items

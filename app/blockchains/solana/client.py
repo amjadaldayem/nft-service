@@ -309,24 +309,32 @@ def nft_get_nft_data(metadata: SolanaNFTMetaData, current_owner: str = "") -> Nf
 
     files_raw = more_data.get('properties', {}).get('files')
     if files_raw:
+        # Unfortunately, some NFT metadata does not follow the format
+        # {
+        #   'uri': <>
+        #   'type': <>
+        # }
+        # Instead they simply store a list of URL strings under `files` field.
         for d in files_raw:
-            try:
-                if not d.get('uri'):
-                    continue
-                if d['uri'] == image_uri:
+            if isinstance(d, Mapping):
+                uri = d.get('uri')
+                file_type = d.get('type')
+                if uri == image_uri:
                     # If repeated the image uri, just replace the type.
-                    files[0].file_type = d.get('type')
+                    files[0].file_type = file_type
                     continue
-                files.append(
-                    MediaFile(
-                        uri=d['uri'],
-                        file_type=d.get('type', '')
-                    )
+            else:
+                uri = d
+                file_type = ''
+            if not uri:
+                continue
+
+            files.append(
+                MediaFile(
+                    uri=uri,
+                    file_type=file_type
                 )
-            except Exception as e:
-                notify_error(e, metadata={
-                    'metadata': orjson.dumps(metadata)
-                })
+            )
 
     nft_data = NftData(
         blockchain_id=BLOCKCHAIN_SOLANA,

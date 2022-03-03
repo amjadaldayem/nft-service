@@ -1,6 +1,6 @@
 import os
 import time
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from fastapi import (
     Body
@@ -63,16 +63,40 @@ def login(
 
 
 @api_v1_noauth.method(errors=[EmptyValue])
-def get_secondary_market_events() -> List[SmeNftResponseModel]:
-    from app.web.services import nft_service
+def get_secondary_market_events(
+        data: Optional[SecondaryMarketEventsInput] = Body(...),
+) -> List[SmeNftResponseModel]:
+    """
+    For anonymous API call, the following params are fixed:
+        - Timespan = 60 seconds Max
+        - PageSize = 10 Max
+    Args:
+        data:
 
-    starting_timestamp = int(time.time()) - settings.SME_FETCH_DEFAULT_LAG
-    exclusive_start_key = (starting_timestamp, None, None)
-    exclusive_stop_key = (starting_timestamp - 30, None, None)
+    Returns:
+
+    """
+    from app.web.services import nft_service
+    data = data or SecondaryMarketEventsInput()
+    # The latest timestamp we allow anonymous use to start fetching.
+    latest_allowed_starting_timestamp = int(time.time()) - settings.SME_FETCH_DEFAULT_LAG
+    exclusive_start_key = data.exclusive_start_key
+
+    timespan = data.timespan
+    if timespan > 60:
+        timespan = 60
+
+    if not exclusive_start_key or exclusive_start_key[0] > latest_allowed_starting_timestamp:
+        exclusive_start_key = (latest_allowed_starting_timestamp, None, None)
+    exclusive_stop_key = data.exclusive_stop_key
+
+    if not exclusive_stop_key:
+        exclusive_stop_key = (exclusive_start_key[0] - timespan, None, None)
+
     return nft_service.get_secondary_market_events(
         exclusive_start_key=exclusive_start_key,
         exclusive_stop_key=exclusive_stop_key,
-        limit=15
+        limit=settings.SME_FETCH_PAGE_SIZE
     )
 
 

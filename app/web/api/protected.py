@@ -1,3 +1,4 @@
+import time
 from typing import List
 
 from fastapi import (
@@ -42,10 +43,22 @@ def get_secondary_market_events(
 ) -> List[SmeNftResponseModel]:
     from app.web.services import nft_service
 
+    current_timestamp = int(time.time())
+    # This could be a per user value. E.g., paid user can see much more recent
+    # events
+    latest_available_timestamp = current_timestamp - user.sme_lagging
+    exclusive_start_key = data.exclusive_start_key
+    if exclusive_start_key[0] > latest_available_timestamp:
+        exclusive_start_key = (latest_available_timestamp, None, None)
+
+    timespan = data.timespan
+    exclusive_stop_key = data.exclusive_stop_key
+    if not exclusive_stop_key:
+        exclusive_stop_key = (exclusive_start_key[0] - timespan, None, None)
+
     return nft_service.get_secondary_market_events(
-        exclusive_start_key=data.exclusive_start_key,
-        exclusive_stop_key=data.exclusive_stop_key,
-        timespan=data.timespan,
+        exclusive_start_key=exclusive_start_key,
+        exclusive_stop_key=exclusive_stop_key,
         limit=50,
         user=user,
         blockchain_ids=data.blockchain_ids,

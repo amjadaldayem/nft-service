@@ -387,6 +387,8 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
                                 w: str,
                                 tbt_lb=None,
                                 tbt_ub=None,
+                                tbt_lb_exclusive=False,
+                                tbt_ub_exclusive=False,
                                 filter_expression=None) -> List[dict]:
         """
 
@@ -397,10 +399,16 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
         Args:
             w: Time Window
             tbt_lb: The lower bound <timestamp>#<blockchain_id>#<transaction_hash> sort key.
-                Inclusive
+                Inclusive by default.
             tbt_ub: The upper bound <timestamp>#<blockchain_id>#<transaction_hash> sort key.
-                Inclusive
+                Inclusive by default.
             filter_expression:
+            tbt_lb_exclusive: If we want to include the item that matches exactly
+                the upper bound of sort key in the result. By default true, setting
+                this to false can help in the case of pagination, so we avoid overlapping.
+            tbt_ub_exclusive: If we want to include the item that matches exactly
+                the lower bound of sort key in the result. By default true, setting
+                this to false can help in the case of pagination, so we avoid overlapping.
 
         Returns:
         """
@@ -409,11 +417,11 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
         index_name = None
         if tbt_lb and not tbt_ub:
             index_name = self.LSI_SME_TBT
-            key_cond &= Key(self.LSI_SME_TBT_SK).gt(tbt_lb)
+            key_cond &= Key(self.LSI_SME_TBT_SK).gte(tbt_lb)
 
         if tbt_ub and not tbt_lb:
             index_name = self.LSI_SME_TBT
-            key_cond &= Key(self.LSI_SME_TBT_SK).lt(tbt_ub)
+            key_cond &= Key(self.LSI_SME_TBT_SK).lte(tbt_ub)
 
         if tbt_lb and tbt_ub:
             index_name = self.LSI_SME_TBT
@@ -425,6 +433,15 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
         }
         if index_name:
             query_params['IndexName'] = index_name
+
+        if tbt_ub_exclusive:
+            f = Attr(self.LSI_SME_TBT_SK).ne(tbt_ub)
+            filter_expression = f if not filter_expression else (filter_expression & f)
+
+        if tbt_lb_exclusive:
+            f = Attr(self.LSI_SME_TBT_SK).ne(tbt_lb)
+            filter_expression = f if not filter_expression else (filter_expression & f)
+
         if filter_expression:
             query_params['FilterExpression'] = filter_expression
 

@@ -142,12 +142,15 @@ class ParsedTransaction:
         event_type = SECONDARY_MARKET_EVENT_SALE  # Default value
         if offset == 0x925c97c85b944dee:
             event_type = SECONDARY_MARKET_EVENT_BID
+            # Let's not capture Bid events because it is not quite easy
+            # now to figure out the token address
+            return None
 
         event = SecondaryMarketEvent(
             blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_MAGIC_EDEN,
             timestamp=self.block_time,
-            event_type=SECONDARY_MARKET_EVENT_SALE,
+            event_type=event_type,
             transaction_hash=self.signature
         )
         acc_price = 0
