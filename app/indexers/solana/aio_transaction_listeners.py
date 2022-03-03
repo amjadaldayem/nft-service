@@ -108,7 +108,7 @@ async def iter_events_for(program_account):
                             )
                             result = resp.get('result', [])
                             for r in result:
-                                logger.info("Caught up: %s", r['signature'])
+                                # logger.info("Caught up: %s", r['signature'])
                                 yield r['signature'], time.time_ns()
                         last_read_signature = signature
                     except Exception as e:

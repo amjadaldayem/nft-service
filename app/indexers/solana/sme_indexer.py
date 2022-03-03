@@ -114,7 +114,6 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         for record in records
     ]
 
-    logger.info("Number of Transactions = %s", len(transaction_hashes))
     failed_transaction_hashes = []
     sme_list = []  # List of Secondary Market Events
     async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT, timeout=60) as client:
@@ -164,7 +163,9 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 else:
                     raise
     if succeeded_items_to_commit:
-        dynamodb_resource = boto3.resource('dynamodb')
+        dynamodb_resource = boto3.resource(
+            'dynamodb', endpoint_url=settings.DYNAMODB_ENDPOINT
+        )
         sme_repository = SMERepository(
             dynamodb_resource
         )
@@ -187,7 +188,12 @@ async def handle_transactions(records: List[KinesisStreamRecord],
             ), metadata={
                 'details': orjson.dumps(failed).decode('utf8'),
             })
-
+    logger.info(
+        "Received signatures: %s", transaction_hashes
+    )
+    logger.info(
+        "Handled signatures: %s", [e.transaction_hash for e, _ in succeeded_items_to_commit]
+    )
     if failed_transaction_hashes:
         # Pin the failed record from where we want to retry next
         # We just throw in multiple records, and kinesis will take the
