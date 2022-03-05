@@ -1,6 +1,6 @@
 from jinja2 import Template
 
-from app.models.dynamo import SchemaParser
+from app.models.shared.dynamo import SchemaParser
 
 meta_file_template = """
 {% for schema in table_schemas %}

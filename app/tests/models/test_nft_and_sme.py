@@ -1,6 +1,5 @@
 import unittest
 from collections import Counter
-from unittest import mock
 
 import boto3
 import moto
@@ -9,10 +8,10 @@ from boto3.dynamodb.conditions import Key, Attr
 from app.models import (
     SMERepository,
     NFTRepository,
-    meta, SecondaryMarketEvent,
+    SecondaryMarketEvent,
 )
+from ...models.shared import meta
 from ..shared import create_tables, load_sme_and_nft_data_list_from_file
-from ... import settings
 from ...blockchains import SOLANA_MAGIC_EDEN, SOLANA_SOLANART, SOLANA_SOLSEA
 
 

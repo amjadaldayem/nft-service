@@ -3,6 +3,11 @@ import os
 import sentry_sdk
 from sentry_sdk import set_tag
 
+from app.settings import (
+    ENV_TEST,
+    ENV_LOCAL
+)
+
 
 def sentry_error_notify(e, metadata):
     sentry_sdk.capture_exception(e, extra=metadata)
@@ -13,7 +18,7 @@ def initialize():
     from app.utils import setup_logging
     from app.utils import setup_error_handler
     setup_logging(settings.DEBUG)
-    if settings.DEPLOYMENT_ENV not in ('local', 'test'):
+    if settings.DEPLOYMENT_ENV not in (ENV_LOCAL, ENV_TEST):
         sentry_sdk.init(
             dsn=settings.SENTRY_IO_DSN,
             traces_sample_rate=settings.SENTRY_IO_TRACE_SAMPLERATE,

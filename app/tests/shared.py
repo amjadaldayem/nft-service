@@ -6,7 +6,7 @@ import orjson
 
 from app import settings
 from app.models import SecondaryMarketEvent, NftData
-from app.models.dynamo import SchemaParser
+from app.models.shared.dynamo import SchemaParser
 
 
 def create_tables(client):

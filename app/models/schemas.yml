@@ -1,41 +1,6 @@
 # The schema definition for DynamoDb. The `value` field on partition keys and
 # sort keys are for documentation purpose only.
 ---
-#     * Facet: Secondary Market Event Time series
-#        pk = w
-#             w#<date-hour-5min_window> (in format 2022-01-31-17-00, 2022-01-31-17-05)
-#        sk = btt
-#            btt#<blockchain_id>#<timestamp>#<transaction_hash>
-#             <- Per blockchain & Transaction timestamp & transaction hash
-#
-#        -Lsi: Nft name
-#            list_sort_key
-#            name = <name> string
-#
-#        - Lsi: Timestamp
-#            lsi_sort_key
-#            timestamp = <timestamp> (Number)
-#
-#        - Lsi: Event Type
-#            lsi_sort_key
-#            et = et#<event_type>#<timestamp>  (filter by single event)
-#
-#    - Gsi: Transaction Events
-#
-#        gsi_pk = sme_id
-#        gsi_sk = None
-#
-#    - Gsi: Nft Events
-#
-#        gsi_pk = nft_id
-#        gsi_sk = timestamp (number)
-#
-#    - Gsi: Nft Collection Events, Nft Collection Price Owner changes.
-#
-#        gsi_pk = collection_id
-#        gsi_sk = timestamp (number)
-#
-
 sme:
   name: sme
   models:
@@ -44,11 +9,16 @@ sme:
   pk:
     name: w
     value: s.w
+    description: |
+      w#<date-hour-5min_window> (in format 2022-01-31-17-00, 2022-01-31-17-05)
   sk:
     name: btt
     value: s.btt
     # By default, the type is S (string, if omitted)
     type: S
+    description: |
+      btt#<blockchain_id>#<timestamp>#<transaction_hash> 
+      Per blockchain & Transaction timestamp & transaction hash
   read_capcity:
     default: 1
     min: 1
@@ -62,6 +32,7 @@ sme:
       sk:
         name: collection_name
         value: n.collection_name
+        description: The local index on collection name.
       ## If no projection given, it will default to all
       # projection:
       #   keys_only
@@ -74,22 +45,29 @@ sme:
         name: timestamp
         value: e.timestamp
         type: N
+        description: The local index on timestamp only (a number field)
     - name: sme_lsi_et
       sk:
         name: et
         value: e.et
-    # This is another combo of the blockchain id, transaction hash and timestamp,
-    # With timestamp at the beginning to give some definitely ordering across chain.
+        description: The local index on a single event type only.
     - name: sme_lsi_tbt
       sk:
         name: tbt
         value: e.tbt
+        description: |
+          Like `btt`, this is another combo of the blockchain id, transaction hash
+          and timestamp, with timestamp at the beginning to give some definitely
+          ordering across chains.
   gsi:
     - name: sme_gsi_sme_id
       pk:
         name: sme_id
         value: e.sme_id
       sk: ~
+      description: |
+        The `sme_id` consists of blockchain_id and transaction_hash (signature).
+        This is unique across all chains.
       read_capcity:
         default: 1
         min: 1
@@ -118,6 +96,9 @@ sme:
       pk:
         name: collection_id
         value: n.collection_id
+        description: |
+          The `collection_id` consists of blockchain_id and the account address for the
+          collection. Unique across chains.
       sk:
         name: timestamp
         value: e.timestamp
@@ -132,8 +113,6 @@ sme:
         max: 10
 
 # NFT Table
-#
-#     nft_id = bn#<blockchain_id>#<nft_token_address>
 #
 #    * Facet: Nft
 #        pk = <nft_id> from NftData
@@ -162,6 +141,11 @@ nft:
     value:
       - n.nft_id
       - qfi#[a-z0-9_]  # For filter matching.
+    description: |
+      Depending on the use case, the PK can either be the nft id, which consists of
+      blockchain_id and nft mint address: bn#<blockchain_id>#<nft_token_address>; 
+      or `afi` with a single letter, which is the initial letter (lower cased) of
+      the NFT name, this is for quick filtering.
   sk:
     name: sk
     value:

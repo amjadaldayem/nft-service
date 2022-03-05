@@ -16,9 +16,13 @@ dotenv_path = os.path.join(
 )
 dotenv.load_dotenv(dotenv_path)
 DEBUG = os.getenv('DEBUG', 0)
+ENV_PROD = 'prod'
+ENV_DEV = 'dev'
+ENV_LOCAL = 'local'
+ENV_TEST = 'test'
 
 # DEPLOYMENT_ENV, choices: prod, staging, dev, local
-DEPLOYMENT_ENV = os.getenv('DEPLOYMENT_ENV', 'prod')
+DEPLOYMENT_ENV = os.getenv('DEPLOYMENT_ENV', ENV_PROD)
 LOGGING_LEVEL = os.getenv('LOGGING_LEVEL', logging.INFO)
 DYNAMODB_ENDPOINT = os.getenv('DYNAMODB_ENDPOINT')
 SQS_ENDPOINT = os.getenv('SQS_ENDPOINT')

@@ -9,7 +9,7 @@ from jose import jwt, jwk
 from jose.utils import base64url_decode
 
 from app.models.user import User, UserRepository
-from ..exceptions import (
+from app.web.exceptions import (
     AuthenticationError,
     UnknownError,
     ErrorCreatingUserInPool,

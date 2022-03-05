@@ -113,6 +113,9 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         record.data[0]
         for record in records
     ]
+    logger.info(
+        "Received signatures: %s", transaction_hashes
+    )
 
     failed_transaction_hashes = []
     sme_list = []  # List of Secondary Market Events
@@ -175,24 +178,17 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
         if failed:
             notify_error(IOError(
-                f"Error saving some items: {sme_repository.NAME}"
-            ), metadata={
-                'details': orjson.dumps(failed).decode('utf8'),
-            })
+                f"Error saving some items: {orjson.dumps(failed)}"
+            ), metadata={})
 
         _, nft_data_list = zip(*succeeded_items_to_commit)
         _, failed = nft_repository.save_nfts(nft_data_list)
         if failed:
             notify_error(IOError(
-                f"Error saving some items:  {nft_repository.NAME}"
-            ), metadata={
-                'details': orjson.dumps(failed).decode('utf8'),
-            })
+                f"Error saving some items:  {orjson.dumps(failed)}"
+            ), metadata={})
     logger.info(
-        "Received signatures: %s", transaction_hashes
-    )
-    logger.info(
-        "Handled signatures: %s", [e.transaction_hash for e, _ in succeeded_items_to_commit]
+        ">> Handled signatures: %s", [e.transaction_hash for e, _ in succeeded_items_to_commit]
     )
     if failed_transaction_hashes:
         # Pin the failed record from where we want to retry next
