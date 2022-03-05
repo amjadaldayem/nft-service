@@ -902,30 +902,6 @@
   {
     "blockchain_id": 65536,
     "market_id": 65793,
-    "timestamp": 1645938483,
-    "event_type": 3,
-    "token_key": null,
-    "price": 0,
-    "owner": "",
-    "buyer": "",
-    "transaction_hash": "4df1kd4u3Pvoo1J3GaRYV3EbEaYfqpGfSXBkNxCFDSLeREB88ivYewx1AS5oa6qp9YEcRZvn8BZPbzkcCqPFfmfj",
-    "data": null
-  },
-  {
-    "blockchain_id": 65536,
-    "market_id": 65793,
-    "timestamp": 1645938467,
-    "event_type": 3,
-    "token_key": null,
-    "price": 0,
-    "owner": "",
-    "buyer": "",
-    "transaction_hash": "3VQBmyTAM8CCPSsgZ5iWReNxaaTDQmzgsQ1PvpgPVq7ixScuHXDafLc4CVHbwYLihju3ewuyMRE45v6V5YReMk4d",
-    "data": null
-  },
-  {
-    "blockchain_id": 65536,
-    "market_id": 65793,
     "timestamp": 1645938460,
     "event_type": 2,
     "token_key": "C79ZczsKdWi3UjbUmKbmGW6MT58MaeNWPfNicH8hLTfo",
@@ -1521,18 +1497,6 @@
     "owner": "F7SRtWpcEz1HBPVoBeyRXMPhRe3WRqHnSiwW56f4CnzH",
     "buyer": "",
     "transaction_hash": "2m4KkTywowLVQ5xawyHKd81jkZ6S9Y6mUc4dh9LvLRqc4D8B9ZtEqMBiGehybqBvGPcVpqbSkDVsWdDcC9qMW7yr",
-    "data": null
-  },
-  {
-    "blockchain_id": 65536,
-    "market_id": 65793,
-    "timestamp": 1645937604,
-    "event_type": 3,
-    "token_key": null,
-    "price": 0,
-    "owner": "",
-    "buyer": "",
-    "transaction_hash": "3ZhPSTtczQ3hRUVGr2VmwD3CieVQBaWTJh4rgnt3kW4FGVmwH2bdSEA4LJC4pd2CaiHaSNdsv8jFu9PT3mpwFRSN",
     "data": null
   },
   {
