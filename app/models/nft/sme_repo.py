@@ -2,6 +2,7 @@ import copy
 import logging
 from typing import List, Tuple
 
+import orjson
 import pylru
 from boto3.dynamodb.conditions import Key
 
@@ -57,7 +58,8 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
                     c += 1
                 except Exception as e:
                     failed.append(item)
-                    logger.error(str(e) + "\n" + full_stacktrace())
+                    logger.error(str(e))
+                    logger.error("Bad item: %s", orjson.dumps(item))
 
         return c, failed
 
