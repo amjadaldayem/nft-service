@@ -96,8 +96,13 @@ def assert_events_for(test_case, market_id, generate_expected=False):
     Returns:
 
     """
-    with open(os.path.join(market_id_dir_map[market_id],
-                           'txns.json'), 'rb') as fd:
+    input_file = os.path.join(market_id_dir_map[market_id], 'txns.json')
+    output_file = os.path.join(market_id_dir_map[market_id], 'txns-expected.json')
+    assert_events(test_case, input_file, output_file, generate_expected)
+
+
+def assert_events(test_case, input_file, output_file, generate_expected=False):
+    with open(input_file, 'rb') as fd:
         transactions = orjson.loads(fd.read())
 
     results = []
@@ -114,13 +119,11 @@ def assert_events_for(test_case, market_id, generate_expected=False):
         # not really doing any assertion in this branch.
         # Normally used to only manually set generate_expected to true
         # only upon initial test run.
-        with open(os.path.join(market_id_dir_map[market_id],
-                               'txns-expected.json'), 'wb') as fd:
+        with open(output_file, 'wb') as fd:
             fd.write(orjson.dumps([r.dict() for r in results], option=orjson.OPT_INDENT_2))
     else:
 
-        with open(os.path.join(market_id_dir_map[market_id],
-                               'txns-expected.json'), 'rb') as fd:
+        with open(output_file, 'rb') as fd:
             test_case.assertEqual(
                 results,
                 orjson.loads(fd.read())
@@ -1155,3 +1158,11 @@ class SolseaTestCase(unittest.TestCase):
 
     def test_solsea_events(self):
         assert_events_for(self, SOLANA_SOLSEA)
+
+
+class MixedTestCase(unittest.TestCase):
+
+    def test_solsea_events(self):
+        input_file = get_data_path('solana', 'transactions', 'mixed_txns_01.json')
+        output_file = get_data_path('solana', 'transactions', 'mixed_txns_01_expected.json')
+        assert_events(self, input_file, output_file)

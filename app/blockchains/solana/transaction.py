@@ -194,7 +194,7 @@ class ParsedTransaction:
         # which is a PDA from the Market Place Authority, so the balance change
         # will have to reflect on that account.
         event.token_key, _ = self.find_token_address_and_owner(token_account_to_match)
-        return event
+        return event if event.token_key else None
 
     def _parse_magic_eden_v2(self, program_key):
         magic_eden_listing = 0xad837f01a485e633
@@ -318,7 +318,7 @@ class ParsedTransaction:
                     and pi.get_function_offset() == TOKEN_TRANSFER):
                 token_account = matched_pi.account_list[0]
             elif (pi.is_system_program_instruction
-                    and pi.get_function_offset() == SYS_TRANSFER):
+                  and pi.get_function_offset() == SYS_TRANSFER):
                 if pi.account_list[0] != buyer:
                     # Exclude the tiny amount directly transferred from buyer
                     # for fee.
@@ -400,8 +400,8 @@ class ParsedTransaction:
                         event.owner = matched_pi.account_list[0]
                 elif (pi.get_function_offset() == TOKEN_SET_AUTHORITY
                       and pi.get_int(1, 1) == TOKEN_AUTHORITY_TYPE_ACCOUNT_OWNER):
-                    # If changing authority to MagicEden address,
-                    # it is a listing event otherwise it is an delisting one
+                    # If changing authority to AlphaArt address, otherwise it does
+                    # not make any sense.
                     new_owner_key = pi.get_str(3, length=None, b58encode=True)
                     if new_owner_key == authority_address:
                         # Gets the listing price from the outer matche ParsedInstruction
@@ -411,16 +411,13 @@ class ParsedTransaction:
                         event.price = lamports
                         token_account_to_match = pi.account_list[0]
                     else:
-                        event = None
-        # Lastly, try find the mint key (token address)
+                        return None
+        # Lastly, try to find the mint key (token address)
         # Because usually the token has to be carried by a "Token Account",
         # which is a PDA from the Market Place Authority, so the balance change
         # will have to reflect on that account.
-        if event and not event.token_key:
-            event.token_key, _ = self.find_token_address_and_owner(token_account_to_match)
-        if not event:
-            print(self.signature)
-        return event
+        event.token_key, _ = self.find_token_address_and_owner(token_account_to_match)
+        return event if event.token_key else None
 
     def _parse_solanart(self, solanart_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
@@ -541,7 +538,7 @@ class ParsedTransaction:
         else:
             return None
 
-        event = SecondaryMarketEvent(
+        return SecondaryMarketEvent(
             blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_SOLANART,
             timestamp=self.block_time,
@@ -551,9 +548,7 @@ class ParsedTransaction:
             buyer=buyer,
             transaction_hash=self.signature,
             token_key=token_key
-        )
-
-        return event if event.token_key and (event.owner or event.buyer) else None
+        ) if token_key and (owner or buyer) else None
 
     def _parse_digital_eyes(self, digital_eyes_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
@@ -660,7 +655,7 @@ class ParsedTransaction:
             data=data,
             timestamp=self.block_time,
             transaction_hash=self.signature
-        ) if event_type and token_key else None
+        ) if event_type and token_key and (owner or buyer) else None
 
     def _parse_solsea(self, solsea_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
@@ -718,21 +713,18 @@ class ParsedTransaction:
             token_key, _ = self.find_token_address_and_owner(buyer)
         else:
             event_type = None
-        if event_type and token_key:
-            event = SecondaryMarketEvent(
-                blockchain_id=BLOCKCHAIN_SOLANA,
-                event_type=event_type,
-                market_id=SOLANA_SOLSEA,
-                owner=owner,
-                buyer=buyer,
-                price=price,
-                timestamp=self.block_time,
-                token_key=token_key,
-                transaction_hash=self.signature
-            )
-        else:
-            event = None
-        return event
+
+        return SecondaryMarketEvent(
+            blockchain_id=BLOCKCHAIN_SOLANA,
+            event_type=event_type,
+            market_id=SOLANA_SOLSEA,
+            owner=owner,
+            buyer=buyer,
+            price=price,
+            timestamp=self.block_time,
+            token_key=token_key,
+            transaction_hash=self.signature
+        ) if event_type and token_key and (owner or buyer) else None
 
     @cached_property
     def event(self):

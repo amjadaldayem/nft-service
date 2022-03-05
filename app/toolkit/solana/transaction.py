@@ -17,7 +17,7 @@ def do_get_transaction(signature, filename):
     c = Client(settings.SOLANA_RPC_ENDPOINT)
     resp = c.get_confirmed_transaction(signature)
     dir_name = os.path.dirname(filename)
-    if not os.path.exists(dir_name):
+    if dir_name and not os.path.exists(dir_name):
         os.makedirs(dir_name, exist_ok=True)
     with open(filename, 'wb') as c:
         c.write(orjson.dumps(resp['result'], option=orjson.OPT_INDENT_2))
