@@ -6,8 +6,9 @@ import time
 from typing import List, Tuple, Optional
 
 import boto3
+import httpx
 import orjson
-from solana.rpc import commitment
+from httpx import Timeout
 
 from app import settings
 from app.blockchains import (
@@ -17,14 +18,14 @@ from app.blockchains import (
 from app.blockchains.solana import (
     ParsedTransaction,
     nft_get_metadata_by_token_key,
-    CustomAsyncClient,
-    CustomClient
+    CustomAsyncClient
 )
 from app.blockchains.solana.client import (
-    nft_get_nft_data
+    nft_get_nft_data, SolanaNFTMetaData, nft_get_token_account_by_token_key, nft_get_metadata_by_token_account_async,
+    transform_nft_data
 )
-from app.models import SecondaryMarketEvent, NFTRepository, SMERepository
-from app.utils import notify_error
+from app.models import SecondaryMarketEvent, NFTRepository, SMERepository, NftData
+from app.utils import notify_error, full_stacktrace
 from app.utils.streamer import KinesisStreamer, KinesisStreamRecord
 
 logger = logging.getLogger(__name__)
@@ -90,6 +91,94 @@ async def get_smes(client, transaction_hashes: List[str], loop) -> Tuple[List[Se
     return succeeded_events, failed_retriable
 
 
+async def get_nft_metadata(client, index, token_key) -> Tuple[int, Optional[NftData]]:
+    try:
+        metadata_pda_key = nft_get_token_account_by_token_key(token_key)
+        nft_metadata = await nft_get_metadata_by_token_account_async(metadata_pda_key, client)
+        return index, nft_metadata
+    except Exception as e:
+        logger.error("Failed to fetch NFT metadata for %s (%s)", token_key, str(e))
+        return index, None
+
+
+async def get_nft_metadata_list(client, sme_list, loop) -> List[Optional[SolanaNFTMetaData]]:
+    """
+
+    Args:
+        client:
+        sme_list:
+
+    Returns:
+        Tuple of list of SolanaNFTMetaData, and a list of failed-to-fetch token_keys
+    """
+    sme_list_len = len(sme_list)
+    ret = [None] * sme_list_len
+    failed_retriable = {i for i in range(sme_list_len)}
+    tries = 2
+    while tries > 0 and sme_list:
+        task_list = [
+            get_nft_metadata(client, i, event.token_key)
+            for i, event in enumerate(sme_list) if i in failed_retriable
+        ]
+        results = await asyncio.gather(*task_list, loop=loop)
+
+        failed_retriable = set()
+        for i, nft_metadata in results:
+            if nft_metadata:
+                ret[i] = nft_metadata
+            else:
+                failed_retriable.add(i)
+
+        if failed_retriable:
+            time.sleep(1)
+        tries -= 1
+    return ret
+
+
+async def get_nft_data(client, index, uri) -> Tuple[int, NftData]:
+    try:
+        resp = await client.get(uri)
+        return index, resp.json()
+    except Exception as e:
+        logger.error("Failed to fetch NFT data from uri (%s) (%s)", uri, str(e))
+        return index, None
+
+
+async def get_nft_data_list(nft_metadata_list: List[SolanaNFTMetaData],
+                            current_owner_list: List[str], client, loop) -> List[NftData]:
+    nft_metadata_list_len = len(nft_metadata_list)
+    ret = [None] * nft_metadata_list_len
+    failed_retriable = {i for i in range(nft_metadata_list_len)}
+    tries = 2
+    while tries > 0 and nft_metadata_list:
+        task_list = [
+            get_nft_data(client, i, metadata.uri)
+            for i, metadata in enumerate(nft_metadata_list)
+            if metadata and metadata.uri and i in failed_retriable
+        ]
+        results = await asyncio.gather(*task_list, loop=loop)
+
+        failed_retriable = set()
+        for i, nft_metadata_ex in results:
+            if nft_metadata_ex:
+                try:
+                    ret[i] = transform_nft_data(
+                        nft_metadata_list[i],
+                        nft_metadata_ex,
+                        current_owner_list[i]
+                    )
+                except Exception as e:
+                    ret[i] = None
+                    logger.error("Error transforming NFT data. %s ", full_stacktrace())
+            else:
+                failed_retriable.add(i)
+
+        if failed_retriable:
+            time.sleep(1)
+        tries -= 1
+    return ret
+
+
 def write_to_local(succeeded_items_to_commit, file_name='smes.json'):
     """
     For local testing purpose only.
@@ -119,7 +208,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
 
     failed_transaction_hashes = []
     sme_list = []  # List of Secondary Market Events
-    async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT, timeout=60) as client:
+    async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT, timeout=15) as client:
         await client.is_connected()
         max_retries = 3
         while max_retries > 0:
@@ -133,38 +222,36 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 break
             transaction_hashes = failed_transaction_hashes
             max_retries -= 1
-            time.sleep(1)
+            time.sleep(2)
 
     succeeded_items_to_commit = []
     if sme_list:
-        # Metadata is Solana specific, can be None if fetching failed
-        client = CustomClient(
-            settings.SOLANA_RPC_ENDPOINT,
-            commitment=commitment.Confirmed,
-            timeout=15
+        current_owner_list = [
+            event.buyer if event.event_type in {
+                SECONDARY_MARKET_EVENT_SALE,
+                SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            } else event.owner for event in sme_list
+        ]
+        async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT, timeout=15) as client:
+            await client.is_connected()
+            # The returned nft_metadata_list is the same length as the input sme_list
+            # and keeps the same order. Failed spot will be set None instead of
+            # SolanaNFTMetadata instance. So later it will be easier to stitch
+            nft_metadata_list = await get_nft_metadata_list(
+                client,
+                sme_list,
+                loop
+            )
+
+        async with httpx.AsyncClient(timeout=Timeout(timeout=15.0)) as client:
+            nft_data_list = await get_nft_data_list(
+                nft_metadata_list, current_owner_list, client, loop
+            )
+
+        succeeded_items_to_commit = list(
+            filter(lambda o: o[1], zip(sme_list, nft_data_list))
         )
 
-        for event in sme_list:
-            try:
-                metadata = nft_get_metadata_by_token_key(event.token_key, client=client)
-                # Nft_data is shared format across all chains, generic
-                nft_data = nft_get_nft_data(
-                    metadata,
-                    current_owner=(
-                        event.buyer if event.event_type in {
-                            SECONDARY_MARKET_EVENT_SALE,
-                            SECONDARY_MARKET_EVENT_SALE_AUCTION,
-                        }
-                        else event.owner
-                    )
-                )
-                succeeded_items_to_commit.append((event, nft_data))
-            except Exception as e:
-                if no_raise:
-                    logger.error(str(e))
-                    failed_transaction_hashes.append(event.transaction_hash)
-                else:
-                    raise
     if succeeded_items_to_commit:
         dynamodb_resource = boto3.resource(
             'dynamodb', endpoint_url=settings.DYNAMODB_ENDPOINT

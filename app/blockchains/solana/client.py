@@ -7,7 +7,6 @@ from typing import Optional, List, Mapping, Union, Dict
 
 import base58
 import multiprocess as mp
-import orjson
 from solana.publickey import PublicKey
 from solana.rpc import commitment
 from solana.rpc.api import MemcmpOpt, Client
@@ -21,7 +20,6 @@ from app.models import (
     NftCreator,
     MediaFile
 )
-from app.utils import notify_error
 
 logger = logging.getLogger(__name__)
 
@@ -267,6 +265,34 @@ def nft_get_metadata_by_token_account(pda_key: Union[str, PublicKey], client) ->
     )
 
 
+async def nft_get_metadata_by_token_account_async(pda_key: Union[str, PublicKey], async_client) -> Optional[
+    SolanaNFTMetaData]:
+    """
+    Gets the NFT metadata by the `update_authority` key.
+
+    Args:
+        pda_key: The key to the `update_authority`, the wallet used to sign
+            the new candy machine.
+        client:
+    Returns:
+
+    """
+    resp = await async_client.get_account_info(pda_key)
+
+    value = resp['result']['value']
+    if not value:
+        return None
+    data_field = value['data']
+    data, encoding = data_field
+    return nft_get_metadata(
+        NFTMetadataProgramAccount(
+            public_key=pda_key,
+            data=data,
+            encoding=encoding
+        )
+    )
+
+
 def nft_get_metadata_by_token_key(token_key: str, client=None) -> SolanaNFTMetaData:
     """
     Gets the NFT metadata by the Token key (address).
@@ -281,33 +307,19 @@ def nft_get_metadata_by_token_key(token_key: str, client=None) -> SolanaNFTMetaD
     return nft_get_metadata_by_token_account(metadata_pda_key, client)
 
 
-def nft_get_nft_data(metadata: SolanaNFTMetaData, current_owner: str = "") -> NftData:
-    """
-    Gets the shared standard NFT model from metadata.
-
-    Args:
-        metadata: The token key (or mint address in SolScan term).
-        current_owner: The current owner to set. This is not accessible from metadata.
-    Returns:
-
-    """
-    import requests
-
+def transform_nft_data(metadata: SolanaNFTMetaData, json_data: Mapping, current_owner: str) -> NftData:
     def transform_attributes(attrs):
         return {
             attr['trait_type']: str(attr['value']) if attr['value'] is not None else ''
             for attr in attrs if 'trait_type' in attr
         }
 
-    # Let it throw if errors
-    more_data = requests.get(metadata.uri).json()
-
     files = []
-    image_uri = more_data.get('image', '')
+    image_uri = json_data.get('image', '')
     if image_uri:
         files.append(MediaFile(uri=image_uri))
 
-    files_raw = more_data.get('properties', {}).get('files')
+    files_raw = json_data.get('properties', {}).get('files')
     if files_raw:
         # Unfortunately, some NFT metadata does not follow the format
         # {
@@ -342,7 +354,7 @@ def nft_get_nft_data(metadata: SolanaNFTMetaData, current_owner: str = "") -> Nf
         current_owner=current_owner,
         collection_key=metadata.update_authority,
         name=metadata.name,
-        description=more_data.get('description', ''),
+        description=json_data.get('description', ''),
         symbol=metadata.symbol,
         primary_sale_happened=metadata.primary_sale_happened,
         metadata_uri=metadata.uri or "",
@@ -355,13 +367,29 @@ def nft_get_nft_data(metadata: SolanaNFTMetaData, current_owner: str = "") -> Nf
         ext_data={
             'update_authority': metadata.update_authority
         },
-        edition=str(more_data.get('edition', -1)),
-        attributes=transform_attributes(more_data.get('attributes', [])),
-        external_url=more_data.get('external_url', ''),
+        edition=str(json_data.get('edition', -1)),
+        attributes=transform_attributes(json_data.get('attributes', [])),
+        external_url=json_data.get('external_url', ''),
         files=files
     )
 
     return nft_data
+
+
+def nft_get_nft_data(metadata: SolanaNFTMetaData, current_owner: str = "") -> NftData:
+    """
+    Gets the shared standard NFT model from metadata.
+
+    Args:
+        metadata: The token key (or mint address in SolScan term).
+        current_owner: The current owner to set. This is not accessible from metadata.
+    Returns:
+
+    """
+    import requests
+    # Let it throw if errors
+    json_data = requests.get(metadata.uri).json()
+    transform_nft_data(metadata, json_data, current_owner)
 
 
 def nft_get_token_account_by_token_key(token_key: str) -> PublicKey:
