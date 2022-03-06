@@ -10,7 +10,9 @@ from app.settings import (
 
 
 def sentry_error_notify(e, metadata):
-    sentry_sdk.capture_exception(e, extra=metadata)
+    with sentry_sdk.push_scope() as scope:
+        scope.set_extra("metadata", metadata)
+        sentry_sdk.capture_exception(e)
 
 
 def initialize():

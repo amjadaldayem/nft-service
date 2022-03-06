@@ -5,9 +5,11 @@ import os
 import time
 from typing import List, Tuple, Optional
 
+import aiohttp
 import boto3
 import httpx
 import orjson
+from aiohttp import ClientTimeout
 from httpx import Timeout
 
 from app import settings
@@ -137,8 +139,9 @@ async def get_nft_metadata_list(client, sme_list, loop) -> List[Optional[SolanaN
 
 async def get_nft_data(client, index, uri) -> Tuple[int, NftData]:
     try:
-        resp = await client.get(uri)
-        return index, resp.json()
+        async with client.get(uri) as resp:
+            data = await resp.json()
+        return index, data
     except Exception as e:
         logger.error("Failed to fetch NFT data from uri (%s) (%s)", uri, str(e))
         return index, None
@@ -243,7 +246,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 loop
             )
 
-        async with httpx.AsyncClient(timeout=Timeout(timeout=15.0)) as client:
+        async with aiohttp.ClientSession(timeout=ClientTimeout(total=15.0), requote_redirect_url=False) as client:
             nft_data_list = await get_nft_data_list(
                 nft_metadata_list, current_owner_list, client, loop
             )

@@ -2,13 +2,12 @@ import copy
 import logging
 from typing import List, Tuple
 
-import orjson
 import pylru
 from boto3.dynamodb.conditions import Key
 
 from app.models.shared import DynamoDBRepositoryBase, meta
 from .data import SecondaryMarketEvent, NftData
-from ...utils import full_stacktrace
+from ...utils import notify_error
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +57,7 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
                     c += 1
                 except Exception as e:
                     failed.append(item)
-                    logger.error(str(e))
-                    logger.error("Bad item: %s", orjson.dumps(item))
+                    notify_error(e, metadata={'item': item})
 
         return c, failed
 
