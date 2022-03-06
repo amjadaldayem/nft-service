@@ -7,10 +7,8 @@ from typing import List, Tuple, Optional
 
 import aiohttp
 import boto3
-import httpx
 import orjson
 from aiohttp import ClientTimeout
-from httpx import Timeout
 
 from app import settings
 from app.blockchains import (
@@ -19,11 +17,10 @@ from app.blockchains import (
 )
 from app.blockchains.solana import (
     ParsedTransaction,
-    nft_get_metadata_by_token_key,
     CustomAsyncClient
 )
 from app.blockchains.solana.client import (
-    nft_get_nft_data, SolanaNFTMetaData, nft_get_token_account_by_token_key, nft_get_metadata_by_token_account_async,
+    SolanaNFTMetaData, nft_get_token_account_by_token_key, nft_get_metadata_by_token_account_async,
     transform_nft_data
 )
 from app.models import SecondaryMarketEvent, NFTRepository, SMERepository, NftData
@@ -139,7 +136,7 @@ async def get_nft_metadata_list(client, sme_list, loop) -> List[Optional[SolanaN
 
 async def get_nft_data(client, index, uri) -> Tuple[int, NftData]:
     try:
-        async with client.get(uri) as resp:
+        async with client.get(uri, allow_redirects=True) as resp:
             data = await resp.json()
         return index, data
     except Exception as e:
