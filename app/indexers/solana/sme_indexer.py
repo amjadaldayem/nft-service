@@ -24,7 +24,7 @@ from app.blockchains.solana.client import (
     transform_nft_data
 )
 from app.models import SecondaryMarketEvent, NFTRepository, SMERepository, NftData
-from app.utils import notify_error, full_stacktrace
+from app.utils import notify_error, full_stacktrace, http
 from app.utils.streamer import KinesisStreamer, KinesisStreamRecord
 
 logger = logging.getLogger(__name__)
@@ -137,7 +137,7 @@ async def get_nft_metadata_list(client, sme_list, loop) -> List[Optional[SolanaN
 async def get_nft_data(client, index, uri) -> Tuple[int, NftData]:
     try:
         async with client.get(uri, allow_redirects=True) as resp:
-            data = await resp.json()
+            data = await http.get_json(resp)
         return index, data
     except Exception as e:
         logger.error("Failed to fetch NFT data from uri (%s) (%s)", uri, str(e))
