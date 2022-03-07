@@ -7,6 +7,7 @@ import time
 import websockets
 from aiostream import stream
 from solana.rpc.websocket_api import connect
+from websockets.exceptions import ConnectionClosedError
 
 from app import settings
 from app.blockchains.solana import (
@@ -114,7 +115,10 @@ async def iter_events_for(program_account):
                     except Exception as e:
                         logger.error(str(e))
             finally:
-                await ws_client.logs_unsubscribe(sub_id)
+                try:
+                    await ws_client.logs_unsubscribe(sub_id)
+                except ConnectionClosedError:
+                    logger.error("Error occurred while trying to close connection.")
 
 
 async def reliable_websocket(endpoint):
@@ -124,3 +128,5 @@ async def reliable_websocket(endpoint):
         except websockets.ConnectionClosed:
             logger.error("Websocket closed.")
             continue
+        except:
+            raise
