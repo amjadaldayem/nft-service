@@ -12,6 +12,7 @@ attrs==21.4.0
 Automat==20.2.0
 backcall==0.2.0
 base58==2.1.1
+based58==0.1.0
 black==22.1.0
 boto3==1.20.53
 botocore==1.23.53
@@ -38,6 +39,7 @@ httpcore==0.13.7
 httpx==0.18.2
 hyperlink==21.0.0
 idna==3.3
+imagekitio==2.2.8
 incremental==21.3.0
 ipython==8.0.1
 jedi==0.18.1
@@ -91,7 +93,7 @@ sentry-sdk==1.5.5
 service-identity==21.1.0
 six==1.16.0
 sniffio==1.2.0
-solana==0.21.0
+solana==0.22.0
 stack-data==0.1.4
 starlette==0.17.1
 tomli==2.0.0

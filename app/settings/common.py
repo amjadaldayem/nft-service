@@ -2,6 +2,7 @@ import logging
 import os
 
 import dotenv
+from imagekitio import ImageKit
 
 PROJECT_BASE_PATH = os.path.abspath(
     os.path.dirname(
@@ -50,3 +51,9 @@ SME_AGGREGATION_WINDOW = int(os.getenv('SME_AGGREGATION_WINDOW', '5'))
 SME_FETCH_DEFAULT_LAG = int(os.getenv('SME_FETCH_DEFAULT_LAG', '180'))
 SME_FETCH_DEFAULT_TIMESPAN = int(os.getenv('SME_FETCH_DEFAULT_TIMESPAN', 60))
 SME_FETCH_PAGE_SIZE = int(os.getenv('SME_FETCH_PAGE_SIZE', 10))
+
+imagekit = ImageKit(
+    private_key='private_Vma+dpfSFdTA8Mr8tFUD3mFZIn0=',
+    public_key='public_j7+TCs7a2LfblOlPKyF0bs8eC/U=',
+    url_endpoint='https://ik.imagekit.io/sintra'
+)

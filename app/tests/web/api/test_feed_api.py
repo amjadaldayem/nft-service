@@ -80,7 +80,7 @@ class FeedAPITestCase(JsonRpcTestMixin, BaseTestCase):
         expected = [
             {
                 'tokenKey': '9DA8FjMqV1jxznVAV3SBKqkMHxh3RyorBTJAFqRvT4SV',
-                'thumbnailUrl': 'https://arweave.net/CZV-Djosta22IzziOuLgdWOfyIaUMtrRqDCF3LNKtJM',
+                'thumbnailUrl': 'https://ik.imagekit.io/sintra/tr:h-128,w-128/https://arweave.net/CZV-Djosta22IzziOuLgdWOfyIaUMtrRqDCF3LNKtJM?ik-sdk-version=python-2.2.8',
                 'mediaUrl': 'https://arweave.net/CZV-Djosta22IzziOuLgdWOfyIaUMtrRqDCF3LNKtJM',
                 'name': 'Mutant Doodle Apes #8256',
                 'nftId': 'bn#65536#9DA8FjMqV1jxznVAV3SBKqkMHxh3RyorBTJAFqRvT4SV',
@@ -96,7 +96,7 @@ class FeedAPITestCase(JsonRpcTestMixin, BaseTestCase):
             },
             {
                 'tokenKey': 'AoPoZCsVZufPYBQFzYp6sesp4Yjf4FKLuiCdF75RJLNx',
-                'thumbnailUrl': 'https://www.arweave.net/dVmp2V5RmOKd-tv4D9thH5hm_iDXbNiZrMEMnHWuNok?ext=png',
+                'thumbnailUrl': 'https://ik.imagekit.io/sintra/tr:h-128,w-128/https://www.arweave.net/dVmp2V5RmOKd-tv4D9thH5hm_iDXbNiZrMEMnHWuNok?ext=png&ik-sdk-version=python-2.2.8',
                 'mediaUrl': 'https://www.arweave.net/dVmp2V5RmOKd-tv4D9thH5hm_iDXbNiZrMEMnHWuNok?ext=png',
                 'name': 'SKYLINE #3323',
                 'nftId': 'bn#65536#AoPoZCsVZufPYBQFzYp6sesp4Yjf4FKLuiCdF75RJLNx',

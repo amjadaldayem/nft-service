@@ -5,7 +5,7 @@ from aiohttp import ClientResponse
 
 async def get_json(response: ClientResponse):
     """
-    Extracts
+    Extracts JSON from a AIOHttp ClientResponse, regardless of MIME.
     Args:
         response:
 
