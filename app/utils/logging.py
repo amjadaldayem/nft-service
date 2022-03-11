@@ -1,5 +1,6 @@
 import logging
 import os
+from logging.handlers import SysLogHandler
 
 from .logtail import LogtailHandler
 
@@ -61,7 +62,7 @@ def setup_logging(debug=0, include_noisy=None, disable_existing=True,
     # if Logtail Token null, falls back to console logging.
     # logtail_token = os.getenv('LOGTAIL_TOKEN')
     # if not logtail_token or os.getenv('DEPLOYMENT_ENV') in ('test', 'local'):
-    handler = logging.StreamHandler()
+    handler = SysLogHandler(address='/dev/log')
     handler.setFormatter(formatter)
     # else:
     #     handler = LogtailHandler(
