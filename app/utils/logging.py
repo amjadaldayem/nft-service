@@ -59,14 +59,13 @@ def setup_logging(debug=0, include_noisy=None, disable_existing=True,
     formatter = logging.Formatter(log_format)
 
     # if Logtail Token null, falls back to console logging.
-    logtail_token = os.getenv('LOGTAIL_TOKEN')
-    if not logtail_token or os.getenv('DEPLOYMENT_ENV') in ('test', 'local'):
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-    else:
-        handler = LogtailHandler(
-            source_token=logtail_token
-        )
-
+    # logtail_token = os.getenv('LOGTAIL_TOKEN')
+    # if not logtail_token or os.getenv('DEPLOYMENT_ENV') in ('test', 'local'):
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    # else:
+    #     handler = LogtailHandler(
+    #         source_token=logtail_token
+    #     )
     logging.root.addHandler(handler)
     logging.root.setLevel(log_level)
