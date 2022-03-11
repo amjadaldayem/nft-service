@@ -3,9 +3,7 @@ FROM public.ecr.aws/lambda/python:3.8
 
 WORKDIR /app
 COPY requirements.txt ./main /app/
-COPY .docker/etc/rsyslog.d/70-logtail.conf /etc/rsyslog.d/70-logtail.conf
 
-RUN yum install -y rsyslog-gnutls
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
 COPY app /app/app
