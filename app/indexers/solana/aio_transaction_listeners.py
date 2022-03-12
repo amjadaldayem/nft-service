@@ -64,6 +64,8 @@ async def listen_to_market_events(secondary_market_id):
         merged_stream = stream.merge(*args)
         async with merged_stream.stream() as s:
             async for sig, timestamp_ns in s:
+                if secondary_market_id == SOLANA_MAGIC_EDEN:
+                    raise websockets.exceptions.WebSocketException
                 yield sig, timestamp_ns
 
 
@@ -119,6 +121,7 @@ async def iter_events_for(program_account):
                     await ws_client.logs_unsubscribe(sub_id)
                 except ConnectionClosedError:
                     logger.error("Error occurred while trying to close connection.")
+                    raise
 
 
 async def reliable_websocket(endpoint):
@@ -126,7 +129,7 @@ async def reliable_websocket(endpoint):
         try:
             yield websocket
         except websockets.ConnectionClosed:
-            logger.error("Websocket closed.")
+            logger.error("Websocket closed. Reconnecting")
             continue
         except:
             raise

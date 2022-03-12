@@ -1,9 +1,9 @@
 import asyncio
 import logging
+import os
+import time
 from typing import Set
 
-import click
-import multiprocess as mp
 import multiprocessing_logging
 import pylru
 
@@ -14,6 +14,7 @@ from .aio_transaction_listeners import (
     listen_to_market_events,
     MENTIONS
 )
+from ...utils.parallelism import ProcessManager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -38,11 +39,15 @@ async def _do_listent_to_market_events(market_id, streamer):
             if len(local_cache) >= 100000:
                 local_cache.clear()
             streamer.put([(sig, timestamp_ns)])
-    except asyncio.CancelledError:
+    except Exception as e:
+        # We need to notify the parent process to exit.
+        # Since we are using ECS, it will relaunch.
+        logger.error(str(e))
         raise
 
 
 def listen_to_market_events_wrapper(market_id, timeout, stream_name, region, endpoint_url):
+    logger.info("Subprocess for %s started (PID=%s).", MARKET_NAME_MAP[market_id], os.getpid())
     from app.indexers.solana.sme_indexer import handle_transactions
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -110,15 +115,22 @@ def do_solana_sme(stream_name, market_ids: Set[int], runtime, region, endpoint_u
             logger.error(f"Invalid market IDs {invalid_market_ids}.")
             return
 
-    processes = []
+    process_managers = {}
+    # For each market we spin up a subprocess
+    # and to make sure we have a reasonable restart mechanism,
+    # we need to restart a subprocess if it raised / terminated by chance.
     for market_id in market_ids:
-        p = mp.Process(
+        process_managers[market_id] = ProcessManager(
             target=listen_to_market_events_wrapper,
             args=(market_id, runtime, stream_name, region, endpoint_url),
         )
-        processes.append(p)
-        p.start()
-        logger.info("Subprocess for %s started (PID=%s).", MARKET_NAME_MAP[market_id], p.pid)
 
-    for p in processes:
-        p.join()
+    while True:
+        for market_id in market_ids:
+            process_manager = process_managers[market_id]
+            if not process_manager.is_running:
+                process_manager.start()
+        try:
+            time.sleep(5)
+        except InterruptedError:
+            continue

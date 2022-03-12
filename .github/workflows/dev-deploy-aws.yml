@@ -85,7 +85,7 @@ jobs:
             Commit Message:  ${{steps.build-image.outputs.last_commit_message}}
             ECS Image Tag: ${{steps.build-image.outputs.ecs_image}}
             Lambda Image Tag: ${{steps.build-image.outputs.lambda_image}}
-          SLACK_TITLE: Images Ready
+          SLACK_TITLE: Images Ready - sintra-nft-service
           SLACK_ICON: https://avatars.githubusercontent.com/u/93632465?s=60&v=4
           SLACK_USERNAME: Github Actions
           SLACK_WEBHOOK: ${{ env.SLACK_WEBHOOK_BUILD_FINISH }}
