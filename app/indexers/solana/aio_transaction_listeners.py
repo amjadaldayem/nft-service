@@ -64,8 +64,6 @@ async def listen_to_market_events(secondary_market_id):
         merged_stream = stream.merge(*args)
         async with merged_stream.stream() as s:
             async for sig, timestamp_ns in s:
-                if secondary_market_id == SOLANA_MAGIC_EDEN:
-                    raise websockets.exceptions.WebSocketException
                 yield sig, timestamp_ns
 
 
