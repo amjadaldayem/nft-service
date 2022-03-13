@@ -60,7 +60,7 @@ def setup_logging(debug=0, include_noisy=None, disable_existing=True,
 
     # if Logtail Token null, falls back to console logging.
     logtail_token = os.getenv('LOGTAIL_TOKEN')
-    if not logtail_token or os.getenv('DEPLOYMENT_ENV') in ('test', 'local'):
+    if not logtail_token or os.getenv('DEPLOYMENT_ENV') in ('test', 'local', 'dev'):
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
     else:
