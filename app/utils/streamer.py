@@ -175,7 +175,14 @@ class KinesisStreamer:
 
     def kill_local_poller(self):
         if hasattr(self, 'queue'):
-            self.queue.put_nowait(END_MARKER)
+            q = self.queue
+            while True:
+                # Exhausts the queue, best effort
+                try:
+                    q.get_nowait()
+                except mp.queues.Empty:
+                    break
+            q.put_nowait(END_MARKER)
             if self.poller.is_alive():
                 self.poller.join()
 

@@ -134,18 +134,25 @@ async def get_nft_metadata_list(client, sme_list, loop) -> List[Optional[SolanaN
     return ret
 
 
-async def get_nft_data(client, index, uri) -> Tuple[int, NftData]:
-    try:
-        async with client.get(uri, allow_redirects=True) as resp:
-            data = await http.get_json(resp)
-        return index, data
-    except Exception as e:
-        logger.error("Failed to fetch NFT data from uri (%s) (%s)", uri, str(e))
+async def get_nft_data(client, index, uri) -> Tuple[int, Optional[NftData]]:
+    c = 3
+    last_exception = None
+    while c > 0:
+        try:
+            async with client.get(uri, allow_redirects=True) as resp:
+                data = await http.get_json(resp)
+            return index, data
+        except Exception as e:
+            await asyncio.sleep(2 ** (3 - c))  # Backoff with 1, 2, 4 seconds
+            c -= 1
+            last_exception = e
+    else:
+        logger.error("Failed to fetch NFT data from uri (%s) (%s)", uri, str(last_exception))
         return index, None
 
 
 async def get_nft_data_list(nft_metadata_list: List[SolanaNFTMetaData],
-                            current_owner_list: List[str], client, loop) -> List[NftData]:
+                            current_owner_list: List[str], client, loop) -> List[Optional[NftData]]:
     nft_metadata_list_len = len(nft_metadata_list)
     ret = [None] * nft_metadata_list_len
     failed_retriable = {i for i in range(nft_metadata_list_len)}
@@ -253,6 +260,8 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         )
 
     if succeeded_items_to_commit:
+        # for e, n in succeeded_items_to_commit:
+            # logger.info("%s\n%s", orjson.dumps(e.dict()), orjson.dumps(n.dict()))
         dynamodb_resource = boto3.resource(
             'dynamodb', endpoint_url=settings.DYNAMODB_ENDPOINT
         )

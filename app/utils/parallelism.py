@@ -18,7 +18,3 @@ class ProcessManager:
         self.process = mp.Process(target=self.target, args=self.args)
         self.process.start()
         return self.process
-
-    @property
-    def is_running(self):
-        return self.process.exitcode is None if self.process else False
