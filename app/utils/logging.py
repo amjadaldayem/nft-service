@@ -22,6 +22,7 @@ NOISY_MODULES = (
 
 
 def setup_logging(debug=0, include_noisy=None, disable_existing=True,
+                  envs_with_console_logging=frozenset(),
                   **kwargs):
     """
     Sets up logging for an app.
@@ -36,6 +37,9 @@ def setup_logging(debug=0, include_noisy=None, disable_existing=True,
                                  handlers before setting up logging. Allows us
                                  to throw out things that cause duplicate
                                  logging.
+        envs_with_console_logging: Environments for which we just use simple
+            console logging instead of hooking up 3rd party log mgmt.
+            E.g., for local and dev
     """
     if disable_existing:
         del (logging.root.handlers[:])
@@ -60,7 +64,7 @@ def setup_logging(debug=0, include_noisy=None, disable_existing=True,
 
     # if Logtail Token null, falls back to console logging.
     logtail_token = os.getenv('LOGTAIL_TOKEN')
-    if not logtail_token or os.getenv('DEPLOYMENT_ENV') in ('test', 'local', 'dev'):
+    if not logtail_token or os.getenv('DEPLOYMENT_ENV') in envs_with_console_logging:
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
     else:

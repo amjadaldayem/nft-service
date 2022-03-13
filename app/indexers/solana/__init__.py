@@ -1,8 +1,8 @@
 import asyncio
 import logging
 import os
-import sys
-import time
+import signal
+import threading
 from typing import Set
 
 import multiprocessing_logging
@@ -10,12 +10,12 @@ import pylru
 
 from app import settings
 from app.blockchains.solana import MARKET_NAME_MAP
+from app.utils.parallelism import ProcessManager
 from app.utils.streamer import KinesisStreamer
 from .aio_transaction_listeners import (
     listen_to_market_events,
     MENTIONS
 )
-from ...utils.parallelism import ProcessManager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,15 +27,8 @@ async def _stop(loop):
     loop.stop()
 
 
-# Memorize recent 10,000 items
-local_cache = pylru.lrucache(10000)
-
-
-# async def test_signatures(market_id):
-#     for s in ['4XMSdvGTGJTaQPH6bqKrT4as2x7q1fgUKUWqkFdQ6HPfVs2KcftBcnZRM5jTd3dH9V3NyZepmdzfvRzuQk34cUci',
-#               '8hPDUnVL431GVjXJ8fcp6XL3hdSZyfeNojZXyPaBYsZpccDTYzthBwSGsxXg6nUTSHcDD7tr2WrhhBsjcpW1FU6',
-#               '5FUaCu2RoQ3eL7h3qBfzUDLVX2xCeETcv3nnsKnc3BzzYV62qabYyU4EZunYWxueS3EX6ZrjZ3uxvFSDkn1ZeJr9']:
-#         yield s, time.time_ns()
+# Memorize recent 1,000 items
+local_cache = pylru.lrucache(1000)
 
 
 async def _do_listent_to_market_events(market_id, streamer):
@@ -44,8 +37,6 @@ async def _do_listent_to_market_events(market_id, streamer):
             if sig in local_cache:
                 continue
             local_cache[sig] = 1
-            if len(local_cache) >= 100000:
-                local_cache.clear()
             streamer.put([(sig, timestamp_ns)])
     except Exception as e:
         # We need to notify the parent process to exit.
@@ -85,17 +76,21 @@ def listen_to_market_events_wrapper(market_id, timeout, stream_name, region, end
             future.cancel()
             # Gives it a chance for the task to be set to cancelled from pending
             loop.run_until_complete(asyncio.sleep(0.1, loop=loop))
+        streamer.kill_local_poller()
         loop.stop()
     except:
         if not future.cancelled():
             future.cancel()
             # Gives it a chance for the task to be set to cancelled from pending
             loop.run_until_complete(asyncio.sleep(0.1, loop=loop))
+        streamer.kill_local_poller()
         loop.stop()
         raise
     finally:
-        streamer.kill_local_poller()
         loop.close()
+
+
+latch = threading.Event()
 
 
 def do_solana_sme(stream_name, market_ids: Set[int], runtime, region, endpoint_url):
@@ -133,23 +128,35 @@ def do_solana_sme(stream_name, market_ids: Set[int], runtime, region, endpoint_u
         )
 
     normally_exited = {market_id: False for market_id in market_ids}
-    while True:
+
+    def _release_latch(signum, frame):
+        latch.set()
+
+    signal.signal(signal.SIGALRM, _release_latch)
+    if runtime:
+        signal.alarm(runtime)
+
+    while not latch.is_set():
         for market_id in market_ids:
             process_manager = process_managers[market_id]
             process = process_manager.process
             if not process:
                 process_manager.start()
             else:
-                if process.exitcode and process.exitcode != 0:
-                    logger.info("Restarting subprocess for %s", market_id)
-                    process_manager.start()
-                else:
-                    # Exitcode = 0, normal exit
-                    normally_exited[market_id] = True
+                if process.exitcode:
+                    if process.exitcode != 0:
+                        logger.info("Restarting subprocess for market %s", MARKET_NAME_MAP[market_id])
+                        process_manager.start()
+                    else:
+                        # Exitcode = 0, normal exit
+                        logger.info("Subprocess %s exited with code %s", process.pid, process.exitcode)
+                        normally_exited[market_id] = True
         if all(normally_exited.values()):
+            logger.info("All subprocesses exited normally.")
             break
 
         for pm in process_managers.values():
             p = pm.process
             if p:
                 p.join(2)
+    logger.info("Main Process Exit.")

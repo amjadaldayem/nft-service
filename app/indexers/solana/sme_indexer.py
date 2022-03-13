@@ -261,7 +261,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
 
     if succeeded_items_to_commit:
         # for e, n in succeeded_items_to_commit:
-            # logger.info("%s\n%s", orjson.dumps(e.dict()), orjson.dumps(n.dict()))
+        #     logger.info("%s\n%s", orjson.dumps(e.dict()), orjson.dumps(n.dict()))
         dynamodb_resource = boto3.resource(
             'dynamodb', endpoint_url=settings.DYNAMODB_ENDPOINT
         )
