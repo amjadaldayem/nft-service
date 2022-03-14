@@ -17,7 +17,10 @@ NOISY_MODULES = (
     "mangum.http",
     "sentry_sdk.errors",
     "asyncio",
-    "websockets.client"
+    "websockets.client",
+    "httpcore",
+    "httpx",
+    "solanaweb3",
 )
 
 
