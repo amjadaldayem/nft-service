@@ -2,7 +2,6 @@
 import asyncio
 import logging
 import os
-import time
 from typing import List, Tuple, Optional
 
 import aiohttp
@@ -96,7 +95,6 @@ async def get_nft_metadata(client, index, token_key) -> Tuple[int, Optional[NftD
         nft_metadata = await nft_get_metadata_by_token_account_async(metadata_pda_key, client)
         return index, nft_metadata
     except Exception as e:
-        logger.error("Failed to fetch NFT metadata for %s (%s)", token_key, str(e))
         return index, None
 
 
@@ -129,25 +127,29 @@ async def get_nft_metadata_list(client, sme_list, loop) -> List[Optional[SolanaN
                 failed_retriable.add(i)
 
         if failed_retriable:
-            time.sleep(1)
+            await asyncio.sleep(1)
         tries -= 1
+
+    # Eventually, gather the failed ones
+    if failed_retriable:
+        logger.error("Failed to fetch NFT metadata for transaction indexes: %s",
+                     failed_retriable)
     return ret
 
 
 async def get_nft_data(client, index, uri) -> Tuple[int, Optional[NftData]]:
-    c = 3
     last_exception = None
-    while c > 0:
+    for _ in range(3):
         try:
             async with client.get(uri, allow_redirects=True) as resp:
                 data = await http.get_json(resp)
             return index, data
         except Exception as e:
-            await asyncio.sleep(2 ** (3 - c))  # Backoff with 1, 2, 4 seconds
-            c -= 1
+            await asyncio.sleep(1)
             last_exception = e
     else:
-        logger.error("Failed to fetch NFT data from uri (%s) (%s)", uri, str(last_exception))
+        logger.error("Failed to fetch NFT data from uri (%s) (%s) (%s)",
+                     index, uri, str(last_exception))
         return index, None
 
 
@@ -181,7 +183,7 @@ async def get_nft_data_list(nft_metadata_list: List[SolanaNFTMetaData],
                 failed_retriable.add(i)
 
         if failed_retriable:
-            time.sleep(1)
+            await asyncio.sleep(1)
         tries -= 1
     return ret
 
@@ -201,7 +203,8 @@ def write_to_local(succeeded_items_to_commit, file_name='smes.json'):
 
 
 async def handle_transactions(records: List[KinesisStreamRecord],
-                              loop: asyncio.AbstractEventLoop):
+                              loop: asyncio.AbstractEventLoop,
+                              dynamodb_resource=None):
     if not records:
         return
 
@@ -229,7 +232,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 break
             transaction_hashes = failed_transaction_hashes
             max_retries -= 1
-            time.sleep(2)
+            await asyncio.sleep(1)
 
     succeeded_items_to_commit = []
     if sme_list:
@@ -262,7 +265,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
     if succeeded_items_to_commit:
         # for e, n in succeeded_items_to_commit:
         #     logger.info("%s\n%s", orjson.dumps(e.dict()), orjson.dumps(n.dict()))
-        dynamodb_resource = boto3.resource(
+        dynamodb_resource = dynamodb_resource or boto3.resource(
             'dynamodb', endpoint_url=settings.DYNAMODB_ENDPOINT
         )
         sme_repository = SMERepository(

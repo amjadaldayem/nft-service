@@ -10,9 +10,9 @@ from app.models import (
     NFTRepository,
     SecondaryMarketEvent,
 )
-from ...models.shared import meta
-from ..shared import create_tables, load_sme_and_nft_data_list_from_file
-from ...blockchains import SOLANA_MAGIC_EDEN, SOLANA_SOLANART, SOLANA_SOLSEA
+from app.models.shared import meta
+from app.tests.shared import create_tables, load_sme_and_nft_data_list_from_file
+from app.blockchains import SOLANA_MAGIC_EDEN, SOLANA_SOLANART, SOLANA_SOLSEA
 
 
 class SMESaveTestCase(unittest.TestCase):
