@@ -36,7 +36,7 @@ class SecondaryMarketEventsInput(DataClassBase):
     #   curr_timestamp - settings.SME_FETCH_DEFAULT_LAG, None, None
     # )
     #
-    exclusive_start_key: Optional[Tuple[int, int, str]] = pydantic.Field(
+    exclusive_start_key: Optional[Tuple[int, Optional[int], Optional[str]]] = pydantic.Field(
         alias="exclusiveStartKey",
         default_factory=lambda: (
             int(time.time()) - settings.SME_FETCH_DEFAULT_LAG,
@@ -53,7 +53,9 @@ class SecondaryMarketEventsInput(DataClassBase):
     page_size: int = 25
 
     # The key to which we stop fetching.
-    exclusive_stop_key: Optional[Tuple[int, int, str]] = pydantic.Field(None, alias="exclusiveStopKey")
+    exclusive_stop_key: Optional[Tuple[int, Optional[int], Optional[str]]] = pydantic.Field(
+        None, alias="exclusiveStopKey"
+    )
 
     # Filters below,
     # Might want to add to this list later once we support more blockchains
