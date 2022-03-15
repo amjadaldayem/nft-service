@@ -3,6 +3,7 @@ import unittest
 import aiohttp
 from aiohttp import ClientTimeout
 
+from app.blockchains.solana.client import SolanaNFTMetaData
 from app.indexers.solana.sme_indexer import get_nft_data
 
 
@@ -42,10 +43,28 @@ class BasicFunctionsTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def test_get_json_from_wrong_mime_types(self):
         async with aiohttp.ClientSession(timeout=ClientTimeout(total=15.0), requote_redirect_url=False) as client:
-            _, nft_raw_data = await get_nft_data(client, 0, self.wrong_mime_type_uri)
+            dummy_metadata = self.dummy_metadata_from_uri(self.wrong_mime_type_uri)
+            nft_raw_data, _ = await get_nft_data((client, dummy_metadata))
             self.assertDictEqual(self.wrong_mime_type_expected, nft_raw_data)
 
     async def test_redirect_urls(self):
         async with aiohttp.ClientSession(timeout=ClientTimeout(total=15.0), requote_redirect_url=False) as client:
-            _, nft_raw_data = await get_nft_data(client, 0, self.redirected_url_uri)
+            dummy_metadata = self.dummy_metadata_from_uri(self.redirected_url_uri)
+            nft_raw_data, _ = await get_nft_data((client, dummy_metadata))
             self.assertDictEqual(self.redirected_url_expected, nft_raw_data)
+
+    def dummy_metadata_from_uri(self, uri):
+        return SolanaNFTMetaData(
+            uri=uri,
+            name="123",
+            symbol="1",
+            mint_key="",
+            update_authority="",
+            primary_sale_happened=True,
+            is_mutable=True,
+            seller_fee_basis_points="300",
+            creators=[],
+            verified=[],
+            share=[],
+            ext_data={}
+        )
