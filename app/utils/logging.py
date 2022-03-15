@@ -70,6 +70,10 @@ def setup_logging(debug=0, include_noisy=None, disable_existing=True,
     if not logtail_token or os.getenv('DEPLOYMENT_ENV') in envs_with_console_logging:
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
+        fh = logging.FileHandler('local.log', mode='w', encoding='utf-8')
+        fh.setLevel(logging.INFO)
+        fh.setFormatter(formatter)
+        logging.root.addHandler(fh)
     else:
         handler = LogtailHandler(
             source_token=logtail_token

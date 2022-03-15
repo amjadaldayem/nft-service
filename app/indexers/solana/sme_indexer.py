@@ -132,6 +132,39 @@ def write_to_local(succeeded_items_to_commit, file_name='smes.json'):
             fd.flush()
 
 
+def save_to_db(dynamodb_resource, succeeded_items_to_commit):
+    """
+
+    Args:
+        dynamodb_resource:
+        succeeded_items_to_commit:
+
+    Returns:
+
+    """
+    dynamodb_resource = dynamodb_resource or boto3.resource(
+        'dynamodb', endpoint_url=settings.DYNAMODB_ENDPOINT
+    )
+    sme_repository = SMERepository(
+        dynamodb_resource
+    )
+    nft_repository = NFTRepository(
+        dynamodb_resource
+    )
+    _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
+    if failed:
+        notify_error(IOError(
+            f"Error saving some items: {orjson.dumps(failed)}"
+        ), metadata={})
+
+    _, nft_data_list = zip(*succeeded_items_to_commit)
+    _, failed = nft_repository.save_nfts(nft_data_list)
+    if failed:
+        notify_error(IOError(
+            f"Error saving some items:  {orjson.dumps(failed)}"
+        ), metadata={})
+
+
 async def handle_transactions(records: List[KinesisStreamRecord],
                               loop: asyncio.AbstractEventLoop,
                               dynamodb_resource=None):
@@ -162,14 +195,18 @@ async def handle_transactions(records: List[KinesisStreamRecord],
 
             # Skips the errored transactions
             transaction_dict_list = [t for t in transaction_dict_list if t and t['meta']['err'] is None]
-            sme_list, transaction_non_events = partition(
-                bool,
-                [await parse_transaction(t) for t in transaction_dict_list]
-            )
-            sme_list = list(sme_list)
-            transaction_non_events = list(transaction_non_events)
+            sme_list = []
+            transaction_non_events = []
+            for t in transaction_dict_list:
+                parsed = await parse_transaction(t)
+                if parsed:
+                    sme_list.append(parsed)
+                else:
+                    transaction_non_events.append(t['transaction']['signatures'][0])
+
             if transaction_non_events:
                 logger.warning("Transactions parsing failed: %s", transaction_non_events)
+
             if not sme_list:
                 # Early exit
                 logger.warning("No SecondaryMarketEvents parsed.")
@@ -220,29 +257,10 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         if not succeeded_items_to_commit:
             break
 
+        save_to_db(dynamodb_resource, succeeded_items_to_commit)
         # for e, n in succeeded_items_to_commit:
         #     logger.info("%s\n%s", orjson.dumps(e.dict()), orjson.dumps(n.dict()))
-        dynamodb_resource = dynamodb_resource or boto3.resource(
-            'dynamodb', endpoint_url=settings.DYNAMODB_ENDPOINT
-        )
-        sme_repository = SMERepository(
-            dynamodb_resource
-        )
-        nft_repository = NFTRepository(
-            dynamodb_resource
-        )
-        _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
-        if failed:
-            notify_error(IOError(
-                f"Error saving some items: {orjson.dumps(failed)}"
-            ), metadata={})
 
-        _, nft_data_list = zip(*succeeded_items_to_commit)
-        _, failed = nft_repository.save_nfts(nft_data_list)
-        if failed:
-            notify_error(IOError(
-                f"Error saving some items:  {orjson.dumps(failed)}"
-            ), metadata={})
         logger.info(
             ">> Handled signatures: %s", [e.transaction_hash for e, _ in succeeded_items_to_commit]
         )

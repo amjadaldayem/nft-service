@@ -233,6 +233,9 @@ class KinesisStreamer:
 
     def _put_local_handler(self, records: List[Union[Mapping, str]]) -> List[Mapping]:
         if hasattr(self, 'queue'):
+            if not hasattr(self, '_current_batch'):
+                self._current_batch = []
+
             records = [
                 {
                     'kinesis': {
@@ -243,10 +246,15 @@ class KinesisStreamer:
                     }
                 } for i, record in enumerate(records)
             ]
-            evt = {
-                'Records': records
-            }
-            self.queue.put_nowait(evt)
+            self._current_batch.extend(records)
+            # Batched every 30 events: note might be starving if events number too low
+            # but this is only for local testing
+            if len(self._current_batch) == 30:
+                evt = {
+                    'Records': self._current_batch
+                }
+                self.queue.put_nowait(evt)
+                self._current_batch = []
 
     @classmethod
     def wrap_local_handler(cls,
@@ -255,7 +263,7 @@ class KinesisStreamer:
         """
 
         Args:
-            func:
+            coro:
 
         Returns:
             a function handler(event, context, loop) for local consumer

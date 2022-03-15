@@ -66,7 +66,14 @@ class ConsumerTestCase(unittest.TestCase):
         '5babThkGiUn5mMrtZLjbQPkeztDkr2fgX4Q7rTKttffYM4BeHe2UrpMfVZ8emosmQbxgWWoWYArpGjXxzA9B49Y4',
         '5FmZvM6jXZDRLJ7C87sNXQx6HoiPdEotuP6jYdcJUVVQENQ8Cxc93KK1QxwrEfzq4L5TjYgfrdCNyq2Ev8q1ddzs',
         '3Xzjid5QP8iDiKw14D46Pf9tGv7eiyaXzMtxfdEgKagooNCNY4PGSwdmRSULmXJoTEMEf29n4dGMCkFBkwhkFbno',
-        '41L1ZLxZjSc6kCVeHQAprc8R6g76no1xLZ1KLDRKwrXgEJ2oNpAJbuKoVA4kpigw6g2jFmVXANYzENLHniYm7vD6'
+        '41L1ZLxZjSc6kCVeHQAprc8R6g76no1xLZ1KLDRKwrXgEJ2oNpAJbuKoVA4kpigw6g2jFmVXANYzENLHniYm7vD6',
+        'f8A4J6GKVUdj1VBKgkaNsRAgxi7zyQ885oeSZCVviEDZa9jHX3pvHy5bjdwDihTqsaTSLQiiNtt9CKfq3C7VrcQ',
+        '4nzU6H2tUqYTQ2Wa6WyfXvCmYtMBZeMeGCXjhnLaF6KST1MMmtYifF5r1AeWJSe47aJudnnKn4Yz7M886hg29cNn',
+        '2fdTh1m78PsXaTGqAKco9jfKRkqqQ4TkJQyyx8zU5mHnDs3ReJchYxzLoiLv91QPTnYLewdgHYFoi1GaEuSkha6p',
+        '3g7qAcGKyRC3cfqVDEuYhfdSxpLQq4GMihPMQqRYpx2dMHJsDymeLdaxhjqXzNjoccGVt7tZwdFU785onCkt8hzK',
+        '2mPBCXc6Xw3JeTgRKmNpM6oCamUjgwwyDoKJgiLMFDxzvJYjzbfoxNePWBCxsciX4KnbnAEirZ3FhNJeh3E9SLB9',
+        '4G9UkMDG8uxicbAHEtz51L5EfCjSgH88YDgCH3MTmEcj3ur4NJ38D33LwNFJTHvRVT8vsNktjQhTLCb5a9AnL76a',
+        '4NVfuaiHRQ5HAvwSF1Za1Qoe1XqSgY9HGF1FoqArmMn1pgaFF7KFmDv6BuRqKdu6YjyYXb2xCqgFmsH4QJ35VHd2',
     ]
 
     def setUp(self) -> None:
