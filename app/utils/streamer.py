@@ -268,7 +268,7 @@ class KinesisStreamer:
 
     @classmethod
     def wrap_handler(cls,
-                     coro: Coroutine[List[KinesisStreamRecord], Any, KinesisStreamRecord]
+                     coro: Coroutine[List[KinesisStreamRecord], Any, Any]
                      ) -> Callable[[Mapping, Mapping], Mapping]:
         """
         Wraps a callable to get the Handler the conforms with Lambda Input for
@@ -279,7 +279,7 @@ class KinesisStreamer:
         and only retry the failed ones next.
 
         Args:
-            func:
+            coro:
 
         Returns:
             a function handler(event, context) that meets Lambda contract

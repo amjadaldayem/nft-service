@@ -54,8 +54,8 @@ class UserRepository(DynamoDBRepositoryBase, meta.DTUserMeta):
             resp = self.table.query(
                 IndexName=self.GSI_USER_EMAILS,
                 KeyConditionExpression=(
-                        Key(self.GSI_USER_EMAILS_PK).eq(email.lower())
-                        & Key(self.GSI_USER_EMAILS_SK).eq('p')
+                    Key(self.GSI_USER_EMAILS_PK).eq(email.lower())
+                    & Key(self.GSI_USER_EMAILS_SK).eq('p')
                 ),
             )
             items = resp['Items']
@@ -64,8 +64,8 @@ class UserRepository(DynamoDBRepositoryBase, meta.DTUserMeta):
             resp = self.table.query(
                 IndexName=self.GSI_USER_NICKNAME,
                 KeyConditionExpression=(
-                        Key(self.GSI_USER_NICKNAME_PK).eq(nickname)
-                        & Key(self.GSI_USER_NICKNAME_SK).eq('p')
+                    Key(self.GSI_USER_NICKNAME_PK).eq(nickname)
+                    & Key(self.GSI_USER_NICKNAME_SK).eq('p')
                 ),
             )
             items = resp['Items']

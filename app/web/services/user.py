@@ -246,4 +246,3 @@ class UserService:
         payload = message.split('.')[1]  # type: str
         decoded_payload = base64url_decode(payload.encode())
         return orjson.loads(decoded_payload)
-

@@ -265,8 +265,8 @@ def nft_get_metadata_by_token_account(pda_key: Union[str, PublicKey], client) ->
     )
 
 
-async def nft_get_metadata_by_token_account_async(pda_key: Union[str, PublicKey], async_client) -> Optional[
-    SolanaNFTMetaData]:
+async def nft_get_metadata_by_token_account_async(pda_key: Union[str, PublicKey],
+                                                  async_client) -> Optional[SolanaNFTMetaData]:
     """
     Gets the NFT metadata by the `update_authority` key.
 
@@ -307,12 +307,17 @@ def nft_get_metadata_by_token_key(token_key: str, client=None) -> SolanaNFTMetaD
     return nft_get_metadata_by_token_account(metadata_pda_key, client)
 
 
-def transform_nft_data(metadata: SolanaNFTMetaData, json_data: Mapping, current_owner: str) -> NftData:
+def transform_nft_data(metadata: Optional[SolanaNFTMetaData],
+                       json_data: Optional[Mapping],
+                       current_owner: Optional[str]) -> NftData:
     def transform_attributes(attrs):
         return {
             attr['trait_type']: str(attr['value']) if attr['value'] is not None else ''
             for attr in attrs if 'trait_type' in attr
         }
+
+    if not metadata or not json_data:
+        return None
 
     files = []
     image_uri = json_data.get('image', '')
