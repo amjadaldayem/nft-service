@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 no_raise = os.getenv('CONSUMER_NO_RAISE')
 
 
-async def get_nft_metadata(input_data) -> Optional[SolanaNFTMetaData]:
+async def get_nft_metadata(input_data) -> Tuple[Optional[SolanaNFTMetaData], bool]:
     """
     Gets Solana specific NFT Metadata from token (mint) key.
 
@@ -53,15 +53,17 @@ async def get_nft_metadata(input_data) -> Optional[SolanaNFTMetaData]:
     Returns:
 
     """
-    client, token_key = input_data
+    client, sme = input_data
+    if not sme:
+        return None, True
     try:
-        metadata_pda_key = nft_get_token_account_by_token_key(token_key)
+        metadata_pda_key = nft_get_token_account_by_token_key(sme.token_key)
         nft_metadata = await nft_get_metadata_by_token_account_async(
             metadata_pda_key, client
         )
-        return nft_metadata
+        return nft_metadata, True
     except:
-        return None
+        return None, False
 
 
 async def get_nft_data(input_data) -> Tuple[Optional[NftData], bool]:
@@ -148,13 +150,15 @@ async def handle_transactions(records: List[KinesisStreamRecord],
     for _ in range(1):
         async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT, timeout=10) as client:
             await client.is_connected()
-            transaction_dict_list, failed_transaction_hashes = await retriable_map(
+            transaction_dict_list, failed_input_list = await retriable_map(
                 get_transaction,
                 [(client, t) for t in transaction_hashes],
                 success_test=lambda d: (d, bool(d)),
                 max_retries=2,
                 wait_strategy='backoff'
             )
+            if failed_input_list:
+                _, failed_transaction_hashes = zip(*failed_input_list)
 
             # Skips the errored transactions
             transaction_dict_list = [t for t in transaction_dict_list if t and t['meta']['err'] is None]
@@ -171,15 +175,14 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 logger.warning("No SecondaryMarketEvents parsed.")
                 break
             # Keep nft_metadata_list the same length as the sme_list
-            nft_metadata_list, events_with_invalid_nft_info = await retriable_map(
+            nft_metadata_list, failed_input_list = await retriable_map(
                 get_nft_metadata,
-                [(client, e.token_key) for e in sme_list],
-                success_test=lambda n: (n, bool(n)),
+                [(client, e) for e in sme_list],
                 max_retries=2,
                 wait_strategy='backoff'
             )
-            if events_with_invalid_nft_info:
-                nft_fetching_failed = [t.transaction_hash for t in events_with_invalid_nft_info]
+            if failed_input_list:
+                nft_fetching_failed = [e.transaction_hash for _, e in failed_input_list]
                 logger.warning("Transactions with NFT metadata fetching failed: %s", nft_fetching_failed)
                 failed_transaction_hashes.extend(nft_fetching_failed)
 
@@ -192,15 +195,15 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         ]
 
         async with aiohttp.ClientSession(timeout=ClientTimeout(total=10.0), requote_redirect_url=False) as client:
-            nft_json_data_list, failed_nft_metadata_list = await retriable_map(
+            nft_json_data_list, failed_input_list = await retriable_map(
                 get_nft_data,
                 [(client, n) for n in nft_metadata_list],
                 max_retries=2,
                 wait_strategy='backoff'
             )
-            if failed_nft_metadata_list:
+            if failed_input_list:
                 logger.warning("NFT metadata URIs fetching faild: %s",
-                               [(n.mint_key, n.uri) for n in failed_nft_metadata_list if n])
+                               [(n.mint_key, n.uri) for _, n in failed_input_list if n])
             # Transforms to NFTData
             sme_len = len(sme_list)
             nft_data_list = [
@@ -214,30 +217,32 @@ async def handle_transactions(records: List[KinesisStreamRecord],
             filter(lambda o: o[1], zip(sme_list, nft_data_list))
         )
 
-        if succeeded_items_to_commit:
-            # for e, n in succeeded_items_to_commit:
-            #     logger.info("%s\n%s", orjson.dumps(e.dict()), orjson.dumps(n.dict()))
-            dynamodb_resource = dynamodb_resource or boto3.resource(
-                'dynamodb', endpoint_url=settings.DYNAMODB_ENDPOINT
-            )
-            sme_repository = SMERepository(
-                dynamodb_resource
-            )
-            nft_repository = NFTRepository(
-                dynamodb_resource
-            )
-            _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
-            if failed:
-                notify_error(IOError(
-                    f"Error saving some items: {orjson.dumps(failed)}"
-                ), metadata={})
+        if not succeeded_items_to_commit:
+            break
 
-            _, nft_data_list = zip(*succeeded_items_to_commit)
-            _, failed = nft_repository.save_nfts(nft_data_list)
-            if failed:
-                notify_error(IOError(
-                    f"Error saving some items:  {orjson.dumps(failed)}"
-                ), metadata={})
+        # for e, n in succeeded_items_to_commit:
+        #     logger.info("%s\n%s", orjson.dumps(e.dict()), orjson.dumps(n.dict()))
+        dynamodb_resource = dynamodb_resource or boto3.resource(
+            'dynamodb', endpoint_url=settings.DYNAMODB_ENDPOINT
+        )
+        sme_repository = SMERepository(
+            dynamodb_resource
+        )
+        nft_repository = NFTRepository(
+            dynamodb_resource
+        )
+        _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
+        if failed:
+            notify_error(IOError(
+                f"Error saving some items: {orjson.dumps(failed)}"
+            ), metadata={})
+
+        _, nft_data_list = zip(*succeeded_items_to_commit)
+        _, failed = nft_repository.save_nfts(nft_data_list)
+        if failed:
+            notify_error(IOError(
+                f"Error saving some items:  {orjson.dumps(failed)}"
+            ), metadata={})
         logger.info(
             ">> Handled signatures: %s", [e.transaction_hash for e, _ in succeeded_items_to_commit]
         )
