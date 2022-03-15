@@ -105,7 +105,7 @@ async def iter_events_for(program_account):
                                 account=program_account,
                                 before=signature,
                                 until=last_read_signature,
-                                limit=50  # this is really high limit though
+                                limit=20  # this is really high limit though
                             )
                             result = resp.get('result', [])
                             for r in result:
