@@ -1,4 +1,8 @@
 # Lambda Handler for consuming the Kinesis data stream
+# TODO: Definitely the most efficient pipelining here
+#   1. Maybe change it to traditional multi-threading / multi-processing instead
+#       of `async` since most of the operations here are IO bound instead of CPU bound.
+#   2. Better pipelining -- now there is a waste of time on the retry part.
 import asyncio
 import logging
 import os
@@ -32,8 +36,7 @@ from app.models import (
 )
 from app.utils import (
     notify_error,
-    http,
-    partition
+    http
 )
 from app.utils.parallelism import retriable_map
 from app.utils.streamer import KinesisStreamer, KinesisStreamRecord
@@ -132,7 +135,7 @@ def write_to_local(succeeded_items_to_commit, file_name='smes.json'):
             fd.flush()
 
 
-def save_to_db(dynamodb_resource, succeeded_items_to_commit):
+async def save_to_db(dynamodb_resource, succeeded_items_to_commit):
     """
 
     Args:
@@ -257,7 +260,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         if not succeeded_items_to_commit:
             break
 
-        save_to_db(dynamodb_resource, succeeded_items_to_commit)
+        await save_to_db(dynamodb_resource, succeeded_items_to_commit)
         # for e, n in succeeded_items_to_commit:
         #     logger.info("%s\n%s", orjson.dumps(e.dict()), orjson.dumps(n.dict()))
 
