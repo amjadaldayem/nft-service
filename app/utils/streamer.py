@@ -213,12 +213,13 @@ class KinesisStreamer:
                 Records=[
                     {
                         'Data': orjson.dumps(rec),
-                        'PartitionKey': str(i)
-                    } for i, rec in enumerate(records)
+                        'PartitionKey': str(uuid.uuid4()),
+                    } for rec in records
                 ],
                 StreamName=self.stream_name
             )
             failed_count = resp['FailedRecordCount']
+            logger.info("Pushing %s records.", len(records))
             if failed_count:
                 result_records = resp['Records']
                 for i, result_record in enumerate(result_records):
