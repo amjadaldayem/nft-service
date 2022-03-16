@@ -26,7 +26,7 @@ sme:
   write_capacity:
     default: 1
     min: 1
-    max: 20
+    max: 25
   lsi:
     - name: sme_lsi_collection_name
       sk:
