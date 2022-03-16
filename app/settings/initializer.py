@@ -34,5 +34,5 @@ def initialize():
             environment=settings.DEPLOYMENT_ENV,
             default_integrations=True
         )
-        set_tag("app_label", os.getenv('SENTRY_IO_APP_TAG', "unnamed"))
+        set_tag("app_label", os.getenv('APP_TAG', "unnamed"))
         setup_error_handler(sentry_error_notify)

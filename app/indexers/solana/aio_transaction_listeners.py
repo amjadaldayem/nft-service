@@ -105,11 +105,10 @@ async def iter_events_for(program_account):
                                 account=program_account,
                                 before=signature,
                                 until=last_read_signature,
-                                limit=20  # this is really high limit though
+                                limit=15  # Trying to catch up a few missing events?
                             )
                             result = resp.get('result', [])
                             for r in result:
-                                # logger.info("Caught up: %s", r['signature'])
                                 yield r['signature'], time.time_ns()
                         last_read_signature = signature
                     except Exception as e:
