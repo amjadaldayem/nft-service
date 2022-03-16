@@ -219,7 +219,6 @@ class KinesisStreamer:
                 StreamName=self.stream_name
             )
             failed_count = resp['FailedRecordCount']
-            logger.info("Pushing %s records.", len(records))
             if failed_count:
                 result_records = resp['Records']
                 for i, result_record in enumerate(result_records):
