@@ -1,7 +1,7 @@
 # This workflow will build and push a new container image to Amazon ECR,
 # and then will deploy the changes to the AWS Lambda function we specified.
 
-name: Deploy to Amazon Lambda
+name: Dev - Build & Push to ECR
 
 on:
   push:
