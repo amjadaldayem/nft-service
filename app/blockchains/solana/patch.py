@@ -1,10 +1,12 @@
 import json
+import logging
 from typing import Any, Dict
 from typing import Optional, Union
 
 import httpx
 import orjson
 import requests
+import websockets
 from httpx import Timeout
 from solana.blockhash import BlockhashCache
 from solana.rpc.api import Client
@@ -13,6 +15,11 @@ from solana.rpc.commitment import Commitment
 from solana.rpc.providers.async_http import AsyncHTTPProvider
 from solana.rpc.providers.http import HTTPProvider
 from solana.rpc.types import RPCMethod, RPCResponse
+from solana.rpc.websocket_api import connect
+
+from app import settings
+
+logger = logging.getLogger(__name__)
 
 
 class CustomHTTPProvider(HTTPProvider):
@@ -20,10 +27,15 @@ class CustomHTTPProvider(HTTPProvider):
     def __init__(self, *args, **kwargs):
         self.timeout = kwargs.pop("timeout", 60)
         super().__init__(*args, **kwargs)
+        username = settings.SOLANA_RPC_CLUSTER_USERNAME
+        password = settings.SOLANA_RPC_CLUSTER_PASSWORD
+        self.auth = (username, password) if username and password else None
 
     def make_request(self, method: RPCMethod, *params: Any) -> RPCResponse:
         """Make an HTTP request to an http rpc endpoint."""
         request_kwargs = self._before_request(method=method, params=params, is_async=False)
+        if self.auth:
+            request_kwargs['auth'] = self.auth
         raw_response = requests.post(**request_kwargs, timeout=self.timeout)
         return self._after_request(raw_response=raw_response, method=method)
 
@@ -62,7 +74,17 @@ class CustomAsyncHTTPProvider(AsyncHTTPProvider):
     def __init__(self, endpoint, timeout: int):
         """Init AsyncHTTPProvider."""
         super().__init__(endpoint)
-        self.session = httpx.AsyncClient(timeout=Timeout(float(timeout)))
+        kwargs = {
+            'timeout': Timeout(float(timeout)),
+        }
+        username = settings.SOLANA_RPC_CLUSTER_USERNAME
+        password = settings.SOLANA_RPC_CLUSTER_PASSWORD
+        if username and password:
+            kwargs['auth'] = (username, password)
+
+        self.session = httpx.AsyncClient(
+            **kwargs
+        )
 
 
 class CustomAsyncClient(AsyncClient):
@@ -79,3 +101,20 @@ class CustomAsyncClient(AsyncClient):
     ) -> None:
         super().__init__(commitment, blockhash_cache)
         self._provider = CustomAsyncHTTPProvider(endpoint, timeout=timeout)
+
+
+async def reliable_solana_websocket():
+    uri = settings.SOLANA_RPC_WSS_ENDPOINT
+    username = settings.SOLANA_RPC_CLUSTER_USERNAME
+    password = settings.SOLANA_RPC_CLUSTER_PASSWORD
+    if username and password:
+        uri = uri.replace('wss://', f'wss://{username}:{password}@')
+
+    async for websocket in connect(uri):
+        try:
+            yield websocket
+        except websockets.ConnectionClosed:
+            logger.error("Websocket closed. Reconnecting")
+            continue
+        except:
+            raise

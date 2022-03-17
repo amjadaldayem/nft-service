@@ -4,9 +4,7 @@
 import logging
 import time
 
-import websockets
 from aiostream import stream
-from solana.rpc.websocket_api import connect
 from websockets.exceptions import ConnectionClosedError
 
 from app import settings
@@ -26,7 +24,7 @@ from app.blockchains.solana import (
     SOLANART_PROGRAM_ACCOUNT,
     SOLSEA_PROGRAM_ACCOUNT,
     SOLANA_MONKEY_BUSINESS_PROGRAM_ACCOUNT,
-    CustomAsyncClient
+    CustomAsyncClient, reliable_solana_websocket
 )
 
 # Add a known secondary market program account or some
@@ -85,7 +83,7 @@ async def iter_events_for(program_account):
     """
     last_read_signature = None
     async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT) as client:
-        async for ws_client in reliable_websocket(endpoint=settings.SOLANA_RPC_WSS_ENDPOINT):
+        async for ws_client in reliable_solana_websocket():
             await ws_client.logs_subscribe(
                 {
                     'mentions': [program_account]
@@ -119,14 +117,3 @@ async def iter_events_for(program_account):
                 except ConnectionClosedError:
                     logger.error("Error occurred while trying to close connection.")
                     raise
-
-
-async def reliable_websocket(endpoint):
-    async for websocket in connect(endpoint):
-        try:
-            yield websocket
-        except websockets.ConnectionClosed:
-            logger.error("Websocket closed. Reconnecting")
-            continue
-        except:
-            raise
