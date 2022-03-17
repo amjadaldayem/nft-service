@@ -1,0 +1,92 @@
+# This workflow will build and push a new container image to Amazon ECR,
+# and then will deploy the changes to the AWS Lambda function we specified.
+
+name: Deploy to Amazon Lambda
+
+on:
+  push:
+    branches:
+      - production
+
+env:
+  AWS_REGION: us-west-2
+  ECR_REPO_URI: 391319738221.dkr.ecr.us-west-2.amazonaws.com/nft-service
+  DEPLOYMENT_ENV: prod
+  SLACK_CHANNEL_BUILD_FINISH: releases-prod
+  SLACK_WEBHOOK_BUILD_FINISH: https://hooks.slack.com/services/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
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get Github Short Sha
+        id: get-github-short-sha
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          GITHUB_SHORT_SHA="$(echo ${GITHUB_SHA} | cut -c1-7)"
+          echo "::set-output name=github_short_sha::$GITHUB_SHORT_SHA"
+
+      - name: Build API Lambda Image and ECS Image
+        id: build-image
+        env:
+          # Tagging format:
+          #  repo:<env>-[lambda|ecs]/<hash|latest>
+          # e.g., dev-lambda latest, dev-17ae13a
+          LAMBDA_TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-lambda-
+          ECS_TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-ecs-
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          GITHUB_SHORT_SHA: ${{ steps.get-github-short-sha.outputs.github_short_sha }}
+          KINESIS_PRODUCER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-p-
+          KINESIS_CONSUMER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-c-
+        run: |
+          LAMBDA_IMAGE_TAG_LATEST="${LAMBDA_TAG_PREFIX}latest"
+          LAMBDA_IMAGE_TAG_HASH="${LAMBDA_TAG_PREFIX}${GITHUB_SHORT_SHA}"
+          docker build -f Dockerfile-lambda -t $ECR_REPO_URI:$LAMBDA_IMAGE_TAG_LATEST -t $ECR_REPO_URI:$LAMBDA_IMAGE_TAG_HASH .
+          
+          ECS_IMAGE_TAG_LATEST="${ECS_TAG_PREFIX}latest"
+          ECS_IMAGE_TAG_HASH="${ECS_TAG_PREFIX}${GITHUB_SHORT_SHA}"
+          docker build -f Dockerfile-ecs -t $ECR_REPO_URI:$ECS_IMAGE_TAG_LATEST -t $ECR_REPO_URI:$ECS_IMAGE_TAG_HASH .
+          
+          last_commit_message=`git log -1 --pretty=%B | cat`
+          joke=`curl -sH "Accept: text/plain" https://icanhazdadjoke.com/`
+          echo "::set-output name=ecs_image::$ECS_IMAGE_TAG_HASH"
+          echo "::set-output name=lambda_image::$LAMBDA_IMAGE_TAG_HASH"
+          echo "::set-output name=last_commit_message::$last_commit_message"
+          echo "::set-output name=joke::$joke"
+
+      - name: Login to Amazon ECR and Push All
+        id: login-ecr
+        env:
+          ECR_REPO_URI: ${{ env.ECR_REPO_URI }}
+        run: |
+          aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $ECR_REPO_URI
+          docker push --all-tags $ECR_REPO_URI 
+
+      - name: Slack Notify Image Ready
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_CHANNEL: ${{ env.SLACK_CHANNEL_BUILD_FINISH }}
+          SLACK_COLOR: green
+          SLACK_MESSAGE: |
+            :rocket: Image Ready.
+            Commit Message:  ${{steps.build-image.outputs.last_commit_message}}
+            ECS Image Tag: ${{steps.build-image.outputs.ecs_image}}
+            Lambda Image Tag: ${{steps.build-image.outputs.lambda_image}}
+          SLACK_TITLE: Images Ready - sintra-nft-service
+          SLACK_ICON: https://avatars.githubusercontent.com/u/93632465?s=60&v=4
+          SLACK_USERNAME: Github Actions
+          SLACK_WEBHOOK: ${{ env.SLACK_WEBHOOK_BUILD_FINISH }}
+          SLACK_FOOTER: ${{steps.build-image.outputs.joke}}
