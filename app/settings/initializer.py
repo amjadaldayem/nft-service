@@ -21,7 +21,11 @@ def initialize():
     from app.utils import setup_error_handler
     setup_logging(
         settings.DEBUG,
-        envs_with_console_logging={settings.ENV_LOCAL, settings.ENV_TEST}
+        envs_with_console_logging={
+            settings.ENV_LOCAL,
+            settings.ENV_TEST
+        },
+        env=settings.DEPLOYMENT_ENV
     )
     if settings.DEPLOYMENT_ENV not in (ENV_LOCAL, ENV_TEST):
         sentry_sdk.init(

@@ -1,7 +1,8 @@
 import logging
 import os
 import socket
-from logging.handlers import SysLogHandler
+
+from app.utils.logdna import LogDNAHandler
 
 NOISY_MODULES = (
     "botocore",
@@ -24,8 +25,53 @@ NOISY_MODULES = (
 )
 
 
+def setup_local_handler():
+    class ContextFilter(logging.Filter):
+        hostname = socket.gethostname()
+        app = os.getenv('APP_NAME', "unnamed")
+
+        def filter(self, record):
+            record.hostname = self.hostname
+            record.app = self.app
+            return True
+
+    log_format = (
+        '[%(app)s] [%(levelname)s] [%(asctime)s] [%(processName)s - '
+        '%(process)d] %(name)s - %(message)s'
+    )
+    formatter = logging.Formatter(log_format)
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    handler.addFilter(ContextFilter())
+    return handler
+
+
+def setup_3rd_party_handler(env):
+    """
+    Sets up 3rd party logging mgmt service.
+
+    Returns:
+
+    """
+    ingestion_key = os.getenv("LOGDNA_INGESTION_KEY")
+    if not ingestion_key:
+        # Falls back
+        return setup_local_handler()
+
+    options = {
+        'hostname': socket.gethostname(),
+        'index_meta': True,
+        'app': os.getenv("APP_NAME"),
+        'env': env,
+    }
+
+    handler = LogDNAHandler(ingestion_key, options)
+
+    return handler
+
+
 def setup_logging(debug=0, include_noisy=None, disable_existing=True,
-                  envs_with_console_logging=frozenset(),
+                  envs_with_console_logging=frozenset(), env=None,
                   **kwargs):
     """
     Sets up logging for an app.
@@ -43,6 +89,7 @@ def setup_logging(debug=0, include_noisy=None, disable_existing=True,
         envs_with_console_logging: Environments for which we just use simple
             console logging instead of hooking up 3rd party log mgmt.
             E.g., for local and dev
+        env: Current environment tag
     """
     if disable_existing:
         del (logging.root.handlers[:])
@@ -58,32 +105,12 @@ def setup_logging(debug=0, include_noisy=None, disable_existing=True,
             if module not in include_noisy:
                 logging.getLogger(module).setLevel(logging.CRITICAL)
 
-    class ContextFilter(logging.Filter):
-        hostname = socket.gethostname()
-        app_name = os.getenv('APP_NAME', "unnamed")
-
-        def filter(self, record):
-            record.hostname = self.hostname
-            record.app_name = self.app_name
-            return True
-    log_format = (
-        '[%(app_name)s] [%(levelname)s] [%(asctime)s] [%(processName)s - '
-        '%(process)d] %(name)s - %(message)s'
-    )
-    formatter = logging.Formatter(log_format)
-
-    syslog_address = os.getenv('SYSLOG_ADDRESS')
-    if not syslog_address or os.getenv('DEPLOYMENT_ENV') in envs_with_console_logging:
+    if os.getenv('DEPLOYMENT_ENV') in envs_with_console_logging:
         # Local Console logging
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-        handler.addFilter(ContextFilter())
+        handler = setup_local_handler()
     else:
-        # Remote Syslog
-        host, port = syslog_address.split(":")
-        handler = SysLogHandler(address=(host, int(port)))
-        handler.setFormatter(formatter)
-        handler.addFilter(ContextFilter())
+        # Remote logging mgmt
+        handler = setup_3rd_party_handler(env)
 
     logging.root.addHandler(handler)
     logging.root.setLevel(log_level)
