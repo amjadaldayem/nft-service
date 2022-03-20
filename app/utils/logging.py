@@ -60,28 +60,27 @@ def setup_logging(debug=0, include_noisy=None, disable_existing=True,
 
     class ContextFilter(logging.Filter):
         hostname = socket.gethostname()
-        app_tag = os.getenv('APP_TAG', "unnamed")
+        app_name = os.getenv('APP_NAME', "unnamed")
 
         def filter(self, record):
             record.hostname = self.hostname
-            record.app_tag = self.app_tag
+            record.app_name = self.app_name
             return True
-
     log_format = (
-        '[%(app_tag)s] [%(levelname)s] [%(asctime)s] [%(processName)s - '
+        '[%(app_name)s] [%(levelname)s] [%(asctime)s] [%(processName)s - '
         '%(process)d] %(name)s - %(message)s'
     )
-
     formatter = logging.Formatter(log_format)
 
-    # if Logtail Token null, falls back to console logging.
-    papertrail_address = os.getenv('PAPERTRAIL_ADDRESS')
-    if not papertrail_address or os.getenv('DEPLOYMENT_ENV') in envs_with_console_logging:
+    syslog_address = os.getenv('SYSLOG_ADDRESS')
+    if not syslog_address or os.getenv('DEPLOYMENT_ENV') in envs_with_console_logging:
+        # Local Console logging
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         handler.addFilter(ContextFilter())
     else:
-        host, port = papertrail_address.split(":")
+        # Remote Syslog
+        host, port = syslog_address.split(":")
         handler = SysLogHandler(address=(host, int(port)))
         handler.setFormatter(formatter)
         handler.addFilter(ContextFilter())
