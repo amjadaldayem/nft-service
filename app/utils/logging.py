@@ -2,7 +2,8 @@ import logging
 import os
 import socket
 
-from app.utils.logdna import LogDNAHandler
+from .logdna import LogDNAHandler
+from .system import get_secure_env
 
 NOISY_MODULES = (
     "botocore",
@@ -28,7 +29,7 @@ NOISY_MODULES = (
 def setup_local_handler():
     class ContextFilter(logging.Filter):
         hostname = socket.gethostname()
-        app = os.getenv('APP_NAME', "unnamed")
+        app = get_secure_env('APP_NAME', "unnamed")
 
         def filter(self, record):
             record.hostname = self.hostname
@@ -53,7 +54,7 @@ def setup_3rd_party_handler(env):
     Returns:
 
     """
-    ingestion_key = os.getenv("LOGDNA_INGESTION_KEY")
+    ingestion_key = get_secure_env("LOGDNA_INGESTION_KEY")
     if not ingestion_key:
         # Falls back
         return setup_local_handler()
@@ -61,7 +62,7 @@ def setup_3rd_party_handler(env):
     options = {
         'hostname': socket.gethostname(),
         'index_meta': True,
-        'app': os.getenv("APP_NAME"),
+        'app': get_secure_env("APP_NAME"),
         'env': env,
     }
 
