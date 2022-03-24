@@ -22,11 +22,11 @@ sme:
   read_capcity:
     default: 1
     min: 1
-    max: 10
+    max: 30
   write_capacity:
     default: 1
     min: 1
-    max: 25
+    max: 50
   lsi:
     - name: sme_lsi_collection_name
       sk:
@@ -71,11 +71,11 @@ sme:
       read_capcity:
         default: 1
         min: 1
-        max: 10
+        max: 20
       write_capacity:
         default: 1
         min: 1
-        max: 10
+        max: 40
     - name: sme_gsi_nft_events
       pk:
         name: nft_id
@@ -87,11 +87,11 @@ sme:
       read_capcity:
         default: 1
         min: 1
-        max: 10
+        max: 20
       write_capacity:
         default: 1
         min: 1
-        max: 10
+        max: 40
     - name: sme_gsi_collection_events
       pk:
         name: collection_id
@@ -106,11 +106,11 @@ sme:
       read_capcity:
         default: 1
         min: 1
-        max: 10
+        max: 20
       write_capacity:
         default: 1
         min: 1
-        max: 10
+        max: 40
 
 # NFT Table
 #
@@ -155,11 +155,11 @@ nft:
   read_capcity:
     default: 1
     min: 1
-    max: 10
+    max: 30
   write_capacity:
     default: 1
     min: 1
-    max: 20
+    max: 50
 
   gsi:
     - name: nft_gsi_collection_nfts
@@ -172,11 +172,11 @@ nft:
       read_capcity:
         default: 1
         min: 1
-        max: 10
+        max: 20
       write_capacity:
         default: 1
         min: 1
-        max: 10
+        max: 25
 
 # User table
 user:
@@ -196,11 +196,11 @@ user:
   read_capcity:
     default: 1
     min: 1
-    max: 10
+    max: 20
   write_capacity:
     default: 1
     min: 1
-    max: 10
+    max: 40
   gsi:
     - name: user_gsi_emails
       pk:
@@ -231,8 +231,8 @@ user:
       read_capcity:
         default: 1
         min: 1
-        max: 10
+        max: 20
       write_capacity:
         default: 1
         min: 1
-        max: 10
+        max: 20
