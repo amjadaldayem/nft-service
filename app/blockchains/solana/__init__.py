@@ -1,5 +1,5 @@
 from .client import (
-    nft_get_collection_nfts,
+    nft_get_mint_list,
     nft_get_metadata,
     nft_get_metadata_by_token_account,
     nft_get_metadata_by_token_key,

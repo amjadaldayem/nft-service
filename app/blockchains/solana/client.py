@@ -14,7 +14,7 @@ from solana.rpc.api import MemcmpOpt, Client
 from app import settings
 from app.blockchains import BLOCKCHAIN_SOLANA
 from app.blockchains.solana import consts
-from app.blockchains.solana.patch import CustomClient
+from app.blockchains.solana.patch import CustomClient, CustomAsyncClient
 from app.models import (
     NftData,
     NftCreator,
@@ -98,10 +98,11 @@ class RPCHelper:
         }
 
     @staticmethod
-    def memcmp_opts_candy_machine_filters(candy_machine_public_key):
+    def memcmp_opts_candy_machine_filters(candy_machine_creator_address):
         return {
             'memcmp_opts': [
-                MemcmpOpt(offset=326, bytes=candy_machine_public_key),
+                MemcmpOpt(offset=326, bytes=candy_machine_creator_address),
+                MemcmpOpt(offset=358, bytes="2"),
             ]
         }
 
@@ -181,33 +182,33 @@ class RPCHelper:
         return metadata
 
 
-def nft_get_collection_nfts(update_authority) -> List[NFTMetadataProgramAccount]:
-    client = CustomClient(
-        settings.SOLANA_RPC_ENDPOINT,
-        commitment=commitment.Confirmed,
-        timeout=60
-    )
-
-    # This is darn expensive ...
-    resp = client.get_program_accounts(
-        PublicKey(consts.METAPLEX_METADATA_PROGRAM),
-        encoding='base64',
-        commitment=commitment.Confirmed,
-        **RPCHelper.memcmp_opts_update_authority_filters(
-            update_authority
-        )
-    )
-    result = []
-    for r in resp['result']:
-        data, encoding = r['account']['data']
-        result.append(
-            NFTMetadataProgramAccount(
-                public_key=r['pubkey'],
-                data=data,
-                encoding=encoding
+async def nft_get_mint_list(candy_machine_creator_address) -> List[NFTMetadataProgramAccount]:
+    async with CustomAsyncClient(
+            settings.SOLANA_RPC_ENDPOINT,
+            commitment=commitment.Confirmed,
+            timeout=600
+    ) as client:
+        # This is darn expensive ...
+        await client.is_connected()
+        resp = await client.get_program_accounts(
+            PublicKey(consts.METAPLEX_METADATA_PROGRAM),
+            encoding='base64',
+            commitment=commitment.Confirmed,
+            **RPCHelper.memcmp_opts_candy_machine_filters(
+                candy_machine_creator_address
             )
         )
-    return result
+        result = []
+        for r in resp['result']:
+            data, encoding = r['account']['data']
+            result.append(
+                NFTMetadataProgramAccount(
+                    public_key=r['pubkey'],
+                    data=data,
+                    encoding=encoding
+                )
+            )
+        return result
 
 
 def nft_get_metadata(pda: NFTMetadataProgramAccount) -> Optional[SolanaNFTMetaData]:

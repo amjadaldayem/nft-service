@@ -9,17 +9,13 @@ from app.blockchains import (
 
 class CollectionFetchingTestCase(unittest.IsolatedAsyncioTestCase):
 
-    @unittest.skip(reason="RPC servers timing out at 60 seconds.")
-    def test_get_pandas_collection(self):
-        update_authority = 'E6n7aXKC9cJYMLfT1P3GvcdPVQLZZ8g6dUt61GyFM7i4'
-        # candy_machine = '2CEU6XpuX5kb2anKzrwvtahZ7t71EWhtStFA9V1XRkE3'
-        pdas = solana.nft_get_collection_nfts(
-            update_authority
+    @unittest.skip(reason="This takes too long to finish. And only works with QuickNode.")
+    async def test_get_radrug_collection(self):
+        first_creator = "6j4fFSZAETzj1qgFUq7BDdz37muA49tKoWrY7dPduYH2"
+        pdas = await solana.nft_get_mint_list(
+            first_creator
         )
         nft_meta_list = [solana.nft_get_metadata(pda) for pda in pdas]
-        with open("pandas.json", 'wb') as c:
+        with open("azure_dao (rug).json", 'wb') as c:
             c.write(orjson.dumps(nft_meta_list, option=orjson.OPT_INDENT_2))
 
-    @unittest.skip(reason="RPC servers timing out at 60 seconds.")
-    def test_nft_get_metadata_by_token_key(self):
-        print(solana.nft_get_metadata_by_token_key('Hzw9pp9WXDKjZ1mczjqGdVzfkKehUjrBP9d6QeRSs2rA'))
