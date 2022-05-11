@@ -1,0 +1,22 @@
+version: "3.3"
+
+services:
+  localstack:
+    image: "localstack/localstack-full:latest"
+    network_mode: "bridge"
+    container_name: "localstack"
+    ports:
+      - "4563-4599:4563-4599"
+    environment:
+     - "SERVICES=kinesis,lambda,s3,secretsmanager"
+     - "DEFAULT_REGION=eu-central-1"
+     - "HOSTNAME=localhost"
+     - "HOSTNAME_EXTERNAL=localhost"
+     - "DEBUG=1"
+     - "KINESIS_INITIALIZE_STREAMS=transaction-signatures:3:eu-central-1"
+     - "KINESIS_LATENCY=100"
+     - "LAMBDA_EXECUTOR=local"
+     - "DATA_DIR=tmp/localstack/data"
+    volumes:
+      - "/tmp/localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"

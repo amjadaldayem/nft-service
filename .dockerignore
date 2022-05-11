@@ -1,7 +1,9 @@
-./*/tests
+./tests
 ./.local
 .env*
 .gitignore
 ./docker-compose*
 ./Dockerfile
+./sintra/lambda
+./sintra/localstack
 README.md

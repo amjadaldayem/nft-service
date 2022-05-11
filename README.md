@@ -1,11 +1,50 @@
-# sintra-nft-service
+# Sintra NFT Service
+
+Sintra NFT services respresents module for ingestion, transformation and indexing of blockchain transactions.
+Transaction data is acquired through JSON RPC endpoints as hex hash string.
+
+## Getting Started
+
+Prerequisites:
+
+- Python 3.8
+- Poetry
+- docker-compose
+
+Poetry installation steps are on the following [link](https://python-poetry.org/docs/#installation).
+
+### Installation
+
+After poetry installation, create virtual environment with Python 3.8.
+`venv` module, or some of the other virtual environment
+packages such as `virtualenv`.
+
+Activate the virtual environment and run
+
+```bash
+$ poetry install
+```
+
+The existing `poetry.lock` file is used to pin required dependency versions.
+
+### Workers
+
+Worker can be started with
+
+```bash
+$ python -m sintra.worker
+```
+
+This will start worker configured with [default settings](./sintra/settings.toml).
+
+## Indexers
 
 Indexers and other tools for NFT data ingestion and APIs.
 
 References:
 
-* https://github.com/SecretDuckSociety/TwitterNFTSalesBot
-* https://github.com/primenumsdev/solana-nft-tools
+- https://github.com/SecretDuckSociety/TwitterNFTSalesBot
+- https://github.com/primenumsdev/solana-nft-tools
 
 Notes:
 
@@ -38,4 +77,4 @@ $ ./main ws <params>
 
 To start local async Websocket listeners. Use there are sub commands to it.
 
-Otherwise, will trigger the click commands in `main.py`. 
+Otherwise, will trigger the click commands in `main.py`.
