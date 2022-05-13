@@ -10,6 +10,7 @@ from app.blockchains import (
     SOLANA_DIGITAL_EYES,
     SOLANA_SOLANART,
     SOLANA_SOLSEA,
+    SOLANA_SMB,
     BLOCKCHAIN_SOLANA,
     SECONDARY_MARKET_EVENT_LISTING,
     SECONDARY_MARKET_EVENT_DELISTING,
@@ -103,6 +104,8 @@ class ParsedTransaction:
             return self._parse_digital_eyes(account_key, market_authority_address)
         elif secondary_market_id == SOLANA_SOLSEA:
             return self._parse_solsea(account_key, market_authority_address)
+        elif secondary_market_id == SOLANA_SMB:
+            return self._parse_smb(account_key, market_authority_address)
 
     def _parse_magic_eden(self, magic_eden_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
@@ -725,6 +728,77 @@ class ParsedTransaction:
             token_key=token_key,
             transaction_hash=self.signature
         ) if event_type and token_key and (owner or buyer) else None
+
+    def _parse_smb(self, smb_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+        smb_sale = int.from_bytes(bytes.fromhex("95e23468068ee627"), 'little')
+        smb_listing = int.from_bytes(bytes.fromhex("856e4aaf709ff59f"), 'little')
+        smb_delisting = int.from_bytes(bytes.fromhex("5f81edf00831df84"), 'little')
+
+        matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+            program_key=smb_program_key,
+            offset=smb_sale,
+            width=8
+        )
+        if not matched_pi:
+            matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key=smb_program_key,
+                offset=smb_listing,
+                width=8
+            )
+        if not matched_pi:
+            matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key=smb_program_key,
+                offset=smb_delisting,
+                width=8
+            )
+        if not matched_pi:
+            matched_pi, inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key=smb_program_key,
+            )
+        if not matched_pi:
+            return None
+
+        buyer, owner = EMPTY_PUBLIC_KEY, EMPTY_PUBLIC_KEY
+        price = 0
+        token_key = EMPTY_PUBLIC_KEY
+        offset = matched_pi.get_function_offset(8)
+
+        if offset == smb_sale:
+            event_type = SECONDARY_MARKET_EVENT_SALE
+            buyer = matched_pi.account_list[0]
+            # Sale price in the smallest UNIT. E.g., for Solana this is lamports
+            price = matched_pi.get_int(8, 5)
+            # Token address / Mint key
+            token_key = matched_pi.account_list[1]
+        elif offset == smb_listing:
+            event_type = SECONDARY_MARKET_EVENT_LISTING
+            owner = matched_pi.account_list[0]
+            # Listing price in the smallest UNIT. E.g., for Solana this is lamports
+            price = matched_pi.get_int(16, 6)
+            # Token address / Mint key
+            token_key = matched_pi.account_list[1]
+        elif offset == smb_delisting:
+            # Delisting event on SMB is done by transferring the token back to the
+            # original owner, then closing the previous token account.
+            event_type = SECONDARY_MARKET_EVENT_DELISTING
+            owner = matched_pi.account_list[0]
+            # Fixed price for delisting transactions
+            price = 0
+            # Token address / Mint key
+            token_key = matched_pi.account_list[1]
+
+        event = SecondaryMarketEvent(
+            blockchain_id=BLOCKCHAIN_SOLANA,
+            market_id=SOLANA_SMB,
+            timestamp=self.block_time,
+            event_type=event_type,
+            transaction_hash=self.signature,
+            price=price,
+            buyer=buyer,
+            owner=owner,
+            token_key=token_key
+        )
+        return event
 
     @cached_property
     def event(self):
