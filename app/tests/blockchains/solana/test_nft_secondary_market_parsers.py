@@ -10,6 +10,7 @@ from app.blockchains import (
     SOLANA_SOLANART,
     SOLANA_DIGITAL_EYES,
     SOLANA_SOLSEA,
+    SOLANA_SMB,
     SECONDARY_MARKET_EVENT_LISTING,
     SECONDARY_MARKET_EVENT_DELISTING,
     SECONDARY_MARKET_EVENT_SALE,
@@ -29,6 +30,7 @@ market_id_dir_map = {
     SOLANA_SOLANART: get_data_path('solana', 'transactions', 'solanart'),
     SOLANA_DIGITAL_EYES: get_data_path('solana', 'transactions', 'digital_eyes'),
     SOLANA_SOLSEA: get_data_path('solana', 'transactions', 'solsea'),
+    SOLANA_SMB: get_data_path('solana', 'transactions', 'monkey_business'),
 }
 
 event_type_dir_map = {
@@ -1158,6 +1160,164 @@ class SolseaTestCase(unittest.TestCase):
 
     def test_solsea_events(self):
         assert_events_for(self, SOLANA_SOLSEA)
+
+
+class SolanaMonkeyBusinessTestCase(unittest.TestCase):
+    def test_smb_listing_event_01(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='BkhMttZcjx8iJ2dprgEUsremijtFP37BwRvdfUdQ6RLx',
+            price=7500000000000,
+            owner_or_buyer='FwsaNwq4JBANWPDfPNK3GmHoLVauStcyrX8fk12DnyBQ',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_smb_listing_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='Fsnw63zYcFXQaUi5nL5twtiHyQwh7kQozECqzSphiLoa',
+            price=3333000000000,
+            owner_or_buyer='6HMx7Bj8etmEAgTAhaDqF7ENiSoLMopdkzAFD2z8s5Ly',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_smb_listing_event_03(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='E96kP5wun62a6tTxFBefvwyvgvy8B241ETKn1Hyh3tpR',
+            price=2500000000000,
+            owner_or_buyer='3wbsvu9o6oeEQaVcQ83tizN3QacnCSERoRe8ikh9x6h9',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_smb_sale_event_01(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_SALE,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='4gPYVax8i241xE7cGZNpPb4NTyNNFYK3MiHrFLzo3mv8',
+            price=217000000000,
+            owner_or_buyer='HG7NsdZTwNFY2ypJzWbcbS2zBtjLQ2VkSFj1MYCT7o1i',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_smb_sale_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_SALE,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='2fU3RQyMpCPoK8isR2icj57ryyX1cbUmYvjfTt9wxkAQ',
+            price=240000000000,
+            owner_or_buyer='6nrj5819mEEfs2XMVd7KnmLbp9WV3N3ih1ytB5bvtyDZ',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_smb_sale_event_03(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_SALE,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='CrW5pJNH3SyNV2jnxN5xHAspznZMaxjGgseRxHHWnhjs',
+            price=210000000000,
+            owner_or_buyer='wwm872RcvN7XwNZBjXLSHfAYrFUATKgkV9v3BewHj5M',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_smb_delisting_event_01(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='GdWUMvgyveFp1LLwSAxTbaHobuf15CYa7YEVg5X6e4uw',
+            price=0,
+            owner_or_buyer='3viTAEqxnK6DPTVvJx4eg9E5ZU3Smkv1XdNzc4256B4A',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_smb_delisting_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='GopskpQTofibN6CNZ5p7B815u3mBT8Vc76CaThs1ip4v',
+            price=0,
+            owner_or_buyer='ELuiZJQALMBdfvvctsUoS6aXpbJhJZNXsrpbr4Q62yjK',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_smb_delisting_event_03(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_SMB,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='3JoHrewHg1zVfeF336q9rVtLQUKpUWWrQpu3TJwAXZtN',
+            price=0,
+            owner_or_buyer='DaectzmqF9wAyLcqeHCQM45AUqQj21BLo4c1EBGLA1jq',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_smb_events(self):
+        assert_events_for(self, SOLANA_SMB, generate_expected=True)
 
 
 class MixedTestCase(unittest.TestCase):
