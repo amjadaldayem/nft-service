@@ -1,0 +1,212 @@
+{
+   "blockTime":1652862125,
+   "meta":{
+      "err":null,
+      "fee":10000,
+      "innerInstructions":[
+         {
+            "index":0,
+            "instructions":[
+               {
+                  "accounts":[
+                     0,
+                     2
+                  ],
+                  "data":"3Bxs4NGtMQf5yEtX",
+                  "programIdIndex":8
+               }
+            ]
+         },
+         {
+            "index":1,
+            "instructions":[
+               {
+                  "accounts":[
+                     3,
+                     4
+                  ],
+                  "data":"3Bxs49175da2o1zw",
+                  "programIdIndex":8
+               },
+               {
+                  "accounts":[
+                     4
+                  ],
+                  "data":"9krTCzbLfv4BRBcj",
+                  "programIdIndex":8
+               },
+               {
+                  "accounts":[
+                     4
+                  ],
+                  "data":"SYXsBgC8Fuu7iuJLYEj1wXeEvd33Zu8EFZxquoUSUPEDDu7G",
+                  "programIdIndex":8
+               }
+            ]
+         }
+      ],
+      "logMessages":[
+         "Program hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk invoke [1]",
+         "Program log: Instruction: Deposit",
+         "Program 11111111111111111111111111111111 invoke [2]",
+         "Program 11111111111111111111111111111111 success",
+         "Program hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk consumed 21166 of 200000 compute units",
+         "Program hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk success",
+         "Program hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk invoke [1]",
+         "Program log: Instruction: Buy",
+         "Program log: Transfer 897840 lamports to the new account",
+         "Program 11111111111111111111111111111111 invoke [2]",
+         "Program 11111111111111111111111111111111 success",
+         "Program log: Allocate space for the account 411qVNbWRaSiqwcmhKeBqZC4tELQiJNSAZgh8fXhBNxL",
+         "Program 11111111111111111111111111111111 invoke [2]",
+         "Program 11111111111111111111111111111111 success",
+         "Program log: Assign the account to the owning program",
+         "Program 11111111111111111111111111111111 invoke [2]",
+         "Program 11111111111111111111111111111111 success",
+         "Program log: Completed assignation!",
+         "Program hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk consumed 56911 of 200000 compute units",
+         "Program hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk success",
+         "Program 11111111111111111111111111111111 invoke [1]",
+         "Program 11111111111111111111111111111111 success"
+      ],
+      "postBalances":[
+         5984189,
+         11489985000,
+         302890880,
+         109184105762,
+         897840,
+         152415037831,
+         4085520,
+         953185920,
+         1,
+         1009200,
+         2039280,
+         5616720,
+         1141440
+      ],
+      "postTokenBalances":[
+         {
+            "accountIndex":10,
+            "mint":"FWQyd2rd3YQd19L5jzEQnTLFAVf6Xn2THtVTnxLraWiu",
+            "owner":"BiJb1QojvbWoSbL1w2Xa9uiCZnXHbPgom9YfUmUFo6n1",
+            "uiTokenAmount":{
+               "amount":"1",
+               "decimals":0,
+               "uiAmount":1,
+               "uiAmountString":"1"
+            }
+         }
+      ],
+      "preBalances":[
+         296892029,
+         11489985000,
+         12890880,
+         109184105762,
+         0,
+         152415037831,
+         4085520,
+         953185920,
+         1,
+         1009200,
+         2039280,
+         5616720,
+         1141440
+      ],
+      "preTokenBalances":[
+         {
+            "accountIndex":10,
+            "mint":"FWQyd2rd3YQd19L5jzEQnTLFAVf6Xn2THtVTnxLraWiu",
+            "owner":"BiJb1QojvbWoSbL1w2Xa9uiCZnXHbPgom9YfUmUFo6n1",
+            "uiTokenAmount":{
+               "amount":"1",
+               "decimals":0,
+               "uiAmount":1,
+               "uiAmountString":"1"
+            }
+         }
+      ],
+      "rewards":[
+
+      ],
+      "status":{
+         "Ok":null
+      }
+   },
+   "slot":134251380,
+   "transaction":{
+      "message":{
+         "accountKeys":[
+            "DXGB1QU3bKxFmk7v58UPm1gEatdnZgd8RxR6vZkU7kfC",
+            "pAHAKoTJsAAe2ZcvTZUxoYzuygVAFAmbYmJYdWT886r",
+            "FJwbEaT27ABzqwXRLN8UoJRHtVtLxHQizZ2EKHFS9PbD",
+            "5xyoD5hnWDBLsW6rjW2TBmqiDQsbod6Uaw15dRhNrDzn",
+            "411qVNbWRaSiqwcmhKeBqZC4tELQiJNSAZgh8fXhBNxL",
+            "So11111111111111111111111111111111111111112",
+            "3o9d13qUvEuuauhFrVom1vuCzgNsJifeaBYDPquaT73Y",
+            "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "11111111111111111111111111111111",
+            "SysvarRent111111111111111111111111111111111",
+            "AUM957yZWjaxFg8iSFVLWryTiVMXd9bMRyriAV4xTucA",
+            "96axBTcbwD2m2Bc8WJTPp6nJpoRhqZ2R59SELxbs7F3t",
+            "hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk"
+         ],
+         "header":{
+            "numReadonlySignedAccounts":0,
+            "numReadonlyUnsignedAccounts":8,
+            "numRequiredSignatures":2
+         },
+         "instructions":[
+            {
+               "accounts":[
+                  0,
+                  0,
+                  1,
+                  2,
+                  5,
+                  1,
+                  6,
+                  3,
+                  7,
+                  8,
+                  9
+               ],
+               "data":"3GyWrkssW12wT3NZsHcbhK6P",
+               "programIdIndex":12
+            },
+            {
+               "accounts":[
+                  0,
+                  0,
+                  8,
+                  5,
+                  10,
+                  11,
+                  2,
+                  1,
+                  6,
+                  3,
+                  4,
+                  7,
+                  8,
+                  9
+               ],
+               "data":"48CS5rNxJb9HCEVNm5o7aG4RS6yMRbCuXj8s",
+               "programIdIndex":12
+            },
+            {
+               "accounts":[
+                  0,
+                  3
+               ],
+               "data":"3Bxs49175da2o1zw",
+               "programIdIndex":8
+            }
+         ],
+         "recentBlockhash":"2eSPZJTCgtbtqBYmKgoBQGVnhmYB4y85hJQ3SXmCkNwu"
+      },
+      "signatures":[
+         "3q6tj7zy5vC5AvRGsVLfF7XDU7zgFgD7aQ61AU7Gk6W5iZqfowkG4sX5pMT9dXvTW5Ubj1Yduq6T4tauzKaMnDeG",
+         "4xMZhCJQahtkh5qDhz23Ss5kmPr7rAudjw7niASS2bWKQX8Zy5e9CeGEubtU5YJRJmoJTLEtQNcp6dM8oWaaKGhW"
+      ]
+   }
+}

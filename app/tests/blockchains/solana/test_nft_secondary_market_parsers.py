@@ -11,6 +11,7 @@ from app.blockchains import (
     SOLANA_DIGITAL_EYES,
     SOLANA_SOLSEA,
     SOLANA_SMB,
+    SOLANA_OPEN_SEA,
     SECONDARY_MARKET_EVENT_LISTING,
     SECONDARY_MARKET_EVENT_DELISTING,
     SECONDARY_MARKET_EVENT_SALE,
@@ -31,6 +32,7 @@ market_id_dir_map = {
     SOLANA_DIGITAL_EYES: get_data_path('solana', 'transactions', 'digital_eyes'),
     SOLANA_SOLSEA: get_data_path('solana', 'transactions', 'solsea'),
     SOLANA_SMB: get_data_path('solana', 'transactions', 'monkey_business'),
+    SOLANA_OPEN_SEA: get_data_path('solana', 'transactions', 'open_sea'),
 }
 
 event_type_dir_map = {
@@ -1318,6 +1320,521 @@ class SolanaMonkeyBusinessTestCase(unittest.TestCase):
 
     def test_smb_events(self):
         assert_events_for(self, SOLANA_SMB, generate_expected=True)
+
+
+class OpenSeaTestCase(unittest.TestCase):
+    def test_opensea_listing_event_01(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='BmMaS4ZFVFLybcrXJ6bwXePvcVYzHyj3cFDHC3RCf11X',
+            price=15000000000,
+            owner_or_buyer='DpQcuWkCBnSkGZyonXRPp6yRpM4B5Av27tNsPbHiwr79',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_listing_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='Ad3np4PD5HnaLb4sKu2yJZ3sGr3ogi92kK1Gqn7nk2B9',
+            price=2500000000,
+            owner_or_buyer='47pSdcFvRgCBvoZNZ9CrWyqBDYSyGs1tz2WmE9Uhjg85',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_listing_event_03(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='FHsFUeu5GghuaKrAThXQdPs71Lkj9kDHkXtXXZaDGfr2',
+            price=500000000,
+            owner_or_buyer='XVq1K9JzLdJuDjt7E4Lh2W6QjawT4A6GBMTiZ1MxKvc',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_listing_event_04(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '04.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='GoHMKvPsADs5wrM94JAuLikG5ELdsAXyVpUqroDQ5wKD',
+            price=4500000000,
+            owner_or_buyer='8uVMvJB4FFWo5rabUXY4mJezvupotqHNsvooe97RQ234',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_listing_event_05(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            '05.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_LISTING,
+            token_key='DxKYUffGHNdec917WrQUChiMgf173C1ntukAuMVpZrxY',
+            price=70000000,
+            owner_or_buyer='EGnKSY8efkmWvb6hsQ43pHWzC6UkKb6mH6J4PyDwGwoZ',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_sale_event_01(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='7RsJRvyuCsxQE4H7QuutrjnjonMsZAgX7YVY56fG4Kyk',
+            price=951000000000,
+            owner_or_buyer='836AqkEnj1JQNW6uSULjQ7y8bGBrpQHWzPkKi8mCYkP4',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_sale_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='Cv5HHx2X24JaTSMs3cejQY2X3vd6MfBRTWYV47RSg9SX',
+            price=1030000000000,
+            owner_or_buyer='8BrJXeoGgmtrfDYM9y6F7zqoS32pGZsVZEB1Kt9J39Hu',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_sale_event_03(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='5zFAEKbq8QuHLw6wfGggwP6XXWsa28VrFY7zLX7oZ5ZN',
+            price=989000000000,
+            owner_or_buyer='7iB7a7y5oGT7ZN1sfkj1g6k3Z9zsKhtWW2eRLBQK1afs',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_sale_event_04(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            '04.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='FmJk2c4FL1zq31TwQTGELZrAohvJiU8JAFnd8ffp8gcU',
+            price=700000000,
+            owner_or_buyer='8d5srZWopxgZDqtfjeZx9eeqnY14Dz3dX1Ujg8qEhK7n',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_sale_event_05(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            '05.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE,
+            token_key='4Czuew5x23LMrVekCnZ2aftC7bCxytitFpN3BUN7JBHb',
+            price=165000000000,
+            owner_or_buyer='CT2V6UVwygRnimd83H9nxBgXfF9iLLAAmGpacE3ftrKe',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_delisting_event_01(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='7RHQcsDvYBmvMiCv1KLKu6m9SCY8b2h6GU8sJJDpgvx9',
+            price=0,
+            owner_or_buyer='AgDzhL7GnFKFz1QAhDLWusi9ZNznCj7Qa4CarqwXi8c',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_delisting_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='FT8B25Hj2VTuvMy6sYsDXtNkVbhSX238eQgk8beyZmJy',
+            price=0,
+            owner_or_buyer='bDjGGu1oGP6CMmu9TtSVJdXdm4JBqPz71FBe39Hf5Qh',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_delisting_event_03(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='8ayConW9uZxtbiwipwhT9HK6nkrNpe3HZREfPbUZdVy1',
+            price=0,
+            owner_or_buyer='5LBMTDPn2Dhu3Th5yAxoAYKM9mX5g3QPgcvf26fvzngN',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_delisting_event_04(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '04.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='HtbvXagSCXeJjSc99NvwTruMHoryEDcSqtgRR7nnYNuU',
+            price=0,
+            owner_or_buyer='39H8K4Pot13PXbmH9eMU7ZdxmzSV8PHZNigoBEy2yw8z',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_delisting_event_05(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            '05.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_DELISTING,
+            token_key='EbGoPWefLJaCGTDytYUMhSvXhd4V8LKcnUPye3Fr7UcM',
+            price=0,
+            owner_or_buyer='BxkFvyNuo9z3xPsaWeii3viTs5WbbwFgXRr2AbaSRLQn',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_sale_auction_event_01(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            token_key='88aeHZbPwaa8W1EGTxiAUDwLQYMBdHTwiDSXEWGDhxce',
+            price=750000000,
+            owner_or_buyer='D2J2rUDi6yZQw8MHMfnM2Gfb1ou19FMpTWRKXMTqjEQY',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_sale_auction_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            token_key='83yTcmFxN8pGWV4Wx1FhxyzCXoqkKUr5LFY4izF1mneW',
+            price=1000000000,
+            owner_or_buyer='EJt4VuFLzK14YqjSgKF5MLU56GEqPFrbwPgwGBV7owv4',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_sale_auction_event_03(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            token_key='Dxbg4ai8VVejT1mRdRCmfmDEJ4v1YLRWGGesHHxWyUFy',
+            price=1990000000,
+            owner_or_buyer='5n47G6hchG2GF4jyqoW8UtJXq7p3ANzsXTzePwEhQ5wF',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_sale_auction_event_04(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            '04.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            token_key='8LDhKoeCbbkcZPui1HS4FMzhQ2QbT9vX7LywfiU3Rc48',
+            price=145000000,
+            owner_or_buyer='6PpgHJAdK5y28rXpgGoDVecaFe6rbKkCTesZJ8PVofxc',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_sale_auction_event_05(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            '05.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_SALE_AUCTION,
+            token_key='FBQ8HDqo8fuLGCHXxJYdun3XA7cR5g12CFQYYJYxNhZ',
+            price=8000000000,
+            owner_or_buyer='DzRjRgJBQtrqNDtp2bS1BMeRcNHSrsUso4n6hAuy2wUh',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_bid_event_01(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_BID,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_BID,
+            token_key='HkUgSJhzVzxcfyViMAvJUMcW8JkzSK5VuHsFtze7REZQ',
+            price=1400000000,
+            owner_or_buyer='4fpwG8SEfuufN5zg1x8p12zS2oCFKQBrEWMLTUV6ZWTd',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_bid_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_BID,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_BID,
+            token_key='FWQyd2rd3YQd19L5jzEQnTLFAVf6Xn2THtVTnxLraWiu',
+            price=290000000,
+            owner_or_buyer='DXGB1QU3bKxFmk7v58UPm1gEatdnZgd8RxR6vZkU7kfC',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_bid_event_03(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_BID,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_BID,
+            token_key='Bpf24sPRGeDC9UMY21fwm6QCiDdBgSQe1XASWSK1w1uE',
+            price=2004800000,
+            owner_or_buyer='PmAoxQP3GYJumLog7pXDDf9gxNTwWpS26Xpghdt8Z2S',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_bid_event_04(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_BID,
+            '04.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_BID,
+            token_key='3Ss8poaZ3rwvWb26LR4DM9Zxqu8ZG2ZhJ2juVPRMouTt',
+            price=150000000,
+            owner_or_buyer='9YFjKZEwxJZG9wxkQvqAV54gdZbEhXd38uWmqm2VFKoG',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_bid_event_05(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_BID,
+            '05.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_BID,
+            token_key='C9mzrjiN1zuZnPRjfq54v4bkiqaYAM6fzxXCVmSGtWZD',
+            price=800000000,
+            owner_or_buyer='3R9H3KwguQ3fSdxc1srowUY4nQ6zY5ND5TkEDNLrtJJ7',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_cancel_bidding_event_01(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            '01.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            token_key='4kcxqNCKDj3SW2wqSwEGWVLeX3gCPVv5ExKj3QKunvAN',
+            price=0,
+            owner_or_buyer='BdMnaspQQRfFMxfbgXpbuEcCr4oXtC1u3sm4fdhBBiDT',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_cancel_bidding_event_02(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            '02.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            token_key='CqvDMww7eQA3FWtD2UdpScPFbehCEVE7Re74mfeiMqN4',
+            price=0,
+            owner_or_buyer='7ivGtXq3uZi619v9EquAqFcsfxLQbL47dgRBGt7dzijm',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_cancel_bidding_event_03(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            '03.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            token_key='BfChTC95d7uS5LyY7Ky2Uonorxg52r4ejDiBit3NsKGQ',
+            price=0,
+            owner_or_buyer='6e8zArgsHZP4Enqr9Fyn938WnJYNgGGtb5Ff6QTZZPv2',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_cancel_bidding_event_04(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            '04.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            token_key='HWy8JeR24j73jsA9PnVSvbQP5gUT7AZ2Anxfhj3PQk6G',
+            price=0,
+            owner_or_buyer='5q3bkz4fWGeXMM9SKSZG82r4yijKreMUvfivXj3TfmiH',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_cancel_bidding_event_05(self):
+        event, timestamp, signature = load_and_parse(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            '05.json'
+        )
+        expected = make_expected(
+            SOLANA_OPEN_SEA,
+            SECONDARY_MARKET_EVENT_CANCEL_BIDDING,
+            token_key='66SfW21R3LKnk6ThZZV4nLP3NeCLRK2b2VhFPaHaehma',
+            price=0,
+            owner_or_buyer='2wFBnnQZ7cJTbiFFDYxBXd5afhqtE1V6cYumUbxE4V5E',
+            timestamp=timestamp,
+            signature=signature
+        )
+        self.assertEqual(event, expected)
+
+    def test_opensea_events(self):
+        assert_events_for(self, SOLANA_OPEN_SEA, generate_expected=True)
 
 
 class MixedTestCase(unittest.TestCase):

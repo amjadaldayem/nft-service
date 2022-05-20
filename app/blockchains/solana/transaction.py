@@ -11,6 +11,7 @@ from app.blockchains import (
     SOLANA_SOLANART,
     SOLANA_SOLSEA,
     SOLANA_SMB,
+    SOLANA_OPEN_SEA,
     BLOCKCHAIN_SOLANA,
     SECONDARY_MARKET_EVENT_LISTING,
     SECONDARY_MARKET_EVENT_DELISTING,
@@ -29,8 +30,11 @@ from app.blockchains.solana import (
     TOKEN_SET_AUTHORITY,
     TOKEN_AUTHORITY_TYPE_ACCOUNT_OWNER,
     TOKEN_TRANSFER,
-    DIGITAL_EYES_NFT_MARKETPLACE_PROGRAM_ACCOUNT, MAGIC_EDEN_PROGRAM_ACCOUNT, MAGIC_EDEN_PROGRAM_ACCOUNT_V2,
+    DIGITAL_EYES_NFT_MARKETPLACE_PROGRAM_ACCOUNT,
+    MAGIC_EDEN_PROGRAM_ACCOUNT,
+    MAGIC_EDEN_PROGRAM_ACCOUNT_V2,
     MAGIC_EDEN_AUCTION_PROGRAM_ACCOUNT,
+    SOLANA_OPEN_SEA_AUCTION_PROGRAM_ACCOUNT,
 )
 from app.blockchains.solana.instruction import (
     T_KEY_INDEX,
@@ -41,6 +45,12 @@ from app.models import SecondaryMarketEvent
 
 T_KEY_POST_TOKEN_BALANCES = 'postTokenBalances'
 T_KEY_ACCOUNT_INDEX = 'accountIndex'
+
+OPEN_SEA_SALE = int.from_bytes(bytes.fromhex("254ad99d4f312306"), 'little')
+OPEN_SEA_LISTING = int.from_bytes(bytes.fromhex("33e685a4017f83ad"), 'little')
+OPEN_SEA_DELISTING = int.from_bytes(bytes.fromhex("c6c682cba35faf4b"), 'little')
+OPEN_SEA_BID = int.from_bytes(bytes.fromhex("66063d1201daebea"), 'little')
+OPEN_SEA_CANCEL_BIDDING = int.from_bytes(bytes.fromhex("ee4c24da84b1e0e9"), 'little')
 
 
 class ParsedTransaction:
@@ -106,6 +116,8 @@ class ParsedTransaction:
             return self._parse_solsea(account_key, market_authority_address)
         elif secondary_market_id == SOLANA_SMB:
             return self._parse_smb(account_key, market_authority_address)
+        elif secondary_market_id == SOLANA_OPEN_SEA:
+            return self._parse_open_sea(account_key, market_authority_address)
 
     def _parse_magic_eden(self, magic_eden_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
@@ -799,6 +811,125 @@ class ParsedTransaction:
             token_key=token_key
         )
         return event
+
+    def _parse_open_sea(self, open_sea_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+
+        program_instruction, inner_ins_array = self.find_secondary_market_program_instructions(
+            program_key=open_sea_program_key,
+            offset=OPEN_SEA_SALE,
+            width=8
+        )
+        if not program_instruction:
+            program_instruction, inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key=open_sea_program_key,
+                offset=OPEN_SEA_LISTING,
+                width=8
+            )
+        if not program_instruction:
+            program_instruction, inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key=open_sea_program_key,
+                offset=OPEN_SEA_DELISTING,
+                width=8
+            )
+        if not program_instruction:
+            program_instruction, inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key=open_sea_program_key,
+                offset=OPEN_SEA_BID,
+                width=8
+            )
+        if not program_instruction:
+            program_instruction, inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key=open_sea_program_key,
+                offset=OPEN_SEA_CANCEL_BIDDING,
+                width=8
+            )
+        if not program_instruction:
+            program_instruction, inner_ins_array = self.find_secondary_market_program_instructions(
+                program_key=open_sea_program_key,
+            )
+        if not program_instruction:
+            return None
+
+        buyer, owner = EMPTY_PUBLIC_KEY, EMPTY_PUBLIC_KEY
+        price = 0
+        token_key = EMPTY_PUBLIC_KEY
+        offset = program_instruction.get_function_offset(8)
+        if offset == OPEN_SEA_SALE:
+            # Sale event on OpenSea is equal to ExecuteSale event.
+            event_type = SECONDARY_MARKET_EVENT_SALE
+            buyer = program_instruction.account_list[0]
+            # Sale price in the smallest UNIT. E.g., for Solana this is lamports
+            price = program_instruction.get_int(10, 5)
+            # Token address / Mint key
+            token_key = program_instruction.account_list[4]
+        elif offset == OPEN_SEA_LISTING:
+            if open_sea_program_key == SOLANA_OPEN_SEA_AUCTION_PROGRAM_ACCOUNT:
+                # Auction event on OpenSea has same offset as Sale event.
+                event_type = SECONDARY_MARKET_EVENT_SALE_AUCTION
+                # Auction price in the smallest UNIT. E.g., for Solana this is lamports
+                price = program_instruction.get_int(11, 5)
+                # Iterate through the postBalance and find the entry with `amount` == 1
+                post_token_balances = self.post_token_balances
+                for balance in post_token_balances:
+                    if balance['uiTokenAmount']['amount'] == '1':
+                        buyer = balance['owner']
+                        # Token address / Mint key
+                        token_key = balance['mint']
+                        break
+            else:
+                # Listing event on OpenSea has same offset as Sale event.
+                event_type = SECONDARY_MARKET_EVENT_LISTING
+                owner = program_instruction.account_list[0]
+                # Listing price in the smallest UNIT. E.g., for Solana this is lamports
+                price = program_instruction.get_int(10, 5)
+                # Token address / Mint key
+                token_key = program_instruction.account_list[4]
+        elif offset == OPEN_SEA_DELISTING:
+            # Delisting event on OpenSea is equal to CancelSell event.
+            event_type = SECONDARY_MARKET_EVENT_DELISTING
+            owner = program_instruction.account_list[0]
+            # Fixed price for delisting transactions
+            price = 0
+            # Token address / Mint key
+            token_key = program_instruction.account_list[3]
+        elif offset == OPEN_SEA_BID:
+            # Bid event on OpenSea is equal to Buy event.
+            event_type = SECONDARY_MARKET_EVENT_BID
+            buyer = program_instruction.account_list[0]
+            # Bid price in the smallest UNIT. E.g., for Solana this is lamports
+            price = program_instruction.get_int(10, 5)
+            # Iterate through the postBalance and find the entry with `amount` == 1
+            post_token_balances = self.post_token_balances
+            if post_token_balances:
+                for balance in post_token_balances:
+                    if balance['uiTokenAmount']['amount'] == '1':
+                        # Token address / Mint key
+                        token_key = balance['mint']
+                        break
+            else:
+                token_key = program_instruction.account_list[2]
+        elif offset == OPEN_SEA_CANCEL_BIDDING:
+            # Cancel bidding event on OpenSea is equal to CancelBuy event.
+            event_type = SECONDARY_MARKET_EVENT_CANCEL_BIDDING
+            buyer = program_instruction.account_list[0]
+            # Fixed price for cancel bidding transactions
+            price = 0
+            # Token address / Mint key
+            token_key = program_instruction.account_list[2]
+        else:
+            event_type = None
+        event = SecondaryMarketEvent(
+            blockchain_id=BLOCKCHAIN_SOLANA,
+            market_id=SOLANA_OPEN_SEA,
+            timestamp=self.block_time,
+            event_type=event_type,
+            transaction_hash=self.signature,
+            price=price,
+            buyer=buyer,
+            owner=owner,
+            token_key=token_key
+        )
+        return event if event.event_type and event.token_key and (event.owner or event.buyer) else None
 
     @cached_property
     def event(self):
