@@ -5,7 +5,7 @@
               "kinesisSchemaVersion": "1.0",
               "partitionKey": "1",
               "sequenceNumber": "49590338271490256608559692538361571095921575989136588898",
-              "data": "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0Lg==",
+              "data": "eyJtYXJrZXQiOiAiU29sc2VhIiwgIm1hcmtldF9hZGRyZXNzIjogNjU3OTcsICJtYXJrZXRfYWNjb3VudCI6ICI2MTdqYldvNjE2Z2drRHh2VzFMZThwVjM4WExiVlN5V1k4YWU2UVVtR0JBVSIsICJzaWduYXR1cmUiOiAiNE5GMXpMN0ZZR1VxcXVrNlhOc2U3b2kzcDNyWVdrQzdrWmRaeVlXcGhwZDVSWXNjSHVWWVpBclpiNVFNbUs2b2o2Q0VQbVIxaUR6NkhHcExaOG01Y01kViIsICJ0aW1lc3RhbXAiOiAxNjUyODcwMTc2NTEwNjk0ODYzfQ==",
               "approximateArrivalTimestamp": 1545084650.987
           },
           "eventSource": "aws:kinesis",

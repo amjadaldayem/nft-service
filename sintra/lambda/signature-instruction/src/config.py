@@ -2,7 +2,7 @@ from pathlib import Path
 
 from dynaconf import Dynaconf
 
-_settings_file = Path(__file__).absolute() / "settings.toml"
+_settings_file = Path(__file__).absolute().parent / "settings.toml"
 
 settings = Dynaconf(
     envvar_prefix="SINTRA",
