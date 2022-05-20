@@ -7,6 +7,7 @@ import asyncio
 import logging
 import os
 from typing import List, Tuple, Optional
+from datetime import datetime
 
 import aiohttp
 import boto3
@@ -40,6 +41,7 @@ from app.utils import (
 )
 from app.utils.parallelism import retriable_map
 from app.utils.streamer import KinesisStreamer, KinesisStreamRecord
+from app.utils.sme_events_publisher import publish_sme_events_to_kinesis
 
 logger = logging.getLogger(__name__)
 
@@ -261,6 +263,7 @@ async def handle_transactions(records: List[KinesisStreamRecord],
             break
 
         await save_to_db(dynamodb_resource, succeeded_items_to_commit)
+        publish_events(succeeded_items_to_commit)
         # for e, n in succeeded_items_to_commit:
         #     logger.info("%s\n%s", orjson.dumps(e.dict()), orjson.dumps(n.dict()))
 
@@ -279,6 +282,15 @@ async def handle_transactions(records: List[KinesisStreamRecord],
             record for record in records if record.data[0] in failed_transaction_hashes
         ]
     return
+
+
+def publish_events(events):
+    try:
+        current_hour = datetime.utcnow().strftime("%Y-%d-%m-%H")
+        published_events = [{"data": event, "eventPartitionKey": current_hour} for event in events]
+        publish_sme_events_to_kinesis(published_events)
+    except Exception as error:
+        logger.error(error)
 
 
 # For Lambda handler
