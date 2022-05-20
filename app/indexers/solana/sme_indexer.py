@@ -41,7 +41,8 @@ from app.utils import (
 )
 from app.utils.parallelism import retriable_map
 from app.utils.streamer import KinesisStreamer, KinesisStreamRecord
-from app.utils.sme_events_publisher import publish_sme_events_to_kinesis, convert_secondary_market_event_to_dict
+from app.utils.sme_events_publisher import publish_sme_events_to_kinesis, convert_secondary_market_event_to_dict, \
+    convert_nft_data_to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -289,7 +290,10 @@ def publish_events(event_and_nft_metadata_pairs):
         current_hour = datetime.utcnow().strftime("%Y-%d-%m-%H")
         published_events = [
             {
-                "data": {"sme_data": convert_secondary_market_event_to_dict(pair[0]), "nft_data":pair[1]},
+                "data": {
+                    "sme_data": convert_secondary_market_event_to_dict(pair[0]),
+                    "nft_data": convert_nft_data_to_dict(pair[1])
+                },
                 "eventPartitionKey": current_hour
             }
             for pair in event_and_nft_metadata_pairs
