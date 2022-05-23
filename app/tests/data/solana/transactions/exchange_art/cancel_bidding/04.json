@@ -1,0 +1,76 @@
+{
+   "blockTime":1651175560,
+   "meta":{
+      "err":null,
+      "fee":5000,
+      "innerInstructions":[
+
+      ],
+      "logMessages":[
+         "Program exofLDXJoFji4Qyf9jSAH59J4pp82UT5pmGgR6iT24Z invoke [1]",
+         "Program log: Instruction: CancelOffer",
+         "Program exofLDXJoFji4Qyf9jSAH59J4pp82UT5pmGgR6iT24Z consumed 13050 of 200000 compute units",
+         "Program exofLDXJoFji4Qyf9jSAH59J4pp82UT5pmGgR6iT24Z success"
+      ],
+      "postBalances":[
+         73112032910,
+         0,
+         2039280,
+         1461600,
+         1141440
+      ],
+      "postTokenBalances":[
+
+      ],
+      "preBalances":[
+         43110311830,
+         30001726080,
+         2039280,
+         1461600,
+         1141440
+      ],
+      "preTokenBalances":[
+
+      ],
+      "rewards":[
+
+      ],
+      "status":{
+         "Ok":null
+      }
+   },
+   "slot":131715950,
+   "transaction":{
+      "message":{
+         "accountKeys":[
+            "Hihdo6rTqb6af5Q8AuFe7LjTkRpYCUR2S3jZZQjkDi5J",
+            "5W8UzHc9XJzvZgGX5V7W1EF588ypqeMTtQwX6unEnL2x",
+            "BN2UecbULk8oV6VNPtFSyA1VnN12KAh6rcpD3T5jBjD3",
+            "54ub9V7vCSejb4sYyB4e1AoueN3g6vjCrFfPQXbKmQDo",
+            "exofLDXJoFji4Qyf9jSAH59J4pp82UT5pmGgR6iT24Z"
+         ],
+         "header":{
+            "numReadonlySignedAccounts":0,
+            "numReadonlyUnsignedAccounts":2,
+            "numRequiredSignatures":1
+         },
+         "instructions":[
+            {
+               "accounts":[
+                  0,
+                  3,
+                  2,
+                  1,
+                  0
+               ],
+               "data":"GXEyxFaXh3c",
+               "programIdIndex":4
+            }
+         ],
+         "recentBlockhash":"6ort4HRbbmhTskMb44zgX8HkBza3yvQ8TZ24zxkaRabE"
+      },
+      "signatures":[
+         "63emFdrvTG7fMPndAjnB8ongQNzBd6nMQbVWFgDfGWH44AbnNWxbPVtT2iZNJ5Vk3fJRk22bCRRGZ9TMnLP2aaPx"
+      ]
+   }
+}

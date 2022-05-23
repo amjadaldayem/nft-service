@@ -12,6 +12,7 @@ from app.blockchains import (
     SOLANA_SOLSEA,
     SOLANA_SMB,
     SOLANA_OPEN_SEA,
+    SOLANA_EXCHANGE_ART,
     BLOCKCHAIN_SOLANA,
     SECONDARY_MARKET_EVENT_LISTING,
     SECONDARY_MARKET_EVENT_DELISTING,
@@ -35,6 +36,8 @@ from app.blockchains.solana import (
     MAGIC_EDEN_PROGRAM_ACCOUNT_V2,
     MAGIC_EDEN_AUCTION_PROGRAM_ACCOUNT,
     SOLANA_OPEN_SEA_AUCTION_PROGRAM_ACCOUNT,
+    SOLANA_EXCHANGE_ART_AUCTION_PROGRAM_ACCOUNT,
+    SOLANA_EXCHANGE_ART_PROGRAM_ACCOUNT_V2,
 )
 from app.blockchains.solana.instruction import (
     T_KEY_INDEX,
@@ -51,6 +54,12 @@ OPEN_SEA_LISTING = int.from_bytes(bytes.fromhex("33e685a4017f83ad"), 'little')
 OPEN_SEA_DELISTING = int.from_bytes(bytes.fromhex("c6c682cba35faf4b"), 'little')
 OPEN_SEA_BID = int.from_bytes(bytes.fromhex("66063d1201daebea"), 'little')
 OPEN_SEA_CANCEL_BIDDING = int.from_bytes(bytes.fromhex("ee4c24da84b1e0e9"), 'little')
+
+EXCHANGE_ART_SALE = int.from_bytes(bytes.fromhex("01"), 'little')
+EXCHANGE_ART_LISTING = int.from_bytes(bytes.fromhex("00"), 'little')
+EXCHANGE_ART_DELISTING = int.from_bytes(bytes.fromhex("02"), 'little')
+EXCHANGE_ART_BID = int.from_bytes(bytes.fromhex("d66261233b0c2cb2"), 'little')
+EXCHANGE_ART_CANCEL_BIDDING = int.from_bytes(bytes.fromhex("5ccbdf285c593577"), 'little')
 
 
 class ParsedTransaction:
@@ -118,6 +127,8 @@ class ParsedTransaction:
             return self._parse_smb(account_key, market_authority_address)
         elif secondary_market_id == SOLANA_OPEN_SEA:
             return self._parse_open_sea(account_key, market_authority_address)
+        elif secondary_market_id == SOLANA_EXCHANGE_ART:
+            return self._parse_exchange_art(account_key, market_authority_address)
 
     def _parse_magic_eden(self, magic_eden_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         """
@@ -699,7 +710,7 @@ class ParsedTransaction:
             for ins in inner_ins_array:
                 pii = ParsedInstruction.from_instruction_dict(ins, self.account_keys)
                 if (pii.is_token_program_instruction
-                        and pii.get_function_offset()) == TOKEN_TRANSFER:
+                    and pii.get_function_offset()) == TOKEN_TRANSFER:
                     owner = pii.account_list[2]
                     break
         elif func_offset == 0x01:
@@ -931,6 +942,80 @@ class ParsedTransaction:
         )
         return event if event.event_type and event.token_key and (event.owner or event.buyer) else None
 
+    def _parse_exchange_art(self, exchange_art_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
+        program_instruction, inner_instructions = self.find_secondary_market_program_instructions(
+            program_key=exchange_art_program_key,
+        )
+        if not program_instruction:
+            return None
+        buyer, owner = EMPTY_PUBLIC_KEY, EMPTY_PUBLIC_KEY
+        price = 0
+        token_key = EMPTY_PUBLIC_KEY
+        offset = program_instruction.get_function_offset()
+        if exchange_art_program_key == SOLANA_EXCHANGE_ART_PROGRAM_ACCOUNT_V2:
+            offset = program_instruction.get_function_offset(8)
+        if offset == EXCHANGE_ART_SALE:
+            if exchange_art_program_key == SOLANA_EXCHANGE_ART_AUCTION_PROGRAM_ACCOUNT:
+                # Auction event on Exchange Art is equal to RegisterBid event.
+                event_type = SECONDARY_MARKET_EVENT_SALE_AUCTION
+                buyer = program_instruction.account_list[0]
+                price = program_instruction.get_int(1, 6)
+                token_key = program_instruction.account_list[1]
+            else:
+                # Sale event on Exchange Art is equal to AcceptExchangeByTaker event.
+                event_type = SECONDARY_MARKET_EVENT_SALE
+                buyer = program_instruction.account_list[0]
+                token_key = program_instruction.account_list[6]
+                accumulated_price = 0
+                for inner_instruction in inner_instructions:
+                    inner_program_instruction = ParsedInstruction.from_instruction_dict(
+                        inner_instruction, self.account_keys)
+                    if (inner_program_instruction.is_system_program_instruction
+                            and inner_program_instruction.get_function_offset() == SYS_TRANSFER):
+                        accumulated_price += inner_program_instruction.get_int(4, 8)
+                price = int(round(accumulated_price, 3))
+        elif offset == EXCHANGE_ART_LISTING:
+            # Listing event on Exchange Art is equal to InitEscrowByOwner event.
+            event_type = SECONDARY_MARKET_EVENT_LISTING
+            owner = program_instruction.account_list[0]
+            price = program_instruction.get_int(1, 6)
+            token_key = program_instruction.account_list[2]
+        elif offset == EXCHANGE_ART_DELISTING:
+            # Delisting event on Exchange Art is equal to Redeem event.
+            event_type = SECONDARY_MARKET_EVENT_DELISTING
+            owner = program_instruction.account_list[0]
+            price = 0
+            token_key = program_instruction.account_list[6]
+        elif offset == EXCHANGE_ART_BID:
+            # Bid event on Exchange Art is equal to MakeOffer event.
+            event_type = SECONDARY_MARKET_EVENT_BID
+            buyer = program_instruction.account_list[0]
+            price = program_instruction.get_int(8, 5)
+            token_key = program_instruction.account_list[1]
+        elif offset == EXCHANGE_ART_CANCEL_BIDDING:
+            # Cancel bidding event on Exchange Art is equal to CancelOffer event.
+            event_type = SECONDARY_MARKET_EVENT_CANCEL_BIDDING
+            buyer = program_instruction.account_list[0]
+            price = 0
+            token_key = program_instruction.account_list[1]
+        else:
+            event_type = None
+
+        event = SecondaryMarketEvent(
+            blockchain_id=BLOCKCHAIN_SOLANA,
+            market_id=SOLANA_EXCHANGE_ART,
+            timestamp=self.block_time,
+            event_type=event_type,
+            transaction_hash=self.signature,
+            price=price,
+            buyer=buyer,
+            owner=owner,
+            token_key=token_key
+        )
+        if event_type and token_key and (owner or buyer):
+            return event
+        return None
+
     @cached_property
     def event(self):
         return self._parse()
@@ -955,9 +1040,9 @@ class ParsedTransaction:
         for balance in post_token_balances:
             idx = balance[T_KEY_ACCOUNT_INDEX]
             matched = (
-                token_account_to_match is None
-                or self.account_keys[idx] == token_account_to_match
-                or balance['owner'] == token_account_to_match
+                    token_account_to_match is None
+                    or self.account_keys[idx] == token_account_to_match
+                    or balance['owner'] == token_account_to_match
             )
             if matched and balance['uiTokenAmount']['amount'] == '1':
                 return balance['mint'], balance['owner'] if 'owner' in balance else None

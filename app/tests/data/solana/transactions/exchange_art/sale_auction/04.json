@@ -1,0 +1,92 @@
+{
+   "blockTime":1644335712,
+   "meta":{
+      "err":null,
+      "fee":5000,
+      "innerInstructions":[
+
+      ],
+      "logMessages":[
+         "Program 11111111111111111111111111111111 invoke [1]",
+         "Program 11111111111111111111111111111111 success",
+         "Program exAuvFHqXXbiLrM4ce9m1icwuSyXytRnfBkajukDFuB invoke [1]",
+         "Program log: processing AuctionInstruction::RegisterBid (bid: 5500000000)",
+         "Program exAuvFHqXXbiLrM4ce9m1icwuSyXytRnfBkajukDFuB consumed 4854 of 200000 compute units",
+         "Program exAuvFHqXXbiLrM4ce9m1icwuSyXytRnfBkajukDFuB success"
+      ],
+      "postBalances":[
+         5951624604,
+         13317109190,
+         5502234160,
+         1,
+         1461600,
+         1461600,
+         1141440
+      ],
+      "postTokenBalances":[
+
+      ],
+      "preBalances":[
+         11451629604,
+         8317109190,
+         5002234160,
+         1,
+         1461600,
+         1461600,
+         1141440
+      ],
+      "preTokenBalances":[
+
+      ],
+      "rewards":[
+
+      ],
+      "status":{
+         "Ok":null
+      }
+   },
+   "slot":119926919,
+   "transaction":{
+      "message":{
+         "accountKeys":[
+            "87yoMT8NEMmHp3qZCN9c7j1QpJnEJdBxeNES3FiYsrm",
+            "2ErTApkmFqC2W6Z6rjYE2XG957f8SHCLPEqYddPG7RQ9",
+            "AHoEAK9Dvr5ovWZuBRC7LKB2RqqEAURWR4CcsYJQfgTP",
+            "11111111111111111111111111111111",
+            "8PSdqJYxLp3ZfaM5SqasMqPdTXR9SY2YTtUYJnWGx1Yz",
+            "944BN9ibWMuvow7GpqPgKewTT2uywba53mxT8T8f6ka4",
+            "exAuvFHqXXbiLrM4ce9m1icwuSyXytRnfBkajukDFuB"
+         ],
+         "header":{
+            "numReadonlySignedAccounts":0,
+            "numReadonlyUnsignedAccounts":4,
+            "numRequiredSignatures":1
+         },
+         "instructions":[
+            {
+               "accounts":[
+                  0,
+                  2
+               ],
+               "data":"3Bxs3zuzHVTcfpzT",
+               "programIdIndex":3
+            },
+            {
+               "accounts":[
+                  0,
+                  4,
+                  2,
+                  5,
+                  1
+               ],
+               "data":"jsrEaYei6eK",
+               "programIdIndex":6
+            }
+         ],
+         "recentBlockhash":"DGetjLHxnWQkfuiVUPUoCouBJosjx6vbWj9r7Rp2sSCw"
+      },
+      "signatures":[
+         "3tGvjJpuL4sYDKQtSU26zFgT3t3fUdGvwyeeC79CLrge7wrPBxDDDDpBqZoCuUxEXYecgvMjt6eD15eBV8D6AEAr"
+      ]
+   }
+}
