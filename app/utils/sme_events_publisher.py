@@ -7,7 +7,7 @@ from app.models import SecondaryMarketEvent, NftData, NftCreator, MediaFile
 
 kinesis_client = boto3.client('kinesis')
 # sme_events_data_stream_name = os.getenv("SME_EVENTS_KINESIS_DATA_STREAM_NAME")
-sme_events_data_stream_name = "sme-events-data-stream"
+sme_events_data_stream_name = "solana-sme-events-data-stream"
 
 
 def convert_secondary_market_event_to_dict(secondary_market_event: SecondaryMarketEvent) -> dict:
