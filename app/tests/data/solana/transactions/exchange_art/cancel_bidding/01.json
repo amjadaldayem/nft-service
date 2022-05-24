@@ -1,0 +1,79 @@
+{
+   "blockTime":1647291143,
+   "meta":{
+      "err":null,
+      "fee":5000,
+      "innerInstructions":[
+
+      ],
+      "logMessages":[
+         "Program exofLDXJoFji4Qyf9jSAH59J4pp82UT5pmGgR6iT24Z invoke [1]",
+         "Program log: Instruction: CancelOffer",
+         "Program exofLDXJoFji4Qyf9jSAH59J4pp82UT5pmGgR6iT24Z consumed 12024 of 200000 compute units",
+         "Program exofLDXJoFji4Qyf9jSAH59J4pp82UT5pmGgR6iT24Z success"
+      ],
+      "postBalances":[
+         7865554007,
+         2039280,
+         0,
+         1461600,
+         1461600,
+         1141440
+      ],
+      "postTokenBalances":[
+
+      ],
+      "preBalances":[
+         7166932927,
+         2039280,
+         698626080,
+         1461600,
+         1461600,
+         1141440
+      ],
+      "preTokenBalances":[
+
+      ],
+      "rewards":[
+
+      ],
+      "status":{
+         "Ok":null
+      }
+   },
+   "slot":124954919,
+   "transaction":{
+      "message":{
+         "accountKeys":[
+            "GG9bktoBbe11cno3JfVWDWi5s6Q2Kmx2NnYGckWcfw57",
+            "2qfmgbCw4DBsGJkszFNRMmzPaGxJEXNtyWcBqq1QWcZq",
+            "3WoeJfsRdmTmVoygSTauEkkMmihwmThouNxUbiFLEKi8",
+            "31X1N6uBnSvXmDzcBL2JwZkAyyoanC6zm7nFbquwa4Lf",
+            "3ZLWZRgimx54uXQKcDYSMwvdPMX9JFB1HWVCuX7K8WBo",
+            "exofLDXJoFji4Qyf9jSAH59J4pp82UT5pmGgR6iT24Z"
+         ],
+         "header":{
+            "numReadonlySignedAccounts":0,
+            "numReadonlyUnsignedAccounts":3,
+            "numRequiredSignatures":1
+         },
+         "instructions":[
+            {
+               "accounts":[
+                  0,
+                  4,
+                  1,
+                  2,
+                  3
+               ],
+               "data":"GXEyxFaXh3c",
+               "programIdIndex":5
+            }
+         ],
+         "recentBlockhash":"4gV2bxTy1KKoswwbWgUyK2xeJBxFAGrtqT8k7tLtS5jn"
+      },
+      "signatures":[
+         "3PYabcqNQy4nedbt6E9WYdqVahhQWTPiZ3iRUGbBU1AnQwDStMSjSdYkMRMMHRoa6PenXJ5kjzxZgDiPdqMZPasd"
+      ]
+   }
+}
