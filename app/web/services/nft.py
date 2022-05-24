@@ -23,7 +23,6 @@ from app.models import (
     SecondaryMarketEvent, User,
 )
 from app.models.shared import DataClassBase
-from app.settings import imagekit
 
 SECONDARY_EVENT_NAME_MAP = {
     SECONDARY_MARKET_EVENT_UNKNOWN: 'Unknown',
@@ -49,6 +48,8 @@ class SmeNftResponseModel(DataClassBase):
     thumbnail_url: str  # The link to the image thumbnail
     media_url: str  # The actua link to the assets for the corresponding NFT
     name: str  # Name of the NFT
+    collection_name: str
+    description: str
     nft_id: str  # Unique identifier of the NFT
     collection_id: str  # Unique identifier of the Collection
     market: NameUrlPair  # name, link
@@ -191,10 +192,8 @@ class NFTService:
             token_key=token_key,
             name=item_dict['name'],
             event=SECONDARY_EVENT_NAME_MAP[item_dict['event_type']],
-            thumbnail_url=imagekit.url({
-                "path": item_dict['media_url'],
-                "transformation": [{"height": "128", "width": "128"}],
-            }),
+            description=item_dict.get['description'],
+            collection_name=item_dict['collection_name'],
             media_url=item_dict['media_url'],
             nft_id=nft_id,
             collection_id=item_dict['collection_id'],
