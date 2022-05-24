@@ -191,7 +191,7 @@ class NFTService:
             token_key=token_key,
             name=item_dict['name'],
             event=SECONDARY_EVENT_NAME_MAP[item_dict['event_type']],
-            description=item_dict.get['description'],
+            description=item_dict['description'],
             collection_name=item_dict['collection_name'],
             media_url=item_dict['media_url'],
             nft_id=nft_id,
