@@ -809,6 +809,8 @@ class ParsedTransaction:
             price = 0
             # Token address / Mint key
             token_key = matched_pi.account_list[1]
+        else:
+            return None
 
         event = SecondaryMarketEvent(
             blockchain_id=BLOCKCHAIN_SOLANA,
@@ -928,7 +930,7 @@ class ParsedTransaction:
             # Token address / Mint key
             token_key = program_instruction.account_list[2]
         else:
-            event_type = None
+            return None
         event = SecondaryMarketEvent(
             blockchain_id=BLOCKCHAIN_SOLANA,
             market_id=SOLANA_OPEN_SEA,
@@ -940,7 +942,9 @@ class ParsedTransaction:
             owner=owner,
             token_key=token_key
         )
-        return event if event.event_type and event.token_key and (event.owner or event.buyer) else None
+        if event_type and token_key and (owner or buyer):
+            return event
+        return None
 
     def _parse_exchange_art(self, exchange_art_program_key, authority_address) -> Optional[SecondaryMarketEvent]:
         program_instruction, inner_instructions = self.find_secondary_market_program_instructions(
@@ -999,7 +1003,7 @@ class ParsedTransaction:
             price = 0
             token_key = program_instruction.account_list[1]
         else:
-            event_type = None
+            return None
 
         event = SecondaryMarketEvent(
             blockchain_id=BLOCKCHAIN_SOLANA,
