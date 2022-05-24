@@ -45,7 +45,6 @@ class SmeNftResponseModel(DataClassBase):
     """
     """
     token_key: str  # Mint/token address
-    thumbnail_url: str  # The link to the image thumbnail
     media_url: str  # The actua link to the assets for the corresponding NFT
     name: str  # Name of the NFT
     collection_name: str
