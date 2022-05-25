@@ -137,5 +137,5 @@ async def iter_events_for(program_account):
                 try:
                     await ws_client.logs_unsubscribe(sub_id)
                 except ConnectionClosedError:
-                    logger.error("Error occurred while trying to close connection.")
+                    # logger.error("Error occurred while trying to close connection.")
                     raise
