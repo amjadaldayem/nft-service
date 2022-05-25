@@ -20,23 +20,22 @@ from src.producer import KinesisProducer
 
 logger = logging.getLogger(__name__)
 
-kinesis: KinesisProducer = KinesisProducer(
-    os.getenv("AWS_ACCESS_KEY_ID"),
-    os.getenv("AWS_SECRET_ACCESS_KEY"),
-    os.getenv("AWS_REGION"),
-)
-
-solana_client: SolanaHTTPClient = SolanaHTTPClient(
-    endpoint=settings.blockchain.solana.http.endpoint,
-    timeout=settings.blockchain.solana.http.timeout,
-    username=os.getenv("SOLANA_RPC_HTTP_USERNAME"),
-    password=os.getenv("SOLANA_RPC_HTTP_PASSWORD"),
-)
-
-parsing_service: TransactionParsing = TransactionParsing()
-
 
 def lambda_handler(event: Dict[str, Any], context):
+    kinesis: KinesisProducer = KinesisProducer(
+        os.getenv("AWS_ACCESS_KEY_ID"),
+        os.getenv("AWS_SECRET_ACCESS_KEY"),
+        os.getenv("AWS_REGION"),
+    )
+
+    solana_client: SolanaHTTPClient = SolanaHTTPClient(
+        endpoint=settings.blockchain.solana.http.endpoint,
+        timeout=settings.blockchain.solana.http.timeout,
+        username=os.getenv("SOLANA_RPC_HTTP_USERNAME"),
+        password=os.getenv("SOLANA_RPC_HTTP_PASSWORD"),
+    )
+    parsing_service: TransactionParsing = TransactionParsing()
+
     records = event["Records"]
 
     logger.info(f"Records count: {len(records)}. Processing signatures..")
@@ -63,8 +62,8 @@ def lambda_handler(event: Dict[str, Any], context):
                 )
                 sme_batch.append(secondary_market_event)
             except TransactionParserNotFoundException as error:
-                logger.error(error)
-                raise RuntimeError from error
+                logger.warning(error)
+                continue
             except (
                 TransactionInstructionMissingException,
                 UnknownTransactionException,
@@ -78,12 +77,15 @@ def lambda_handler(event: Dict[str, Any], context):
             raise DecodingException("Failed to decode signature record.") from error
 
     logger.info("Sending secondary event batch.")
-    kinesis.produce_records(
-        settings.kinesis.stream_name,
-        sme_batch,
-    )
+    if len(sme_batch) > 0:
+        kinesis.produce_records(
+            settings.kinesis.stream_name,
+            sme_batch,
+        )
 
-    return {"message": "Successfully processed signature batch."}
+        return {"message": "Successfully processed signature batch."}
+
+    return {"message": "Resulting batch is empty."}
 
 
 async def get_transaction(
