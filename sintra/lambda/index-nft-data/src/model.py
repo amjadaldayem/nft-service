@@ -1,8 +1,12 @@
+# pylint: disable=no-value-for-parameter
+
+from __future__ import annotations
+
 import dataclasses
-from typing import List
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 import orjson
-from humps import camelize
 from pydantic import BaseModel
 
 
@@ -18,12 +22,11 @@ class DataClassBase(BaseModel):
         json_dumps = orjson_dumps
         underscore_attrs_are_private = True
         allow_population_by_field_name = True
-        alias_generator = camelize
 
 
 class MediaFile(DataClassBase):
     uri: str
-    file_type: str = ""
+    file_type: Optional[str]
 
 
 class NFTCreator(DataClassBase):
@@ -32,19 +35,84 @@ class NFTCreator(DataClassBase):
     share: int = 0
 
 
+@dataclass
 class NFTData(DataClassBase):
     blockchain_id: int
+    collection_id: str
     token_address: str
-    collection_key: str
-    current_owner: str
-    name: str
+    owner: str
+    token_name: str
     description: str
     symbol: str
     primary_sale_happened: bool
+    last_market_activity: str
+    timestamp_of_market_activity: int
     metadata_uri: str
-    creators: List[NFTCreator]
-    ext_data: dict = dataclasses.Field(default_factory=dict)
-    edition: str = ""
     attributes: dict = dataclasses.Field(default_factory=dict)
-    external_url: str = ""
-    files: List[MediaFile] = dataclasses.Field(default_factory=List)
+    transaction_hash: str
+    price: float
+    price_currency: Optional[str]
+    creators: List[NFTCreator]
+    edition: Optional[str]
+    external_url: Optional[str]
+    media_files: List[MediaFile] = dataclasses.Field(default_factory=List)
+    extra_data: Dict[str, Any] = dataclasses.Field(default_factory=dict)
+
+    def to_dikt(self) -> Dict[str, Any]:
+        return {
+            "blockchain_id": self.blockchain_id,
+            "collection_id": self.collection_id,
+            "token_address": self.token_address,
+            "owner": self.owner,
+            "token_name": self.token_name,
+            "description": self.description,
+            "symbol": self.symbol,
+            "primary_sale_happened": self.primary_sale_happened,
+            "last_market_activity": self.last_market_activity,
+            "timestamp_of_market_activity": self.timestamp_of_market_activity,
+            "metadata_uri": self.metadata_uri,
+            "attributes": self.attributes,
+            "transaction_hash": self.transaction_hash,
+            "price": self.price,
+            "price_currency": ""
+            if self.price_currency is None
+            else self.price_currency,
+            "creators": self.creators,
+            "edition": "" if self.edition is None else self.edition,
+            "external_url": "" if self.external_url is None else self.external_url,
+            "media_files": self.media_files,
+            "extra_data": self.extra_data,
+        }
+
+
+@dataclass
+class NFTMetadata:
+    mint_key: str
+    update_authority: str
+    primary_sale_happened: bool
+    is_mutable: bool
+    name: Optional[str]
+    symbol: Optional[str]
+    uri: Optional[str]
+    seller_fee_basis_points: str
+    creators: List[str]
+    verified: List[str]
+    share: List[str]
+    ext_data: Dict[str, Any] = dataclasses.field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, metadata_dict: Dict[str, Any]) -> NFTMetadata:
+        return cls(
+            mint_key=metadata_dict["mint_key"],
+            update_authority=metadata_dict["update_authority"],
+            primary_sale_happened=metadata_dict["primary_sale_happened"],
+            is_mutable=metadata_dict["is_mutable"],
+            name=metadata_dict.get("name", None),
+            symbol=metadata_dict.get("symbol", None),
+            uri=metadata_dict.get("uri", None),
+            seller_fee_basis_points=metadata_dict["seller_fee_basis_points"],
+            creators=metadata_dict["creators"],
+            verified=metadata_dict["verified"],
+            share=metadata_dict["share"],
+            ext_data=metadata_dict["ext_data"],
+        )
