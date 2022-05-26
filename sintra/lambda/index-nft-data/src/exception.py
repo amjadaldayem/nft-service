@@ -12,3 +12,11 @@ class EnvironmentVariableMissingException(SintraException):
 
 class DecodingException(SintraException):
     """Raised when input record fails decoding process."""
+
+
+class FetchTokenDataException(SintraException):
+    """Raised when fetching token data fails or times out."""
+
+
+class UnknownBlockchainException(SintraException):
+    """Raised when blockchain id is unknown."""

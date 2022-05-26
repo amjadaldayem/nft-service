@@ -1,0 +1,125 @@
+import json
+import logging
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List
+
+import requests
+from requests import HTTPError, Timeout
+from src.exception import FetchTokenDataException, UnknownBlockchainException
+from src.model import MediaFile, NFTCreator, NFTData, NFTMetadata
+from src.utils import blockchain_id_to_name
+
+logger = logging.getLogger(__name__)
+
+
+class TokenDataFetcher(ABC):
+    @abstractmethod
+    async def get_token_data(self, metadata: NFTMetadata) -> NFTData:
+        """Download NFT data based on metadata URI."""
+
+
+class SolanaTokenDataFetcher(TokenDataFetcher):
+    def __init__(
+        self, username=None, password=None, allow_redirects=True, timeout=10
+    ) -> None:
+        self.session: requests.Session = requests.Session()
+        self.session.auth = (username, password)
+        self.timeout = timeout
+        self.allow_redirects = allow_redirects
+
+    async def get_token_data(self, metadata: NFTMetadata) -> NFTData:
+        try:
+            response: requests.Response = self.session.get(
+                url=metadata.uri,
+                allow_redirects=self.allow_redirects,
+                timeout=self.timeout,
+            )
+            token_data = response.json()
+            return self._transform_token_data(metadata, token_data)
+        except (Timeout, HTTPError) as error:
+            logger.error(error)
+            raise FetchTokenDataException() from error
+        except requests.JSONDecodeError as error:
+            logger.error(error)
+            raise json.JSONDecodeError from error
+
+    def _transform_token_data(
+        self, metadata: NFTMetadata, token_data: Dict[str, Any]
+    ) -> NFTData:
+
+        if not metadata or not token_data:
+            return None
+
+        media_files: List[MediaFile] = []
+        image_uri = token_data.get("image", None)
+        if image_uri:
+            media_files.append(MediaFile(uri=image_uri))
+
+        properties = token_data.get("properties", {})
+        property_files = properties.get("files", None)
+
+        if property_files:
+            for property_file in property_files:
+                if isinstance(property_file, Dict):
+                    uri = property_file.get("uri")
+                    file_type = property_file.get("type")
+                    if uri == image_uri:
+                        media_files[0].file_type = file_type
+                        continue
+                else:
+                    uri = property_file
+                    file_type = ""
+                if not uri:
+                    continue
+
+                media_files.append(MediaFile(uri=uri, file_type=file_type))
+
+        token_creators = [
+            NFTCreator(address=address, verified=bool(verified), share=int(shared))
+            for address, verified, shared in zip(
+                metadata.creators, metadata.verified, metadata.share
+            )
+        ]
+        token_attributes = (
+            self._transform_attributes(token_data.get("attributes", [])),
+        )
+
+        try:
+            blockchain_name = blockchain_id_to_name(metadata.blockchain_id)
+        except UnknownBlockchainException as error:
+            logger.error(error)
+            blockchain_name = None
+
+        nft_data = NFTData(
+            blockchain_id=metadata.blockchain_id,
+            blockchain_name=blockchain_name,
+            collection_id=f"bc#{blockchain_name}#{metadata.program_account_key}",
+            token_address=metadata.token_key,
+            owner=metadata.owner,
+            token_id=f"bc#{blockchain_name}#{metadata.token_key}",
+            token_name=metadata.name,
+            description=token_data.get("description", ""),
+            symbol=metadata.symbol,
+            primary_sale_happened=metadata.primary_sale_happened,
+            last_market_activity=metadata.last_market_activity,
+            timestamp_of_market_activity=metadata.timestamp,
+            metadata_uri=metadata.uri,
+            attributes=token_attributes,
+            transaction_hash=metadata.transaction_hash,
+            price=metadata.price,
+            price_currency="SOL",
+            creators=token_creators,
+            edition=str(token_data.get("edition", -1)),
+            external_url=token_data.get("external_url", ""),
+            media_files=media_files,
+        )
+
+        return nft_data
+
+    def _transform_token_attributes(self, attributes):
+        token_attributes = {
+            attribute["trait_type"]: str(attribute["value"])
+            for attribute in attributes
+            if "trait_type" in attribute
+        }
+        return token_attributes
