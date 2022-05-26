@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
 import orjson
 from pydantic import BaseModel
@@ -87,29 +87,35 @@ class NFTData(DataClassBase):
 
 @dataclass
 class NFTMetadata:
-    mint_key: str
-    update_authority: str
+    blockchain_id: Optional[int]
+    token_key: str
+    timestamp: int
+    program_account_key: str
     primary_sale_happened: bool
     is_mutable: bool
     name: Optional[str]
     symbol: Optional[str]
     uri: Optional[str]
+    owner: Optional[str]
     seller_fee_basis_points: str
     creators: List[str]
     verified: List[str]
     share: List[str]
-    ext_data: Dict[str, Any] = dataclasses.field(default_factory=dict)
+    ext_data: Mapping = dataclasses.field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, metadata_dict: Dict[str, Any]) -> NFTMetadata:
         return cls(
-            mint_key=metadata_dict["mint_key"],
-            update_authority=metadata_dict["update_authority"],
+            blockchain_id=metadata_dict["blockchain_id"],
+            token_key=metadata_dict["token_key"],
+            timestamp=metadata_dict["timestamp"],
+            program_account_key=metadata_dict["program_account_key"],
             primary_sale_happened=metadata_dict["primary_sale_happened"],
             is_mutable=metadata_dict["is_mutable"],
             name=metadata_dict.get("name", None),
             symbol=metadata_dict.get("symbol", None),
             uri=metadata_dict.get("uri", None),
+            owner=metadata_dict.get("owner", None),
             seller_fee_basis_points=metadata_dict["seller_fee_basis_points"],
             creators=metadata_dict["creators"],
             verified=metadata_dict["verified"],

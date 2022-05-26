@@ -58,7 +58,7 @@ class SecondaryMarketEvent(DataClassBase):
 class NFTMetadata:
     blockchain_id: Optional[int]
     token_key: str
-    timestamp: Optional[int]
+    timestamp: int
     program_account_key: str
     primary_sale_happened: bool
     is_mutable: bool

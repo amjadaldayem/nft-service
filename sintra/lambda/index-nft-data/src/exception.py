@@ -8,3 +8,7 @@ class ProduceRecordFailedException(SintraException):
 
 class EnvironmentVariableMissingException(SintraException):
     """Raised when environment variable doesn't exist."""
+
+
+class DecodingException(SintraException):
+    """Raised when input record fails decoding process."""
