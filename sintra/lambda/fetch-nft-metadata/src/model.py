@@ -61,6 +61,7 @@ class NFTMetadata:
     timestamp: int
     program_account_key: str
     primary_sale_happened: bool
+    last_market_activity: str
     is_mutable: bool
     name: Optional[str]
     symbol: Optional[str]
@@ -70,7 +71,6 @@ class NFTMetadata:
     creators: List[str]
     verified: List[str]
     share: List[str]
-    ext_data: Mapping = dataclasses.field(default_factory=dict)
 
     @property
     def creators_info(self) -> List[Mapping]:
@@ -100,6 +100,7 @@ class NFTMetadata:
             "timestamp": self.timestamp,
             "program_account_key": self.program_account_key,
             "primary_sale_happened": self.primary_sale_happened,
+            "last_market_activity": self.last_market_activity,
             "is_mutable": self.is_mutable,
             "name": "" if self.name is None else self.name,
             "symbol": "" if self.symbol is None else self.symbol,
@@ -109,5 +110,4 @@ class NFTMetadata:
             "creators": self.creators,
             "verified": self.verified,
             "share": self.share,
-            "ext_data": self.ext_data,
         }

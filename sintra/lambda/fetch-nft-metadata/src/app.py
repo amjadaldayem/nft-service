@@ -10,7 +10,7 @@ from src.exception import DecodingException
 from src.metadata import MetadataFetcher, SolanaMetadataFetcher
 from src.model import NFTMetadata, SecondaryMarketEvent
 from src.producer import KinesisProducer
-from src.utils import ethereum_address, solana_address
+from src.utils import ethereum_address, solana_address, solana_event_type
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +53,10 @@ def lambda_handler(event: Dict[str, Any], context):
                     nft_metadata.owner = market_event.buyer
                 else:
                     nft_metadata.owner = market_event.owner
+
+                nft_metadata.last_market_activity = solana_event_type(
+                    market_event.event_type
+                )
                 nft_metadata_list.append(nft_metadata)
             elif market_event.blockchain_id == ethereum_address():
                 logger.warning(

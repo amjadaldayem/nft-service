@@ -1,3 +1,5 @@
+# pylint: disable=too-many-return-statements
+
 import struct
 
 import base58
@@ -5,6 +7,31 @@ from solana.rpc.api import MemcmpOpt
 from src.config import settings
 from src.exception import DecodingException
 from src.model import NFTMetadata
+
+
+def solana_event_type(event_type: int) -> str:
+    if event_type == settings.blockchain.solana.market.event.listing:
+        return "Listing"
+
+    if event_type == settings.blockchain.solana.market.event.delisting:
+        return "Delisting"
+
+    if event_type == settings.blockchain.solana.market.event.sale:
+        return "Sale"
+
+    if event_type == settings.blockchain.solana.market.event.update:
+        return "Price update"
+
+    if event_type == settings.blockchain.solana.market.event.bid:
+        return "Bid"
+
+    if event_type == settings.blockchain.solana.market.event.sale_auction:
+        return "Sale auction"
+
+    if event_type == settings.blockchain.solana.market.event.bidding:
+        return "Bidding"
+
+    return None
 
 
 class MetadataUnpacker:

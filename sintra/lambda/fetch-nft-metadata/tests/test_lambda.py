@@ -18,6 +18,7 @@ def nft_metadata() -> NFTMetadata:
         timestamp=time.time_ns(),
         program_account_key="MEisE1HzehtrDpAAT8PnLHjpSSkRYakotTuJRPjTpo8",
         primary_sale_happened=True,
+        last_market_activity="Listing",
         is_mutable=False,
         name="Example",
         owner="Example owner",
@@ -27,7 +28,6 @@ def nft_metadata() -> NFTMetadata:
         creators=[],
         verified=[],
         share=[],
-        ext_data={},
     )
 
 
