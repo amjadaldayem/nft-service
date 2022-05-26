@@ -1,14 +1,15 @@
+import asyncio
 import base64
 import json
 import logging
 import os
 from typing import List
 
-from src.async_client import SolanaHTTPClient
 from src.config import settings
 from src.exception import DecodingException
 from src.model import NFTData, NFTMetadata
 from src.producer import KinesisProducer
+from src.token_data import SolanaTokenDataFetcher, TokenDataFetcher
 from src.utils import ethereum_address, solana_address
 
 logger = logging.getLogger(__name__)
@@ -20,11 +21,9 @@ def lambda_handler(event, context):
         os.getenv("AWS_SECRET_ACCESS_KEY"),
         os.getenv("AWS_REGION"),
     )
-    solana_client: SolanaHTTPClient = SolanaHTTPClient(
-        endpoint=settings.blockchain.solana.http.endpoint,
-        timeout=settings.blockchain.solana.http.timeout,
-        username=os.getenv("SOLANA_RPC_HTTP_USERNAME"),
-        password=os.getenv("SOLANA_RPC_HTTP_PASSWORD"),
+    token_fetcher: TokenDataFetcher = SolanaTokenDataFetcher(
+        username=os.getenv("HTTP_USERNAME"),
+        password=os.getenv("HTTP_PASSWORD"),
     )
 
     records = event["Records"]
@@ -33,6 +32,9 @@ def lambda_handler(event, context):
 
     nft_data_list: List[NFTData] = []
 
+    async_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(async_loop)
+
     for record in records:
         try:
             metadata = base64.b64decode(record["kinesis"]["data"]).decode("utf-8")
@@ -40,7 +42,10 @@ def lambda_handler(event, context):
             nft_metadata: NFTMetadata = NFTMetadata.from_dict(metadata_record)
 
             if nft_metadata.blockchain_id == solana_address():
-                pass
+                nft_data = async_loop.run_until_complete(
+                    get_nft_data(token_fetcher, nft_metadata)
+                )
+                nft_data_list.append(nft_data)
             elif nft_metadata.blockchain_id == ethereum_address():
                 logger.warning(
                     f"NFT Metadata from blockchain: {nft_metadata.blockchain_id} is not supported."
@@ -52,10 +57,18 @@ def lambda_handler(event, context):
                 )
         except (json.JSONDecodeError, ValueError, TypeError, KeyError) as error:
             logger.error(error)
-            raise DecodingException("Failed to decode NFT metadata record.") from error
+            raise DecodingException("Failed to decode JSON record.") from error
 
     if len(nft_data_list) > 0:
         kinesis.produce_records(settings.kinesis.stream_name, nft_data_list)
         return {"message": "Successfully processed metadata batch."}
 
     return {"message": "Resulting batch of events is empty."}
+
+
+async def get_nft_data(
+    token_fetcher: TokenDataFetcher, metadata: NFTMetadata
+) -> NFTData:
+    nft_data = await token_fetcher.get_token_data(metadata)
+
+    return nft_data

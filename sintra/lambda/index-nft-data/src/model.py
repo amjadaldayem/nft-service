@@ -38,9 +38,11 @@ class NFTCreator(DataClassBase):
 @dataclass
 class NFTData(DataClassBase):
     blockchain_id: int
+    blockchain_name: Optional[str]
     collection_id: str
     token_address: str
     owner: str
+    token_id: str
     token_name: str
     description: str
     symbol: str
@@ -56,12 +58,13 @@ class NFTData(DataClassBase):
     edition: Optional[str]
     external_url: Optional[str]
     media_files: List[MediaFile] = dataclasses.Field(default_factory=List)
-    extra_data: Dict[str, Any] = dataclasses.Field(default_factory=dict)
 
     def to_dikt(self) -> Dict[str, Any]:
         return {
             "blockchain_id": self.blockchain_id,
+            "blockchain_name": self.blockchain_name,
             "collection_id": self.collection_id,
+            "token_id": self.token_id,
             "token_address": self.token_address,
             "owner": self.owner,
             "token_name": self.token_name,
@@ -77,11 +80,23 @@ class NFTData(DataClassBase):
             "price_currency": ""
             if self.price_currency is None
             else self.price_currency,
-            "creators": self.creators,
+            "creators": [
+                {
+                    "address": creator.address,
+                    "verified": creator.verified,
+                    "shared": creator.shared,
+                }
+                for creator in self.creators
+            ],
             "edition": "" if self.edition is None else self.edition,
             "external_url": "" if self.external_url is None else self.external_url,
-            "media_files": self.media_files,
-            "extra_data": self.extra_data,
+            "media_files": [
+                {
+                    "uri": media_file.uri,
+                    "file_type": media_file.file_type if not None else "",
+                }
+                for media_file in self.media_files
+            ],
         }
 
 
@@ -92,6 +107,7 @@ class NFTMetadata:
     timestamp: int
     program_account_key: str
     primary_sale_happened: bool
+    last_market_activity: str
     is_mutable: bool
     name: Optional[str]
     symbol: Optional[str]
@@ -111,6 +127,7 @@ class NFTMetadata:
             timestamp=metadata_dict["timestamp"],
             program_account_key=metadata_dict["program_account_key"],
             primary_sale_happened=metadata_dict["primary_sale_happened"],
+            last_market_activity=metadata_dict["last_market_activity"],
             is_mutable=metadata_dict["is_mutable"],
             name=metadata_dict.get("name", None),
             symbol=metadata_dict.get("symbol", None),
