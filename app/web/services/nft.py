@@ -1,5 +1,7 @@
 from typing import Tuple, List, Optional, Union, Set, FrozenSet
 
+import slugify
+
 from app import settings
 from app.blockchains import (
     SECONDARY_MARKET_EVENT_UNKNOWN,
@@ -14,7 +16,8 @@ from app.blockchains import (
     SOLANA_MAGIC_EDEN,
     SOLANA_ALPHA_ART,
     SOLANA_SOLSEA,
-    SOLANA_SOLANART
+    SOLANA_SOLANART,
+    BLOCHAIN_NAME_MAP,
 )
 from app.blockchains.solana import MARKET_NAME_MAP
 from app.models import (
@@ -63,6 +66,9 @@ class SmeNftResponseModel(DataClassBase):
     transaction_hash: str  # The transaction ID / signature
     # User bookmark info
     bookmarked: bool = False
+    blockchain: str
+    collection_slug: str
+    name_slug: str
 
 
 class NFTService:
@@ -187,12 +193,16 @@ class NFTService:
         markte_id = item_dict['market_id']
         token_key = item_dict['token_key']
         nft_id = item_dict['nft_id']
+        blockchain_id = item_dict['blockchain_id']
+        collection_name = item_dict['collection_name']
+        name = item_dict['name']
+
         return SmeNftResponseModel(
             token_key=token_key,
-            name=item_dict['name'],
+            name=name,
             event=SECONDARY_EVENT_NAME_MAP[item_dict['event_type']],
             description=item_dict['description'],
-            collection_name=item_dict['collection_name'],
+            collection_name=collection_name,
             media_url=item_dict['media_url'],
             nft_id=nft_id,
             collection_id=item_dict['collection_id'],
@@ -202,9 +212,12 @@ class NFTService:
             price=f"{item_dict['price'] / 1000000000:.2f}",
             # The 3 important pieces,
             timestamp=item_dict['timestamp'],
-            blockchain_id=item_dict['blockchain_id'],
+            blockchain_id=blockchain_id,
             transaction_hash=item_dict['transaction_hash'],
-            bookmarked=nft_id in bookmarked_nft_ids
+            bookmarked=nft_id in bookmarked_nft_ids,
+            blockchain=BLOCHAIN_NAME_MAP[blockchain_id],
+            collection_slug=slugify.slugify(collection_name),
+            name_slug=slugify.slugify(name),
         )
 
     @classmethod

@@ -80,9 +80,10 @@ class FeedAPITestCase(JsonRpcTestMixin, BaseTestCase):
         expected = [
             {
                 'tokenKey': '9DA8FjMqV1jxznVAV3SBKqkMHxh3RyorBTJAFqRvT4SV',
-                'thumbnailUrl': 'https://ik.imagekit.io/sintra/tr:h-128,w-128/https://arweave.net/CZV-Djosta22IzziOuLgdWOfyIaUMtrRqDCF3LNKtJM?ik-sdk-version=python-2.2.8',
                 'mediaUrl': 'https://arweave.net/CZV-Djosta22IzziOuLgdWOfyIaUMtrRqDCF3LNKtJM',
                 'name': 'Mutant Doodle Apes #8256',
+                'collectionName': 'Mutant Doodle Apes',
+                'description': 'Earn From Holding 8888 Doodle Apes!',
                 'nftId': 'bn#65536#9DA8FjMqV1jxznVAV3SBKqkMHxh3RyorBTJAFqRvT4SV',
                 'collectionId': 'bc#65536#8GwuM2Ax188oZ26SAiHNC6n5fZR9DkKsUCTbLpN6Zt9f',
                 'market': {'name': 'Solsea',
@@ -92,13 +93,17 @@ class FeedAPITestCase(JsonRpcTestMixin, BaseTestCase):
                 'owner': {'name': '', 'url': ''}, 'price': '0.14', 'event': 'Sold', 'timestamp': 1645937474,
                 'blockchainId': 65536,
                 'transactionHash': 'oB3LDdMHuWjHxV4n3QotRtaj55RAK1xwU47P2beBNRxsj29pVugnTRaAFBcgu6oRbMtrasoLLYbfV1gkAbxuNM2',
-                'bookmarked': False
+                'bookmarked': False,
+                'blockchain': 'solana',
+                'collectionSlug': 'mutant-doodle-apes',
+                'nameSlug': 'mutant-doodle-apes-8256',
             },
             {
                 'tokenKey': 'AoPoZCsVZufPYBQFzYp6sesp4Yjf4FKLuiCdF75RJLNx',
-                'thumbnailUrl': 'https://ik.imagekit.io/sintra/tr:h-128,w-128/https://www.arweave.net/dVmp2V5RmOKd-tv4D9thH5hm_iDXbNiZrMEMnHWuNok?ext=png&ik-sdk-version=python-2.2.8',
                 'mediaUrl': 'https://www.arweave.net/dVmp2V5RmOKd-tv4D9thH5hm_iDXbNiZrMEMnHWuNok?ext=png',
                 'name': 'SKYLINE #3323',
+                'collectionName': 'SKYLINE',
+                'description': 'Enjoy the view! Skyline is a series of 5555 beautiful skies, lands and shorelines.',
                 'nftId': 'bn#65536#AoPoZCsVZufPYBQFzYp6sesp4Yjf4FKLuiCdF75RJLNx',
                 'collectionId': 'bc#65536#skyxstP4JfVoAuuGUkPC6M25hoQiafcZ8dUvsoBNmuY',
                 'market': {'name': 'Solanart',
@@ -109,7 +114,10 @@ class FeedAPITestCase(JsonRpcTestMixin, BaseTestCase):
                 'price': '0.19', 'event': 'Price Updated', 'timestamp': 1645937464,
                 'blockchainId': 65536,
                 'transactionHash': '4QfNqyEuAJJ2ppoGLiCT3Z38V3dQLSX33htERPojsL3Hcv1dhjJG4C9CEY5Xht67KqeFVo1KgP9U4XjZc3XbmngP',
-                'bookmarked': False
+                'bookmarked': False,
+                'blockchain': 'solana',
+                'collectionSlug': 'skyline',
+                'nameSlug': 'skyline-3323',
             },
 
         ]
