@@ -1,10 +1,13 @@
 import json
 import logging
-from typing import Any, List
+from typing import Any, Dict, List
 
 import boto3
-from exception import EnvironmentVariableMissingException, ProduceRecordFailedException
-from model import NFTMetadata
+from src.exception import (
+    EnvironmentVariableMissingException,
+    ProduceRecordFailedException,
+)
+from src.model import NFTMetadata
 
 logger = logging.getLogger(__name__)
 
@@ -40,16 +43,17 @@ class KinesisProducer:
             logger.error(error)
             raise ProduceRecordFailedException from error
 
-    def produce_records(
-        self, stream_name: str, records: List[NFTMetadata], partition_key: Any
-    ) -> None:
-        records_to_send: List[bytes] = [
-            json.dumps(record.to_dikt()).encode() for record in records
+    def produce_records(self, stream_name: str, records: List[NFTMetadata]) -> None:
+        records_to_send: List[Dict[str, Any]] = [
+            {
+                "Data": json.dumps(record.to_dikt()).encode(),
+                "PartitionKey": record.token_key,
+            }
+            for record in records
         ]
 
         try:
-            self.client.put_records(
-                StreamName=stream_name, Data=records_to_send, PartitionKey=partition_key
-            )
+            self.client.put_records(StreamName=stream_name, Records=records_to_send)
         except Exception as error:
+            logger.error(error)
             raise ProduceRecordFailedException from error

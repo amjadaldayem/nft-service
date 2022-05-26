@@ -6,8 +6,8 @@
 import asyncio
 import logging
 import os
-from typing import List, Tuple, Optional
 from datetime import datetime
+from typing import List, Optional, Tuple
 
 import aiohttp
 import boto3
@@ -17,36 +17,28 @@ from aiohttp import ClientTimeout
 from app import settings
 from app.blockchains import (
     SECONDARY_MARKET_EVENT_SALE,
-    SECONDARY_MARKET_EVENT_SALE_AUCTION
+    SECONDARY_MARKET_EVENT_SALE_AUCTION,
 )
-from app.blockchains.solana import (
-    ParsedTransaction,
-    CustomAsyncClient
-)
+from app.blockchains.solana import CustomAsyncClient, ParsedTransaction
 from app.blockchains.solana.client import (
-    nft_get_token_account_by_token_key,
+    SolanaNFTMetaData,
     nft_get_metadata_by_token_account_async,
+    nft_get_token_account_by_token_key,
     transform_nft_data,
-    SolanaNFTMetaData
 )
-from app.models import (
-    SecondaryMarketEvent,
-    NFTRepository,
-    SMERepository,
-    NftData
-)
-from app.utils import (
-    notify_error,
-    http
-)
+from app.models import NftData, NFTRepository, SecondaryMarketEvent, SMERepository
+from app.utils import http, notify_error
 from app.utils.parallelism import retriable_map
+from app.utils.sme_events_publisher import (
+    convert_nft_data_to_dict,
+    convert_secondary_market_event_to_dict,
+    publish_sme_events_to_kinesis,
+)
 from app.utils.streamer import KinesisStreamer, KinesisStreamRecord
-from app.utils.sme_events_publisher import publish_sme_events_to_kinesis, convert_secondary_market_event_to_dict, \
-    convert_nft_data_to_dict
 
 logger = logging.getLogger(__name__)
 
-no_raise = os.getenv('CONSUMER_NO_RAISE')
+no_raise = os.getenv("CONSUMER_NO_RAISE")
 
 
 async def get_nft_metadata(input_data) -> Tuple[Optional[SolanaNFTMetaData], bool]:
@@ -108,7 +100,7 @@ async def get_transaction(input_data) -> Optional[dict]:
     async_client, transaction_hash = input_data
     try:
         resp = await async_client.get_confirmed_transaction(transaction_hash)
-        transaction_dict = resp['result']
+        transaction_dict = resp["result"]
         return transaction_dict
     except:
         return None
@@ -124,17 +116,17 @@ async def parse_transaction(transaction_dict) -> Optional[SecondaryMarketEvent]:
         return None
 
 
-def write_to_local(succeeded_items_to_commit, file_name='smes.json'):
+def write_to_local(succeeded_items_to_commit, file_name="smes.json"):
     """
     For local testing purpose only.
 
     Returns:
 
     """
-    with open(file_name, 'a') as fd:
+    with open(file_name, "a") as fd:
         for e, n in succeeded_items_to_commit:
-            fd.write(orjson.dumps((e.dict(), n.dict())).decode('utf8'))
-            fd.write(',')
+            fd.write(orjson.dumps((e.dict(), n.dict())).decode("utf8"))
+            fd.write(",")
             fd.flush()
 
 
@@ -149,58 +141,55 @@ async def save_to_db(dynamodb_resource, succeeded_items_to_commit):
 
     """
     dynamodb_resource = dynamodb_resource or boto3.resource(
-        'dynamodb', endpoint_url=settings.DYNAMODB_ENDPOINT
+        "dynamodb", endpoint_url=settings.DYNAMODB_ENDPOINT
     )
-    sme_repository = SMERepository(
-        dynamodb_resource
-    )
-    nft_repository = NFTRepository(
-        dynamodb_resource
-    )
+    sme_repository = SMERepository(dynamodb_resource)
+    nft_repository = NFTRepository(dynamodb_resource)
     _, failed = sme_repository.save_sme_with_nft_batch(succeeded_items_to_commit)
     if failed:
-        notify_error(IOError(
-            f"Error saving some items: {orjson.dumps(failed)}"
-        ), metadata={})
+        notify_error(
+            IOError(f"Error saving some items: {orjson.dumps(failed)}"), metadata={}
+        )
 
     _, nft_data_list = zip(*succeeded_items_to_commit)
     _, failed = nft_repository.save_nfts(nft_data_list)
     if failed:
-        notify_error(IOError(
-            f"Error saving some items:  {orjson.dumps(failed)}"
-        ), metadata={})
+        notify_error(
+            IOError(f"Error saving some items:  {orjson.dumps(failed)}"), metadata={}
+        )
 
 
-async def handle_transactions(records: List[KinesisStreamRecord],
-                              loop: asyncio.AbstractEventLoop,
-                              dynamodb_resource=None):
+async def handle_transactions(
+    records: List[KinesisStreamRecord],
+    loop: asyncio.AbstractEventLoop,
+    dynamodb_resource=None,
+):
     if not records:
         return
 
-    transaction_hashes = [
-        record.data[0]
-        for record in records
-    ]
-    logger.info(
-        "Received signatures: %s", transaction_hashes
-    )
+    transaction_hashes = [record.data[0] for record in records]
+    logger.info("Received signatures: %s", transaction_hashes)
 
     failed_transaction_hashes = []
     for _ in range(1):
-        async with CustomAsyncClient(settings.SOLANA_RPC_ENDPOINT, timeout=10) as client:
+        async with CustomAsyncClient(
+            settings.SOLANA_RPC_ENDPOINT, timeout=10
+        ) as client:
             await client.is_connected()
             transaction_dict_list, failed_input_list = await retriable_map(
                 get_transaction,
                 [(client, t) for t in transaction_hashes],
                 success_test=lambda d: (d, bool(d)),
                 max_retries=2,
-                wait_strategy='backoff'
+                wait_strategy="backoff",
             )
             if failed_input_list:
                 _, failed_transaction_hashes = zip(*failed_input_list)
 
             # Skips the errored transactions
-            transaction_dict_list = [t for t in transaction_dict_list if t and t['meta']['err'] is None]
+            transaction_dict_list = [
+                t for t in transaction_dict_list if t and t["meta"]["err"] is None
+            ]
             sme_list = []
             transaction_non_events = []
             for t in transaction_dict_list:
@@ -208,10 +197,12 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 if parsed:
                     sme_list.append(parsed)
                 else:
-                    transaction_non_events.append(t['transaction']['signatures'][0])
+                    transaction_non_events.append(t["transaction"]["signatures"][0])
 
             if transaction_non_events:
-                logger.warning("Transactions parsing failed: %s", transaction_non_events)
+                logger.warning(
+                    "Transactions parsing failed: %s", transaction_non_events
+                )
 
             if not sme_list:
                 # Early exit
@@ -222,37 +213,49 @@ async def handle_transactions(records: List[KinesisStreamRecord],
                 get_nft_metadata,
                 [(client, e) for e in sme_list],
                 max_retries=2,
-                wait_strategy='backoff'
+                wait_strategy="backoff",
             )
             if failed_input_list:
                 nft_fetching_failed = [e.transaction_hash for _, e in failed_input_list]
-                logger.warning("Transactions with NFT metadata fetching failed: %s", nft_fetching_failed)
+                logger.warning(
+                    "Transactions with NFT metadata fetching failed: %s",
+                    nft_fetching_failed,
+                )
                 failed_transaction_hashes.extend(nft_fetching_failed)
 
         # Now we have the SecondaryMarketEvent list ready.
         current_owner_list = [
-            event.buyer if event.event_type in {
+            event.buyer
+            if event.event_type
+            in {
                 SECONDARY_MARKET_EVENT_SALE,
                 SECONDARY_MARKET_EVENT_SALE_AUCTION,
-            } else event.owner for event in sme_list
+            }
+            else event.owner
+            for event in sme_list
         ]
 
-        async with aiohttp.ClientSession(timeout=ClientTimeout(total=10.0), requote_redirect_url=False) as client:
+        async with aiohttp.ClientSession(
+            timeout=ClientTimeout(total=10.0), requote_redirect_url=False
+        ) as client:
             nft_json_data_list, failed_input_list = await retriable_map(
                 get_nft_data,
                 [(client, n) for n in nft_metadata_list],
                 max_retries=2,
-                wait_strategy='backoff'
+                wait_strategy="backoff",
             )
             if failed_input_list:
-                logger.warning("NFT metadata URIs fetching faild: %s",
-                               [(n.mint_key, n.uri) for _, n in failed_input_list if n])
+                logger.warning(
+                    "NFT metadata URIs fetching faild: %s",
+                    [(n.mint_key, n.uri) for _, n in failed_input_list if n],
+                )
             # Transforms to NFTData
             sme_len = len(sme_list)
             nft_data_list = [
                 transform_nft_data(
                     nft_metadata_list[i], nft_json_data_list[i], current_owner_list[i]
-                ) for i in range(sme_len)
+                )
+                for i in range(sme_len)
             ]
 
         # Skips any None NFT data
@@ -269,7 +272,8 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         #     logger.info("%s\n%s", orjson.dumps(e.dict()), orjson.dumps(n.dict()))
 
         logger.info(
-            ">> Handled signatures: %s", [e.transaction_hash for e, _ in succeeded_items_to_commit]
+            ">> Handled signatures: %s",
+            [e.transaction_hash for e, _ in succeeded_items_to_commit],
         )
 
     if failed_transaction_hashes:
@@ -277,8 +281,10 @@ async def handle_transactions(records: List[KinesisStreamRecord],
         # We just throw in multiple records, and kinesis will take the
         # one with the lowest sequence id
         failed_transaction_hashes = set(failed_transaction_hashes)
-        logger.error("Transactions failed to fetch or did not yield correct NFT info: %s",
-                     failed_transaction_hashes)
+        logger.error(
+            "Transactions failed to fetch or did not yield correct NFT info: %s",
+            failed_transaction_hashes,
+        )
         return [
             record for record in records if record.data[0] in failed_transaction_hashes
         ]
@@ -292,9 +298,9 @@ def publish_events(event_and_nft_metadata_pairs):
             {
                 "data": {
                     "sme_data": convert_secondary_market_event_to_dict(pair[0]),
-                    "nft_data": convert_nft_data_to_dict(pair[1])
+                    "nft_data": convert_nft_data_to_dict(pair[1]),
                 },
-                "eventPartitionKey": current_hour
+                "eventPartitionKey": current_hour,
             }
             for pair in event_and_nft_metadata_pairs
         ]

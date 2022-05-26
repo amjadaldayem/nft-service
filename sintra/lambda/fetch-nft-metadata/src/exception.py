@@ -8,3 +8,11 @@ class ProduceRecordFailedException(SintraException):
 
 class EnvironmentVariableMissingException(SintraException):
     """Raised when environment variable doesn't exist."""
+
+
+class DecodingException(SintraException):
+    """Raised when input record fails decoding process."""
+
+
+class UnableToFetchMetadataException(SintraException):
+    """Raised when process of decoding NFT metadata fails."""
