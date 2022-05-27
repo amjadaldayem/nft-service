@@ -3,8 +3,11 @@ import logging
 from typing import Any, Dict, List
 
 import boto3
-from exception import EnvironmentVariableMissingException, ProduceRecordFailedException
-from model import NFTData
+from src.exception import (
+    EnvironmentVariableMissingException,
+    ProduceRecordFailedException,
+)
+from src.model import NFTData
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +47,7 @@ class KinesisProducer:
         records_to_send: List[Dict[str, Any]] = [
             {
                 "Data": json.dumps(record.to_dikt()).encode(),
-                "PartitionKey": record.token_address,
+                "PartitionKey": record.token_key,
             }
             for record in records
         ]

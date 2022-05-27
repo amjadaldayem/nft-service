@@ -81,7 +81,7 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
             )
         ]
         token_attributes = (
-            self._transform_attributes(token_data.get("attributes", [])),
+            self._transform_token_attributes(token_data.get("attributes", [])),
         )
 
         try:
@@ -94,7 +94,7 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
             blockchain_id=metadata.blockchain_id,
             blockchain_name=blockchain_name,
             collection_id=f"bc#{blockchain_name}#{metadata.program_account_key}",
-            token_address=metadata.token_key,
+            token_key=metadata.token_key,
             owner=metadata.owner,
             token_id=f"bc#{blockchain_name}#{metadata.token_key}",
             token_name=metadata.name,
@@ -116,9 +116,9 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
 
         return nft_data
 
-    def _transform_token_attributes(self, attributes):
+    def _transform_token_attributes(self, attributes) -> Dict[str, str]:
         token_attributes = {
-            attribute["trait_type"]: str(attribute["value"])
+            str(attribute["trait_type"]).capitalize(): str(attribute["value"])
             for attribute in attributes
             if "trait_type" in attribute
         }

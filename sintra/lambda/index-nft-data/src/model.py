@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import dataclasses
-from dataclasses import dataclass
-from typing import Any, Dict, List, Mapping, Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
 import orjson
 from pydantic import BaseModel
@@ -36,11 +35,11 @@ class NFTCreator(DataClassBase):
 
 
 @dataclass
-class NFTData(DataClassBase):
+class NFTData:
     blockchain_id: int
     blockchain_name: Optional[str]
     collection_id: str
-    token_address: str
+    token_key: str
     owner: str
     token_id: str
     token_name: str
@@ -50,14 +49,14 @@ class NFTData(DataClassBase):
     last_market_activity: str
     timestamp_of_market_activity: int
     metadata_uri: str
-    attributes: dict = dataclasses.Field(default_factory=dict)
     transaction_hash: str
     price: float
     price_currency: Optional[str]
     creators: List[NFTCreator]
     edition: Optional[str]
     external_url: Optional[str]
-    media_files: List[MediaFile] = dataclasses.Field(default_factory=List)
+    media_files: List[MediaFile] = field(default_factory=List)
+    attributes: Dict[str, Any] = field(default_factory=dict)
 
     def to_dikt(self) -> Dict[str, Any]:
         return {
@@ -65,7 +64,7 @@ class NFTData(DataClassBase):
             "blockchain_name": self.blockchain_name,
             "collection_id": self.collection_id,
             "token_id": self.token_id,
-            "token_address": self.token_address,
+            "token_key": self.token_key,
             "owner": self.owner,
             "token_name": self.token_name,
             "description": self.description,
@@ -84,7 +83,7 @@ class NFTData(DataClassBase):
                 {
                     "address": creator.address,
                     "verified": creator.verified,
-                    "shared": creator.shared,
+                    "share": creator.share,
                 }
                 for creator in self.creators
             ],
@@ -106,6 +105,7 @@ class NFTMetadata:
     token_key: str
     timestamp: int
     program_account_key: str
+    transaction_hash: str
     primary_sale_happened: bool
     last_market_activity: str
     is_mutable: bool
@@ -117,7 +117,6 @@ class NFTMetadata:
     creators: List[str]
     verified: List[str]
     share: List[str]
-    ext_data: Mapping = dataclasses.field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, metadata_dict: Dict[str, Any]) -> NFTMetadata:
@@ -126,6 +125,7 @@ class NFTMetadata:
             token_key=metadata_dict["token_key"],
             timestamp=metadata_dict["timestamp"],
             program_account_key=metadata_dict["program_account_key"],
+            transaction_hash=metadata_dict["transaction_hash"],
             primary_sale_happened=metadata_dict["primary_sale_happened"],
             last_market_activity=metadata_dict["last_market_activity"],
             is_mutable=metadata_dict["is_mutable"],
@@ -137,5 +137,4 @@ class NFTMetadata:
             creators=metadata_dict["creators"],
             verified=metadata_dict["verified"],
             share=metadata_dict["share"],
-            ext_data=metadata_dict["ext_data"],
         )
