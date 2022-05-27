@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import dataclasses
 from dataclasses import dataclass
 from typing import Any, Dict, List, Mapping, Optional
 
@@ -60,6 +59,7 @@ class NFTMetadata:
     token_key: str
     timestamp: int
     program_account_key: str
+    transaction_hash: str
     primary_sale_happened: bool
     last_market_activity: str
     is_mutable: bool
@@ -99,6 +99,7 @@ class NFTMetadata:
             "token_key": self.token_key,
             "timestamp": self.timestamp,
             "program_account_key": self.program_account_key,
+            "transaction_hash": self.transaction_hash,
             "primary_sale_happened": self.primary_sale_happened,
             "last_market_activity": self.last_market_activity,
             "is_mutable": self.is_mutable,

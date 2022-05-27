@@ -57,6 +57,7 @@ def lambda_handler(event: Dict[str, Any], context):
                 nft_metadata.last_market_activity = solana_event_type(
                     market_event.event_type
                 )
+                nft_metadata.transaction_hash = market_event.transaction_hash
                 nft_metadata_list.append(nft_metadata)
             elif market_event.blockchain_id == ethereum_address():
                 logger.warning(
