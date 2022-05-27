@@ -12,6 +12,7 @@ def solana_market_name_map() -> Dict[int, str]:
         solsea,
         monkey_business,
         open_sea,
+        exchange_art,
     ) = solana_market_addresses()
 
     return {
@@ -21,7 +22,8 @@ def solana_market_name_map() -> Dict[int, str]:
         digital_eyes: "DigitalEyes",
         solsea: "Solsea",
         monkey_business: "Solana Monkey Business",
-        open_sea: 'OpenSea',
+        open_sea: "OpenSea",
+        exchange_art: "ExchangeArt",
     }
 
 
@@ -34,6 +36,7 @@ def solana_market_address_map() -> Dict[int, str]:
         solsea,
         monkey_business,
         open_sea,
+        exchange_art,
     ) = solana_market_addresses()
 
     return {
@@ -44,6 +47,7 @@ def solana_market_address_map() -> Dict[int, str]:
         solsea: settings.blockchain.solana.market.solsea.address,
         monkey_business: settings.blockchain.solana.market.monkey_business.address,
         open_sea: settings.blockchain.solana.market.open_sea.address,
+        exchange_art: settings.blockchain.solana.market.exchange_art.address,
     }
 
 
@@ -56,6 +60,7 @@ def solana_market_program_id_map() -> Dict[str, int]:
         solsea,
         monkey_business,
         open_sea,
+        exchange_art,
     ) = solana_market_addresses()
 
     return {
@@ -72,6 +77,9 @@ def solana_market_program_id_map() -> Dict[str, int]:
         settings.blockchain.solana.market.monkey_business.program_account_v3: monkey_business,
         settings.blockchain.solana.market.open_sea.program_account: open_sea,
         settings.blockchain.solana.market.open_sea.auction_program_account: open_sea,
+        settings.blockchain.solana.market.exchange_art.program_account: exchange_art,
+        settings.blockchain.solana.market.exchange_art.program_account_v2: exchange_art,
+        settings.blockchain.solana.market.exchange_art.auction_program_account: exchange_art,
     }
 
 
@@ -90,5 +98,6 @@ def solana_market_addresses() -> Tuple[int, int, int, int, int, int]:
     solsea = solana_address | market_flag | 0x05
     monkey_business = solana_address | market_flag | 0x06
     open_sea = solana_address | market_flag | 0x07
+    exchange_art = solana_address | market_flag | 0x08
 
-    return magic_eden, alpha_art, solanart, digital_eyes, solsea, monkey_business, open_sea
+    return magic_eden, alpha_art, solanart, digital_eyes, solsea, monkey_business, open_sea, exchange_art
