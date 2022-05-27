@@ -11,6 +11,7 @@ def solana_market_name_map() -> Dict[int, str]:
         digital_eyes,
         solsea,
         monkey_business,
+        open_sea,
     ) = solana_market_addresses()
 
     return {
@@ -20,6 +21,7 @@ def solana_market_name_map() -> Dict[int, str]:
         digital_eyes: "DigitalEyes",
         solsea: "Solsea",
         monkey_business: "Solana Monkey Business",
+        open_sea: 'OpenSea',
     }
 
 
@@ -31,6 +33,7 @@ def solana_market_address_map() -> Dict[int, str]:
         digital_eyes,
         solsea,
         monkey_business,
+        open_sea,
     ) = solana_market_addresses()
 
     return {
@@ -40,6 +43,7 @@ def solana_market_address_map() -> Dict[int, str]:
         digital_eyes: settings.blockchain.solana.market.digital_eyes.address,
         solsea: settings.blockchain.solana.market.solsea.address,
         monkey_business: settings.blockchain.solana.market.monkey_business.address,
+        open_sea: settings.blockchain.solana.market.open_sea.address,
     }
 
 
@@ -51,6 +55,7 @@ def solana_market_program_id_map() -> Dict[str, int]:
         digital_eyes,
         solsea,
         monkey_business,
+        open_sea,
     ) = solana_market_addresses()
 
     return {
@@ -63,6 +68,10 @@ def solana_market_program_id_map() -> Dict[str, int]:
         settings.blockchain.solana.market.digital_eyes.direct_sell_program_account: digital_eyes,
         settings.blockchain.solana.market.solsea.program_account: solsea,
         settings.blockchain.solana.market.monkey_business.program_account: monkey_business,
+        settings.blockchain.solana.market.monkey_business.program_account_v2: monkey_business,
+        settings.blockchain.solana.market.monkey_business.program_account_v3: monkey_business,
+        settings.blockchain.solana.market.open_sea.program_account: open_sea,
+        settings.blockchain.solana.market.open_sea.auction_program_account: open_sea,
     }
 
 
@@ -80,5 +89,6 @@ def solana_market_addresses() -> Tuple[int, int, int, int, int, int]:
     digital_eyes = solana_address | market_flag | 0x04
     solsea = solana_address | market_flag | 0x05
     monkey_business = solana_address | market_flag | 0x06
+    open_sea = solana_address | market_flag | 0x07
 
-    return magic_eden, alpha_art, solanart, digital_eyes, solsea, monkey_business
+    return magic_eden, alpha_art, solanart, digital_eyes, solsea, monkey_business, open_sea
