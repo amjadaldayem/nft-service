@@ -48,6 +48,7 @@ class NFTData:
     primary_sale_happened: bool
     last_market_activity: str
     timestamp_of_market_activity: int
+    event_timestamp: int
     metadata_uri: str
     transaction_hash: str
     price: float
@@ -72,6 +73,7 @@ class NFTData:
             "primary_sale_happened": self.primary_sale_happened,
             "last_market_activity": self.last_market_activity,
             "timestamp_of_market_activity": self.timestamp_of_market_activity,
+            "event_timestamp": self.event_timestamp,
             "metadata_uri": self.metadata_uri,
             "attributes": self.attributes,
             "transaction_hash": self.transaction_hash,
@@ -103,6 +105,7 @@ class NFTData:
 class NFTMetadata:
     blockchain_id: Optional[int]
     token_key: str
+    blocktime: int
     timestamp: int
     program_account_key: str
     transaction_hash: str
@@ -123,6 +126,7 @@ class NFTMetadata:
         return cls(
             blockchain_id=metadata_dict["blockchain_id"],
             token_key=metadata_dict["token_key"],
+            blocktime=metadata_dict["blocktime"],
             timestamp=metadata_dict["timestamp"],
             program_account_key=metadata_dict["program_account_key"],
             transaction_hash=metadata_dict["transaction_hash"],

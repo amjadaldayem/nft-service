@@ -25,6 +25,7 @@ def nft_data() -> NFTData:
         primary_sale_happened=True,
         last_market_activity="Listing",
         timestamp_of_market_activity=time.time_ns(),
+        event_timestamp=time.time_ns(),
         metadata_uri="http://example.nft",
         attributes={"background": "blue"},
         transaction_hash="1eE5Sw16rNVg6Z7xWhiQA7Lijp8DDZ2XGoRGK8GR9fCeCA5CYKib3qpQNVYh25hzUaUxhLguGgtdmSFJG13yRsz",

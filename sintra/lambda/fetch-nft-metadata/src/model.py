@@ -57,6 +57,7 @@ class SecondaryMarketEvent(DataClassBase):
 class NFTMetadata:
     blockchain_id: Optional[int]
     token_key: str
+    blocktime: int
     timestamp: int
     program_account_key: str
     transaction_hash: str
@@ -97,6 +98,7 @@ class NFTMetadata:
         return {
             "blockchain_id": self.blockchain_id,
             "token_key": self.token_key,
+            "blocktime": self.blocktime,
             "timestamp": self.timestamp,
             "program_account_key": self.program_account_key,
             "transaction_hash": self.transaction_hash,

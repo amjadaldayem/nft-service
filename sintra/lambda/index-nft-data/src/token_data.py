@@ -1,6 +1,7 @@
 import json
 import logging
 from abc import ABC, abstractmethod
+from time import time_ns
 from typing import Any, Dict, List
 
 import requests
@@ -102,7 +103,8 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
             symbol=metadata.symbol,
             primary_sale_happened=metadata.primary_sale_happened,
             last_market_activity=metadata.last_market_activity,
-            timestamp_of_market_activity=metadata.timestamp,
+            timestamp_of_market_activity=metadata.blocktime,
+            event_timestamp=time_ns(),
             metadata_uri=metadata.uri,
             attributes=token_attributes,
             transaction_hash=metadata.transaction_hash,

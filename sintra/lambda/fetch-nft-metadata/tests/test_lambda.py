@@ -15,6 +15,7 @@ def nft_metadata() -> NFTMetadata:
     return NFTMetadata(
         blockchain_id=65536,
         token_key="9djKfEoRp4pZf8YHDYLBXgd84cGiHBbhjh5mHF8e9Vvy",
+        blocktime=time.time_ns(),
         timestamp=time.time_ns(),
         program_account_key="MEisE1HzehtrDpAAT8PnLHjpSSkRYakotTuJRPjTpo8",
         transaction_hash="1eE5Sw16rNVg6Z7xWhiQA7Lijp8DDZ2XGoRGK8GR9fCeCA5CYKib3qpQNVYh25hzUaUxhLguGgtdmSFJG13yRsz",
