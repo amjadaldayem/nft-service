@@ -27,6 +27,8 @@ botocore = "1.23.53"
 solana = "0.22.0"
 StrEnum = "^0.4.7"
 dynaconf = "^3.1.8"
+fastapi = "^0.78.0"
+uvicorn = "^0.17.6"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"
