@@ -16,9 +16,13 @@ from .params import (
     LoginInput,
     SignUpInput,
     SecondaryMarketEventsInput,
+    NftInput
 )
 from ..exceptions import EmptyValue
-from ..services.nft import SmeNftResponseModel
+from ..services.nft import (
+    SmeNftResponseModel,
+    NftResponseModel
+)
 from ... import settings
 
 
@@ -97,6 +101,26 @@ def get_secondary_market_events(
         exclusive_start_key=exclusive_start_key,
         exclusive_stop_key=exclusive_stop_key,
         limit=settings.SME_FETCH_PAGE_SIZE
+    )
+
+
+@api_v1_noauth.method(errors=[EmptyValue])
+def get_nft(
+        data: NftInput = Body(...),
+) -> NftResponseModel:
+    """
+    For anonymous API call, the following params are fixed:
+        - Timespan = 60 seconds Max
+        - PageSize = 10 Max
+    Args:
+        data:
+
+    Returns:
+
+    """
+    from app.web.services import nft_service
+    return nft_service.get_nft(
+        nft_id=data.nft_id,
     )
 
 

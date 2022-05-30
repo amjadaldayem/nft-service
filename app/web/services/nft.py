@@ -71,6 +71,27 @@ class SmeNftResponseModel(DataClassBase):
     name_slug: str
 
 
+class NftResponseModel(DataClassBase):
+    """
+    """
+    token_key: str  # Mint/token address
+    media_url: str  # The actua link to the assets for the corresponding NFT
+    name: str  # Name of the NFT
+    collection_name: str
+    description: str
+    nft_id: str  # Unique identifier of the NFT
+    collection_id: str  # Unique identifier of the Collection
+    market: NameUrlPair  # name, link
+    current_owner: NameUrlPair  # name, link
+    price: str
+    # The following 3 fields forms the [timestamp, blockchain_id, transaction_hash]
+    # key, which can be used for pagination.
+    # User bookmark info
+    collection_slug: str
+    name_slug: str
+    attributes: List[dict]
+
+
 class NFTService:
 
     def __init__(self, *, dynamodb_resource):
@@ -254,3 +275,37 @@ class NFTService:
             name=account_address,
             url=f"https://solscan.io/account/{account_address}" if account_address else ''
         )
+
+    def get_nft(self, nft_id):
+        item_dict, current_owner = self.nft_repository.get_nft(nft_id)
+        latest_event = self.sme_repository.get_latest_sme_for_nft(nft_id)
+        if latest_event:
+            market_id = latest_event['market_id']
+            price = latest_event['price']
+        else:
+            market_id = 0
+            price = 0
+
+        nft_id = item_dict['pk']
+        _, _, token_key = nft_id.split('#')
+        collection_name = item_dict['collection_name']
+        name = item_dict['name']
+        nft = NftResponseModel(
+            token_key=token_key,
+            name=name,
+            description=item_dict['description'],
+            collection_name=collection_name,
+            media_url=item_dict['media_url'],
+            nft_id=nft_id,
+            collection_id=item_dict['collection_id'],
+            market=self.get_market_name_url_pair(market_id, token_key),
+            current_owner=self.get_account_name_url_pair(current_owner),
+            price=str(price),
+            collection_slug=slugify.slugify(collection_name),
+            name_slug=slugify.slugify(name),
+            attributes=[
+                {'name': name, 'value': value}
+                for name, value in item_dict['attributes'].items()
+            ]
+        )
+        return nft

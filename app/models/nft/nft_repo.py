@@ -5,7 +5,7 @@ from typing import (
 )
 from typing import Tuple
 
-from boto3.dynamodb.conditions import Attr
+from boto3.dynamodb.conditions import Attr, Key
 
 from app.models.shared import meta
 from app.models.shared.dynamo import DynamoDBRepositoryBase
@@ -113,6 +113,23 @@ class NFTRepository(DynamoDBRepositoryBase, meta.DTNftMeta):
                 # In turn use this to index all NFTs underneath
             }
         return qfi
+
+    def get_nft(self, nft_id) -> Tuple[dict, str]:
+        resp = self.table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key(self.PK).eq(nft_id)
+        )
+        items = resp['Items']
+        try:
+            ret, current_owner = {}, ""
+            for item in items:
+                if item['sk'] == 'co':
+                    _, _, current_owner = item['current_owner_id'].split('#')
+                elif item['sk'] == 'n':
+                    ret = item
+            return ret, current_owner
+        except:
+            return {}, ""
 
     @classmethod
     def nft_data_to_dynamo(cls, nft_data: NftData, fields_to_remove=None,

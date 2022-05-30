@@ -116,3 +116,7 @@ class SignUpInput(LoginInput):
         if len(v) < 2 or len(v) > MAX_USERNAME_LEN or not re.match(r'[a-zA-Z0-9_]', v):
             raise ValueError(f'Nickname length should be between 2 and {MAX_USERNAME_LEN}.')
         return v
+
+
+class NftInput(DataClassBase):
+    nft_id: str

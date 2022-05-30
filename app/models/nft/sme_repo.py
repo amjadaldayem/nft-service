@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import pylru
 from boto3.dynamodb.conditions import Key
@@ -139,6 +139,18 @@ class SMERepository(DynamoDBRepositoryBase, meta.DTSmeMeta):
             items.pop()
 
         return items
+
+    def get_latest_sme_for_nft(self, nft_id) -> Optional[dict]:
+        resp = self.table.query(
+            IndexName=self.GSI_SME_NFT_EVENTS,
+            KeyConditionExpression=(
+                Key(self.GSI_SME_NFT_EVENTS_PK).eq(nft_id)
+            ),
+            Limit=1,
+            ScanIndexForward=False,
+        )
+        items = resp['Items']
+        return items[0] if items else None
 
     @classmethod
     def sme_to_dynamo(cls, sme: SecondaryMarketEvent, fields_to_remove=None) -> dict:
