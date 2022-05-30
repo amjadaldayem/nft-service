@@ -32,7 +32,7 @@ class KinesisProducer:
     def produce_record(
         self, stream_name: str, record: NFTData, partition_key: Any
     ) -> None:
-        record_dikt: str = json.dumps(record.to_dikt())
+        record_dikt: str = json.dumps(record.to_dict())
         record_to_send = record_dikt.encode()
 
         try:
@@ -46,7 +46,7 @@ class KinesisProducer:
     def produce_records(self, stream_name: str, records: List[NFTData]) -> None:
         records_to_send: List[Dict[str, Any]] = [
             {
-                "Data": json.dumps(record.to_dikt()).encode(),
+                "Data": json.dumps(record.to_dict()).encode(),
                 "PartitionKey": record.token_key,
             }
             for record in records

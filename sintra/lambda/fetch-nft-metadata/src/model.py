@@ -94,7 +94,7 @@ class NFTMetadata:
             for i in range(lc)
         ]
 
-    def to_dikt(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "blockchain_id": self.blockchain_id,
             "token_key": self.token_key,

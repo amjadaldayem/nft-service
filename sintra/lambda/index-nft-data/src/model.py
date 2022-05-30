@@ -59,7 +59,7 @@ class NFTData:
     media_files: List[MediaFile] = field(default_factory=List)
     attributes: Dict[str, Any] = field(default_factory=dict)
 
-    def to_dikt(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "blockchain_id": self.blockchain_id,
             "blockchain_name": self.blockchain_name,

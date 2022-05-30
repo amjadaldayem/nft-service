@@ -60,7 +60,7 @@ class SecondaryMarketEvent(DataClassBase):
     transaction_hash: str
     data: Optional[Any] = None
 
-    def to_dikt(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "blockchain_id": self.blockchain_id,
             "market_id": self.market_id,

@@ -32,7 +32,7 @@ class KinesisProducer:
     def produce_record(
         self, stream_name: str, record: SecondaryMarketEvent, partition_key: Any
     ) -> None:
-        record_dikt: str = json.dumps(record.to_dikt())
+        record_dikt: str = json.dumps(record.to_dict())
         record_to_send = record_dikt.encode()
 
         try:
@@ -48,7 +48,7 @@ class KinesisProducer:
     ) -> None:
         records_to_send: List[Dict[str, Any]] = [
             {
-                "Data": json.dumps(record.to_dikt()).encode(),
+                "Data": json.dumps(record.to_dict()).encode(),
                 "PartitionKey": record.transaction_hash,
             }
             for record in records
