@@ -276,8 +276,22 @@ class NFTService:
             url=f"https://solscan.io/account/{account_address}" if account_address else ''
         )
 
-    def get_nft(self, nft_id):
-        item_dict, current_owner = self.nft_repository.get_nft(nft_id)
+    def get_nft(self, nft_id, nft_name_slug=None):
+        """
+
+        Args:
+            nft_id: If nft_id is None, will just return a random NFT, for testing
+                only.
+            nft_name_slug: Not used at all. Just a placeholder
+
+        Returns:
+
+        """
+        if nft_id:
+            item_dict, current_owner = self.nft_repository.get_nft(nft_id)
+        else:
+            item_dict, current_owner = self.nft_repository.get_randome_nft()
+            nft_id = item_dict['pk']
         latest_event = self.sme_repository.get_latest_sme_for_nft(nft_id)
         if latest_event:
             market_id = latest_event['market_id']

@@ -131,6 +131,16 @@ class NFTRepository(DynamoDBRepositoryBase, meta.DTNftMeta):
         except:
             return {}, ""
 
+    def get_randome_nft(self):
+        resp = self.table.scan(
+            Limit=10,
+            ProjectionExpression='pk',
+            FilterExpression=Attr('pk').begins_with('bn#')
+        )
+        prime_items = resp['Items']
+        pk = prime_items[0]['pk']
+        return self.get_nft(pk)
+
     @classmethod
     def nft_data_to_dynamo(cls, nft_data: NftData, fields_to_remove=None,
                            field_as_pk=None, field_as_sk=None) -> dict:

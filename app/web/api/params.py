@@ -119,4 +119,5 @@ class SignUpInput(LoginInput):
 
 
 class NftInput(DataClassBase):
-    nft_id: str
+    nft_id: Optional[str] = None
+    nft_name_slug: Optional[str] = None

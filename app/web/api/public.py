@@ -121,6 +121,7 @@ def get_nft(
     from app.web.services import nft_service
     return nft_service.get_nft(
         nft_id=data.nft_id,
+        nft_name_slug=data.nft_name_slug
     )
 
 
