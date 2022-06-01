@@ -958,6 +958,21 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
+name = "requests-aws4auth"
+version = "1.1.2"
+description = "AWS4 authentication for Requests"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+requests = "*"
+six = "*"
+
+[package.extras]
+httpx = ["httpx"]
+
+[[package]]
 name = "responses"
 version = "0.21.0"
 description = "A utility library for mocking out the `requests` Python library."
@@ -1220,7 +1235,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "efdfe4d96607f36cf9b7e36f89770833c331350640dda66d1fc761a721759bad"
+content-hash = "c25014833f677ce784ef3bd129bae2a3bbc531555846b52533ac7bbd10fc2839"
 
 [metadata.files]
 anyio = [
@@ -1802,6 +1817,10 @@ pytz = [
 requests = [
     {file = "requests-2.27.1-py2.py3-none-any.whl", hash = "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"},
     {file = "requests-2.27.1.tar.gz", hash = "sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61"},
+]
+requests-aws4auth = [
+    {file = "requests-aws4auth-1.1.2.tar.gz", hash = "sha256:ebde0662dccda5023546055ec4cbe4470cae017ecbfce8d368b80b5e4a94d619"},
+    {file = "requests_aws4auth-1.1.2-py2.py3-none-any.whl", hash = "sha256:23b7a054326f80f86caf87e3eaf54ea41aa27adbed4297bd3456b1fa38f06a52"},
 ]
 responses = [
     {file = "responses-0.21.0-py3-none-any.whl", hash = "sha256:2dcc863ba63963c0c3d9ee3fa9507cbe36b7d7b0fccb4f0bdfd9e96c539b1487"},

@@ -1,0 +1,29 @@
+import json
+
+import requests
+from requests_aws4auth import AWS4Auth
+
+
+class OpenSearchClient:
+    def __init__(
+        self,
+        access_key_id: str,
+        secret_access_key: str,
+        region: str,
+        host: str,
+        index: str,
+    ) -> None:
+        self.index = index
+        self.url = host + index + "/_search"
+        self.session = requests.Session()
+        self.headers = {"Content-Type": "application/json"}
+
+        auth = AWS4Auth(access_key_id, secret_access_key, region, "opensearch")
+
+        self.session.auth = auth
+
+    def submit_query(self, query) -> str:
+        opensearch_response = self.session.get(
+            url=self.url, headers=self.headers, data=json.dumps(query)
+        )
+        return opensearch_response.text
