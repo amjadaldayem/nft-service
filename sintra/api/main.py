@@ -1,5 +1,3 @@
-from typing import Dict
-
 from fastapi import FastAPI
 
 from sintra.api.router import token_feed
