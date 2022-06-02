@@ -8,7 +8,7 @@ services:
     ports:
       - "4563-4599:4563-4599"
     environment:
-     - "SERVICES=kinesis,lambda,s3,secretsmanager"
+     - "SERVICES=kinesis,lambda,s3,secretsmanager, opensearch"
      - "DEFAULT_REGION=eu-central-1"
      - "HOSTNAME=localhost"
      - "HOSTNAME_EXTERNAL=localhost"
@@ -16,7 +16,9 @@ services:
      - "KINESIS_INITIALIZE_STREAMS=transaction-signatures:3:eu-central-1"
      - "KINESIS_LATENCY=100"
      - "LAMBDA_EXECUTOR=local"
-     - "DATA_DIR=tmp/localstack/data"
+     - "OPENSEARCH_ENDPOINT_STRATEGY=domain"
+     - "DATA_DIR=/tmp/localstack/data"
+     - "DOCKER_HOST=unix:///var/run/docker.sock"
     volumes:
       - "/tmp/localstack:/tmp/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"

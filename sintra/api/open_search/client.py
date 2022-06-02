@@ -1,4 +1,5 @@
 import json
+from typing import Any, Dict
 
 import requests
 from requests_aws4auth import AWS4Auth
@@ -10,11 +11,12 @@ class OpenSearchClient:
         access_key_id: str,
         secret_access_key: str,
         region: str,
+        domain: str,
         host: str,
         index: str,
     ) -> None:
         self.index = index
-        self.url = host + index + "/_search"
+        self.url = f"http://{domain}.{region}.opensearch.{host}/{index}/_search"
         self.session = requests.Session()
         self.headers = {"Content-Type": "application/json"}
 
@@ -22,8 +24,11 @@ class OpenSearchClient:
 
         self.session.auth = auth
 
-    def submit_query(self, query) -> str:
-        opensearch_response = self.session.get(
+    def submit_query(self, query) -> Dict[str, Any]:
+        response = self.session.post(
             url=self.url, headers=self.headers, data=json.dumps(query)
         )
-        return opensearch_response.text
+
+        result = json.loads(response.text)
+        hits = result["hits"]
+        return hits

@@ -1,9 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import field
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+def _image_url(media_files: List[Dict[str, Any]]) -> str:
+    if len(media_files):
+        return media_files[0]["uri"]
+
+    return ""
 
 
 class Token(BaseModel):
@@ -33,12 +39,12 @@ class Token(BaseModel):
             description=token_dict["description"],
             owner=token_dict["owner"],
             symbol=token_dict["symbol"],
-            event=token_dict["event"],
-            timestamp=token_dict["timestamp"],
+            event=token_dict["last_market_activity"],
+            timestamp=token_dict["timestamp_of_market_activity"],
             transaction_hash=token_dict["transaction_hash"],
             price=token_dict["price"],
             price_currency=token_dict.get("price_currency", ""),
-            image_url=token_dict["image_url"],
+            image_url=_image_url(token_dict["media_files"]),
         )
 
 
@@ -56,7 +62,7 @@ class TokenDetails(BaseModel):
     price_currency: Optional[str]
     external_url: Optional[str]
     image_url: str
-    attributes: Dict[str, Any] = field(default_factory=dict)
+    attributes: Dict[str, Any] = Field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, token_details: Dict[str, Any]) -> TokenDetails:
@@ -73,6 +79,6 @@ class TokenDetails(BaseModel):
             price=token_details["price"],
             price_currency=token_details.get("price_currency", ""),
             external_url=token_details["external_url"],
-            image_url=token_details["image_url"],
+            image_url=_image_url(token_details["media_files"]),
             attributes=token_details["attributes"],
         )
