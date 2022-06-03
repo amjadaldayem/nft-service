@@ -21,6 +21,7 @@ from sintra.exception import (
 )
 from sintra.kinesis.producer import KinesisProducer
 from sintra.kinesis.record import KinesisRecord
+from sintra.subscriber.ethereum import EthereumRPCClient
 from sintra.subscriber.solana import SolanaRPCClient
 from sintra.utils import get_env_variable
 
@@ -113,8 +114,74 @@ class SolanaTransactionWorker(TransactionWorker):
         )
 
 
+class EthereumTransactionWorker(TransactionWorker):
+    def __init__(
+        self,
+        http_endpoint: str,
+        http_timeout: float,
+        ws_endpoint: str,
+        ws_timeout: float,
+        aws_access_key_id: str,
+        aws_secret_access_key: str,
+        aws_region: str,
+        stream_name: str,
+    ) -> None:
+        self.ethereum_rpc_client = EthereumRPCClient(
+            http_endpoint,
+            http_timeout,
+            ws_endpoint,
+            ws_timeout,
+        )
+        self.kinesis = KinesisProducer(
+            aws_access_key_id,
+            aws_secret_access_key,
+            aws_region,
+        )
+        self.stream_name = stream_name
+
+    async def listen_for_transactions(
+        self, market: str, market_address: int, market_accounts: List[str]
+    ) -> None:
+        while True:
+            try:
+                async for signature, timestamp in self.ethereum_rpc_client.listen_for_transactions(
+                    market_accounts
+                ):
+                    logger.info(
+                        f"Transaction signature: {signature} with timestamp: {timestamp} from worker: {id(self)}"
+                    )
+                    record = KinesisRecord(
+                        market=market,
+                        market_address=market_address,
+                        market_account=market_accounts[0],
+                        signature=signature,
+                        timestamp=timestamp,
+                    )
+                    self.kinesis.produce_record(self.stream_name, record, signature)
+            except ClientRPCConnectionClosedException as error:
+                logger.error(error)
+                logger.info("Reconnecting Websocket client...")
+            except ProduceRecordFailedException:
+                logger.info("Can't send record to Kinesis. Closing...")
+                sys.exit(1)
+
+    @classmethod
+    def build_from_settings(cls) -> EthereumTransactionWorker:
+        return cls(
+            settings.blockchain.ethereum.http.endpoint,
+            settings.blockchain.ethereum.http.timeout,
+            settings.blockchain.ethereum.ws.endpoint,
+            settings.blockchain.ethereum.ws.timeout,
+            get_env_variable("AWS_ACCESS_KEY_ID"),
+            get_env_variable("AWS_SECRET_ACCESS_KEY"),
+            settings.kinesis.region,
+            settings.kinesis.stream,
+        )
+
+
 _WORKER_CLASSES: Dict[str, Type[TransactionWorker]] = {
-    "solana": SolanaTransactionWorker
+    "solana": SolanaTransactionWorker,
+    "ethereum": EthereumTransactionWorker,
 }
 
 

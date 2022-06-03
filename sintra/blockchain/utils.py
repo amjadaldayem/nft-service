@@ -2,6 +2,12 @@ from typing import Dict, List
 
 from strenum import StrEnum
 
+from sintra.blockchain.ethereum.utils import (
+    ethereum_market_name_map,
+    ethereum_market_address_map,
+    ethereum_market_program_id_map,
+    ethereum_market_accounts,
+)
 from sintra.blockchain.solana.utils import (
     solana_market_accounts,
     solana_market_address_map,
@@ -20,7 +26,7 @@ def market_name_map(blockchain: str) -> Dict[int, str]:
     if blockchain == BlockchainName.SOLANA:
         return solana_market_name_map()
     if blockchain == BlockchainName.ETHEREUM:
-        pass
+        return ethereum_market_name_map()
     if blockchain == BlockchainName.TERRA:
         pass
 
@@ -31,7 +37,7 @@ def market_address_map(blockchain: str) -> Dict[int, str]:
     if blockchain == BlockchainName.SOLANA:
         return solana_market_address_map()
     if blockchain == BlockchainName.ETHEREUM:
-        pass
+        return ethereum_market_address_map()
     if blockchain == BlockchainName.TERRA:
         pass
 
@@ -42,7 +48,7 @@ def market_program_id_map(blockchain: str) -> Dict[str, int]:
     if blockchain == BlockchainName.SOLANA:
         return solana_market_program_id_map()
     if blockchain == BlockchainName.ETHEREUM:
-        pass
+        return ethereum_market_program_id_map()
     if blockchain == BlockchainName.TERRA:
         pass
 
@@ -53,7 +59,7 @@ def market_accounts(blockchain: str) -> List[str]:
     if blockchain == BlockchainName.SOLANA:
         return solana_market_accounts()
     if blockchain == BlockchainName.ETHEREUM:
-        pass
+        return ethereum_market_accounts()
     if blockchain == BlockchainName.TERRA:
         pass
 
