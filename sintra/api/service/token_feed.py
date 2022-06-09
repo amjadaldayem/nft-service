@@ -45,6 +45,16 @@ class TokenFeedService:
 
         return tokens
 
+    def read_tokens_from(self, timestamp: int) -> List[Token]:
+        json_response = self.token_feed_repository.read_tokens_from(timestamp)
+        token_hits: List[Dict[str, Any]] = json_response["hits"]
+
+        tokens: List[Token] = [
+            Token.from_dict(token_hit["_source"]) for token_hit in token_hits
+        ]
+
+        return tokens
+
     def _opensearch_params(self) -> Tuple[str, str, str]:
         hostname = settings.opensearch.host
         port = settings.opensearch.port

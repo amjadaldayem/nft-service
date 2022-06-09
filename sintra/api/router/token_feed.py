@@ -44,3 +44,17 @@ async def read_tokens(
         logger.error(error)
 
         raise HTTPException(status_code=500, detail="Internal server error.") from error
+
+
+@router.get("/tokens")
+async def read_tokens_from(
+    timestamp: int,
+    token_service: TokenFeedService = Depends(TokenFeedService),
+) -> List[Token]:
+    try:
+        tokens = token_service.read_tokens_from(timestamp)
+        return tokens
+    except Exception as error:
+        logger.error(error)
+
+        raise HTTPException(status_code=500, detail="Internal server error.") from error
