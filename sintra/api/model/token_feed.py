@@ -22,7 +22,7 @@ class Token(BaseModel):
     owner: str
     symbol: str
     event: str
-    timestamp: int
+    timestamp: str
     transaction_hash: str
     price: float
     price_currency: Optional[str]

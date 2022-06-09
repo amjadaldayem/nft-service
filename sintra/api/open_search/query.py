@@ -12,7 +12,7 @@ class QueryBuilder:
             "query": {"match_all": {}},
         }
 
-    def read_tokens_from_query(self, timestamp: int) -> Dict[str, Any]:
+    def read_tokens_from_query(self, timestamp: str) -> Dict[str, Any]:
         return {
             "size": 20,
             "sort": {"timestamp_of_market_activity": {"order": "desc"}},

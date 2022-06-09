@@ -1,8 +1,9 @@
 import os
+from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
 from sintra.api.config import settings
-from sintra.api.exception import ResourceNotFoundException
+from sintra.api.exception import DataClientException, ResourceNotFoundException
 from sintra.api.model.token_feed import Token, TokenDetails
 from sintra.api.open_search.client import OpenSearchClient
 from sintra.api.repository.token_feed import TokenFeedRepository
@@ -24,9 +25,11 @@ class TokenFeedService:
 
     def read_token(self, token_id: str) -> TokenDetails:
         json_response = self.token_feed_repository.read_token(token_id)
+        if not json_response:
+            raise DataClientException
 
-        hits: List[Dict[str, Any]] = json_response["hits"]
-        if hits:
+        hits: List[Dict[str, Any]] = json_response.get("hits", [])
+        if len(hits) > 0:
             token_hit = hits[0]
             token_dict = token_hit["_source"]
             token_details = TokenDetails.from_dict(token_dict)
@@ -37,7 +40,10 @@ class TokenFeedService:
 
     def read_tokens(self) -> List[Token]:
         json_response = self.token_feed_repository.read_tokens()
-        token_hits: List[Dict[str, Any]] = json_response["hits"]
+        if not json_response:
+            raise DataClientException
+
+        token_hits: List[Dict[str, Any]] = json_response.get("hits", [])
 
         tokens: List[Token] = [
             Token.from_dict(token_hit["_source"]) for token_hit in token_hits
@@ -45,9 +51,13 @@ class TokenFeedService:
 
         return tokens
 
-    def read_tokens_from(self, timestamp: int) -> List[Token]:
-        json_response = self.token_feed_repository.read_tokens_from(timestamp)
-        token_hits: List[Dict[str, Any]] = json_response["hits"]
+    def read_tokens_from(self, timestamp: datetime) -> List[Token]:
+        formatted_dt = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        json_response = self.token_feed_repository.read_tokens_from(formatted_dt)
+        if not json_response:
+            raise DataClientException
+
+        token_hits: List[Dict[str, Any]] = json_response.get("hits", [])
 
         tokens: List[Token] = [
             Token.from_dict(token_hit["_source"]) for token_hit in token_hits

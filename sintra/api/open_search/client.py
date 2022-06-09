@@ -1,8 +1,11 @@
 import json
+import logging
 from typing import Any, Dict
 
 import requests
 from requests_aws4auth import AWS4Auth
+
+logger = logging.getLogger(__name__)
 
 
 class OpenSearchClient:
@@ -28,7 +31,9 @@ class OpenSearchClient:
         response = self.session.post(
             url=self.url, headers=self.headers, data=json.dumps(query)
         )
+        if response.status_code >= 400:
+            logger.error(response.text)
 
         result = json.loads(response.text)
-        hits = result["hits"]
+        hits = result.get("hits", None)
         return hits

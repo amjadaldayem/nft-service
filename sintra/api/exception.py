@@ -4,3 +4,7 @@ class SintraDataAPIException(Exception):
 
 class ResourceNotFoundException(SintraDataAPIException):
     """Raised when resource is not found in data storage."""
+
+
+class DataClientException(SintraDataAPIException):
+    """Raised when data client is not able to execute query."""
