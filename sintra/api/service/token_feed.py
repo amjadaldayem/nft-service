@@ -26,7 +26,7 @@ class TokenFeedService:
     def read_token(self, token_id: str) -> TokenDetails:
         json_response = self.token_feed_repository.read_token(token_id)
         if not json_response:
-            raise DataClientException
+            raise DataClientException("Problems with client querying data store.")
 
         hits: List[Dict[str, Any]] = json_response.get("hits", [])
         if len(hits) > 0:
@@ -41,7 +41,7 @@ class TokenFeedService:
     def read_tokens(self) -> List[Token]:
         json_response = self.token_feed_repository.read_tokens()
         if not json_response:
-            raise DataClientException
+            raise DataClientException("Problems with client querying data store.")
 
         token_hits: List[Dict[str, Any]] = json_response.get("hits", [])
 
@@ -55,7 +55,7 @@ class TokenFeedService:
         formatted_dt = timestamp.strftime("%Y-%m-%d %H:%M:%S")
         json_response = self.token_feed_repository.read_tokens_from(formatted_dt)
         if not json_response:
-            raise DataClientException
+            raise DataClientException("Problems with client querying data store.")
 
         token_hits: List[Dict[str, Any]] = json_response.get("hits", [])
 

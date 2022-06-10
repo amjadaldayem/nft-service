@@ -15,7 +15,7 @@ router = APIRouter(
 logger = logging.getLogger(__name__)
 
 
-@router.get("/token/{token_id}")
+@router.get("/token/{token_id}", response_model=TokenDetails)
 async def read_token(
     token_id: str, token_service: TokenFeedService = Depends(TokenFeedService)
 ) -> TokenDetails:
@@ -34,7 +34,7 @@ async def read_token(
         raise HTTPException(status_code=500, detail="Internal server error.") from error
 
 
-@router.get("/tokens")
+@router.get("/tokens", response_model=List[Token])
 async def read_tokens(
     timestamp: datetime = None,
     token_service: TokenFeedService = Depends(TokenFeedService),

@@ -1,0 +1,31 @@
+{
+  "mappings": {
+    "properties": {
+      "blockchain_id": { "type": "integer" },
+      "blockchain_name": { "type": "text" },
+      "collection_id": { "type": "text" },
+      "token_key": { "type": "text" },
+      "owner": { "type": "text" },
+      "token_id": { "type": "text" },
+      "token_name": { "type": "text" },
+      "description": { "type": "text" },
+      "symbol": { "type": "text" },
+      "primary_sale_happend": { "type": "boolean" },
+      "last_market_activity": { "type": "text" },
+      "timestamp_of_market_activity": {
+        "type": "date",
+        "format": "yyyy-MM-dd HH:mm:ss"
+      },
+      "event_timestamp": { "type": "float" },
+      "metadata_uri": { "type": "text"},
+      "transaction_hash": { "type": "text" },
+      "price": { "type": "float" },
+      "price_currency": { "type": "text" },
+      "creators": { "type": "object" },
+      "edition": { "type": "text" },
+      "external_url": { "type": "text" },
+      "media_files": { "type": "object" },
+      "attributes": { "type": "object" }
+    }
+  }
+}
