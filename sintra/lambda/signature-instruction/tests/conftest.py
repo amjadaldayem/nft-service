@@ -8,6 +8,20 @@ import boto3
 import pytest
 from moto import mock_kinesis
 from src.parser.magic_eden import MagicEdenParserV1, MagicEdenParserV2
+from src.parser.alpha_art import AlphaArtParser
+
+
+from pytest_factoryboy import register
+
+from tests.factories import (
+    InstructionFactory,
+    InnerInstructionsGroupFactory,
+    TransactionFactory,
+)
+
+register(InstructionFactory)
+register(InnerInstructionsGroupFactory)
+register(TransactionFactory)
 
 
 @pytest.fixture(scope="session")
@@ -33,6 +47,11 @@ def magic_eden_v1_parser() -> MagicEdenParserV1:
 @pytest.fixture(scope="session")
 def magic_eden_v2_parser() -> MagicEdenParserV2:
     return MagicEdenParserV2()
+
+
+@pytest.fixture(scope="session")
+def alpha_art_parser() -> AlphaArtParser:
+    return AlphaArtParser()
 
 
 @pytest.fixture(scope="session")
