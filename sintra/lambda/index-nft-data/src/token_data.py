@@ -1,7 +1,8 @@
 import json
 import logging
 from abc import ABC, abstractmethod
-from time import time_ns
+from datetime import datetime
+from time import time
 from typing import Any, Dict, List
 
 import requests
@@ -91,6 +92,11 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
             logger.error(error)
             blockchain_name = None
 
+        blocktime_datetime = datetime.utcfromtimestamp(metadata.blocktime)
+        blocktime_formatted = blocktime_datetime.strftime("%Y-%m-%d %H:%M:%S")
+        event_time = datetime.utcfromtimestamp(time())
+        event_time_formatted = event_time.strftime("%Y-%m-%d %H:%M:%S")
+
         nft_data = NFTData(
             blockchain_id=metadata.blockchain_id,
             blockchain_name=blockchain_name,
@@ -103,8 +109,8 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
             symbol=metadata.symbol,
             primary_sale_happened=metadata.primary_sale_happened,
             last_market_activity=metadata.last_market_activity,
-            timestamp_of_market_activity=metadata.blocktime,
-            event_timestamp=time_ns(),
+            timestamp_of_market_activity=blocktime_formatted,
+            event_timestamp=event_time_formatted,
             metadata_uri=metadata.uri,
             attributes=token_attributes,
             transaction_hash=metadata.transaction_hash,

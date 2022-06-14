@@ -47,8 +47,8 @@ class NFTData:
     symbol: str
     primary_sale_happened: bool
     last_market_activity: str
-    timestamp_of_market_activity: int
-    event_timestamp: int
+    timestamp_of_market_activity: str
+    event_timestamp: str
     metadata_uri: str
     transaction_hash: str
     price: float

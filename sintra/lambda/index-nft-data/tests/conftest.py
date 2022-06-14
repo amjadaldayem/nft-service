@@ -55,8 +55,8 @@ def kinesis_input_event() -> Dict[str, Any]:
     event = {
         "blockchain_id": 65536,
         "token_key": "9djKfEoRp4pZf8YHDYLBXgd84cGiHBbhjh5mHF8e9Vvy",
-        "blocktime": time.time_ns(),
-        "timestamp": time.time_ns(),
+        "blocktime": "2022-06-01 13:15:55",
+        "timestamp": "2022-06-03 14:25:30",
         "program_account_key": "M2mx93ekt1fmXSVkTrUL9xVFHkmME8HTUi5Cyc5aF7K",
         "transaction_hash": "1eE5Sw16rNVg6Z7xWhiQA7Lijp8DDZ2XGoRGK8GR9fCeCA5CYKib3qpQNVYh25hzUaUxhLguGgtdmSFJG13yRsz",
         "primary_sale_happened": True,
@@ -102,8 +102,8 @@ def kinesis_input_event_with_fake_blockchain() -> Dict[str, Any]:
     event = {
         "blockchain_id": 000000,
         "token_key": "9djKfEoRp4pZf8YHDYLBXgd84cGiHBbhjh5mHF8e9Vvy",
-        "blocktime": time.time_ns(),
-        "timestamp": time.time_ns(),
+        "blocktime": "2022-06-01 13:15:55",
+        "timestamp": "2022-06-03 14:25:30",
         "program_account_key": "M2mx93ekt1fmXSVkTrUL9xVFHkmME8HTUi5Cyc5aF7K",
         "transaction_hash": "1eE5Sw16rNVg6Z7xWhiQA7Lijp8DDZ2XGoRGK8GR9fCeCA5CYKib3qpQNVYh25hzUaUxhLguGgtdmSFJG13yRsz",
         "primary_sale_happened": True,

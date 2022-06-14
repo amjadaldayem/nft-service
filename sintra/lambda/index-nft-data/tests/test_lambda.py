@@ -24,7 +24,7 @@ def nft_data() -> NFTData:
         symbol="eNFT",
         primary_sale_happened=True,
         last_market_activity="Listing",
-        timestamp_of_market_activity=time.time_ns(),
+        timestamp_of_market_activity="2022-06-02 11:22:22",
         event_timestamp=time.time_ns(),
         metadata_uri="http://example.nft",
         attributes={"background": "blue"},

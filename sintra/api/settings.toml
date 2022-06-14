@@ -1,0 +1,8 @@
+[APPLICATION]
+NAME = "Data Insight API"
+
+[OPENSEARCH]
+HOST = "localhost.localstack.cloud"
+PORT = 4566
+TOKEN_FEED_INDEX = "token-feed-index"
+DOMAIN = "my-demo"
