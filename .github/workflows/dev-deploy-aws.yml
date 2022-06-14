@@ -47,6 +47,11 @@ jobs:
           # e.g., dev-lambda latest, dev-17ae13a
           LAMBDA_TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-lambda-
           ECS_TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-ecs-
+          ECS_WORKER_SERVICE_TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-ecs-worker-service-
+          FETCH_NFT_METADATA_LAMBDA_PREFIX: ${{ env.DEPLOYMENT_ENV }}-fetch-nft-metadata-lambda-
+          INDEX_NFT_DATA_LAMBDA_PREFIX: ${{ env.DEPLOYMENT_ENV }}-index-nft-data-lambda-
+          SIGNATURE_INSTRUCTION_LAMBDA_PREFIX: ${{ env.DEPLOYMENT_ENV }}-signature-instruction-lambda-
+          LAMBDA_DIR_PREFIX: sintra/lambda
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           GITHUB_SHORT_SHA: ${{ steps.get-github-short-sha.outputs.github_short_sha }}
           KINESIS_PRODUCER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-p-
@@ -59,6 +64,22 @@ jobs:
           ECS_IMAGE_TAG_LATEST="${ECS_TAG_PREFIX}latest"
           ECS_IMAGE_TAG_HASH="${ECS_TAG_PREFIX}${GITHUB_SHORT_SHA}"
           docker build -f Dockerfile-ecs -t $ECR_REPO_URI:$ECS_IMAGE_TAG_LATEST -t $ECR_REPO_URI:$ECS_IMAGE_TAG_HASH .
+          
+          ECS_WORKER_SERVICE_IMAGE_TAG_LATEST="${ECS_WORKER_SERVICE_TAG_PREFIX}latest"
+          ECS_WORKER_SERVICE_IMAGE_TAG_HASH="${ECS_WORKER_SERVICE_TAG_PREFIX}${GITHUB_SHORT_SHA}"
+          docker build -f Dockerfile -t $ECR_REPO_URI:$ECS_WORKER_SERVICE_IMAGE_TAG_LATEST -t $ECR_REPO_URI:$ECS_WORKER_SERVICE_IMAGE_TAG_HASH .
+          
+          FETCH_NFT_METADATA_LAMBDA_TAG_LATEST="${FETCH_NFT_METADATA_LAMBDA_PREFIX}latest"
+          FETCH_NFT_METADATA_LAMBDA_TAG_HASH="${FETCH_NFT_METADATA_LAMBDA_PREFIX}${GITHUB_SHORT_SHA}"
+          docker build -f ${LAMBDA_DIR_PREFIX}/fetch-nft-metadata/Dockerfile -t $ECR_REPO_URI:$FETCH_NFT_METADATA_LAMBDA_TAG_LATEST -t $ECR_REPO_URI:$FETCH_NFT_METADATA_LAMBDA_TAG_HASH .
+          
+          INDEX_NFT_DATA_LAMBDA_TAG_LATEST="${INDEX_NFT_DATA_LAMBDA_PREFIX}latest"
+          INDEX_NFT_DATA_LAMBDA_TAG_HASH="${INDEX_NFT_DATA_LAMBDA_PREFIX}${GITHUB_SHORT_SHA}"
+          docker build -f ${LAMBDA_DIR_PREFIX}/index-nft-data/Dockerfile -t $ECR_REPO_URI:$INDEX_NFT_DATA_LAMBDA_TAG_LATEST -t $ECR_REPO_URI:$INDEX_NFT_DATA_LAMBDA_TAG_HASH .
+          
+          SIGNATURE_INSTRUCTION_LAMBDA_TAG_LATEST="${SIGNATURE_INSTRUCTION_LAMBDA_PREFIX}latest"
+          SIGNATURE_INSTRUCTION_LAMBDA_TAG_HASH="${SIGNATURE_INSTRUCTION_LAMBDA_PREFIX}${GITHUB_SHORT_SHA}"
+          docker build -f ${LAMBDA_DIR_PREFIX}/fetch-nft-metadata/Dockerfile -t $ECR_REPO_URI:$SIGNATURE_INSTRUCTION_LAMBDA_TAG_LATEST -t $ECR_REPO_URI:$SIGNATURE_INSTRUCTION_LAMBDA_TAG_HASH .
           
           last_commit_message=`git log -1 --pretty=%B | cat`
           joke=`curl -sH "Accept: text/plain" https://icanhazdadjoke.com/`
