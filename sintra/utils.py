@@ -25,7 +25,9 @@ def get_env_variable(env_name: str) -> Any:
     if env_variable is not None:
         return env_variable
 
-    if settings.localstack.active:
+    active_var = str(settings.localstack.active).lower()
+    active = active_var == "true"
+    if active:
         secrets_manager = boto3.client(
             "secretsmanager",
             region_name=settings.localstack.region,
