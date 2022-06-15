@@ -21,7 +21,10 @@ class KinesisProducer:
         secret_access_key: str,
         region: str,
     ) -> None:
-        if settings.localstack.active:
+        active_var = str(settings.localstack.active).lower()
+        active = active_var == "true"
+
+        if active:
             self.client = boto3.client(
                 "kinesis",
                 region_name=settings.localstack.region,

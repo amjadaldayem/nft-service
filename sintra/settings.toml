@@ -87,6 +87,6 @@ REGION = "eu-central-1"
 REGION = "eu-central-1"
 
 [LOCALSTACK]
-ACTIVE = true
+ACTIVE = "true"
 ENDPOINT = "http://localhost:4566"
 REGION = "eu-central-1"
