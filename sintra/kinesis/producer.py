@@ -5,22 +5,14 @@ from typing import Any, List
 import boto3
 
 from sintra.config import settings
-from sintra.exception import (
-    EnvironmentVariableMissingException,
-    ProduceRecordFailedException,
-)
+from sintra.exception import ProduceRecordFailedException
 from sintra.kinesis.record import KinesisRecord
 
 logger = logging.getLogger(__name__)
 
 
 class KinesisProducer:
-    def __init__(
-        self,
-        access_key_id: str,
-        secret_access_key: str,
-        region: str,
-    ) -> None:
+    def __init__(self) -> None:
         active_var = str(settings.localstack.active).lower()
         active = active_var == "true"
 
@@ -31,15 +23,7 @@ class KinesisProducer:
                 endpoint_url=settings.localstack.endpoint,
             )
         else:
-            if access_key_id is not None or secret_access_key is not None:
-                self.client = boto3.client(
-                    "kinesis",
-                    aws_access_key_id=access_key_id,
-                    aws_secret_access_key=secret_access_key,
-                    region_name=region,
-                )
-            else:
-                raise EnvironmentVariableMissingException("Missing AWS credentials.")
+            self.client = boto3.client("kinesis")
 
     def produce_record(
         self, stream_name: str, record: KinesisRecord, partition_key: Any
