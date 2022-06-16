@@ -5,18 +5,18 @@ import logging
 import os
 from typing import Any, Dict, List
 
-from src.async_client import SolanaHTTPClient
-from src.config import settings
-from src.exception import (
+from .async_client import SolanaHTTPClient
+from .config import settings
+from .exception import (
     DecodingException,
     SecondaryMarketDataMissingException,
     TransactionInstructionMissingException,
     TransactionParserNotFoundException,
     UnknownTransactionException,
 )
-from src.model import SecondaryMarketEvent, SignatureEvent, Transaction
-from src.parsing import TransactionParsing
-from src.producer import KinesisProducer
+from .model import SecondaryMarketEvent, SignatureEvent, Transaction
+from .parsing import TransactionParsing
+from .producer import KinesisProducer
 
 logger = logging.getLogger(__name__)
 

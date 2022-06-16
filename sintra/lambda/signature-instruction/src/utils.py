@@ -1,4 +1,4 @@
-from src.config import settings
+from .config import settings
 
 
 def magic_eden_id() -> int:

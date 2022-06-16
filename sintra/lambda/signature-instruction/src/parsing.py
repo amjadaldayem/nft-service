@@ -1,6 +1,6 @@
-from src.exception import TransactionParserNotFoundException
-from src.model import SecondaryMarketEvent, Transaction
-from src.parser.magic_eden import MagicEdenParserV1, MagicEdenParserV2
+from .exception import TransactionParserNotFoundException
+from .model import SecondaryMarketEvent, Transaction
+from .parser.magic_eden import MagicEdenParserV1, MagicEdenParserV2
 
 
 class TransactionParsing:

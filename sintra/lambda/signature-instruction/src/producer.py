@@ -3,11 +3,9 @@ import logging
 from typing import Any, Dict, List
 
 import boto3
-from src.exception import (
-    EnvironmentVariableMissingException,
-    ProduceRecordFailedException,
-)
-from src.model import SecondaryMarketEvent
+
+from .exception import EnvironmentVariableMissingException, ProduceRecordFailedException
+from .model import SecondaryMarketEvent
 
 logger = logging.getLogger(__name__)
 
