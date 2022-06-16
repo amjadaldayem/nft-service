@@ -2,7 +2,7 @@ from typing import List
 
 import pytest
 
-from sintra.api.model.token_feed import Token, TokenDetails
+from data_api.model.token_feed import Token, TokenDetails
 
 
 @pytest.fixture(scope="session")

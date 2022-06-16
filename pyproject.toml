@@ -8,7 +8,8 @@ authors = [
 description = "Module representing Sintra Data pipeline."
 name = "sintra"
 packages = [
-    {include = "sintra"}
+    { include = "sintra" },
+    { include = "data_api" }
 ]
 version = "0.1.0"
 
@@ -36,7 +37,7 @@ flake8 = "^3.8.3"
 mypy = "^0.782"
 ipdb = "^0.13.3"
 click = "^8.0.0"
-pylint = "^2.6.0"
+pylint = "2.13.9"
 pytest = "^6.2.1"
 base58 = "^2.1.1"
 orjson = "^3.6.8"

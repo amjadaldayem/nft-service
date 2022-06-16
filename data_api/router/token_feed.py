@@ -4,9 +4,9 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from sintra.api.exception import ResourceNotFoundException
-from sintra.api.model.token_feed import Token, TokenDetails
-from sintra.api.service.token_feed import TokenFeedService
+from data_api.exception import ResourceNotFoundException
+from data_api.model.token_feed import Token, TokenDetails
+from data_api.service.token_feed import TokenFeedService
 
 router = APIRouter(
     tags=["feed"], prefix="/v1/nft/feed", responses={404: {"description": "Not found"}}

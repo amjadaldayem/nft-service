@@ -4,9 +4,9 @@ from unittest.mock import patch
 import pytest
 from httpx import AsyncClient
 
-from sintra.api.exception import DataClientException, ResourceNotFoundException
-from sintra.api.main import app
-from sintra.api.model.token_feed import Token, TokenDetails
+from data_api.exception import DataClientException, ResourceNotFoundException
+from data_api.main import app
+from data_api.model.token_feed import Token, TokenDetails
 
 
 @pytest.fixture(scope="module")
@@ -16,7 +16,7 @@ def router_endpoint() -> str:
 
 class TestTokenFeedRouter:
     @pytest.mark.anyio
-    @patch("sintra.api.service.token_feed.TokenFeedService.read_token")
+    @patch("data_api.service.token_feed.TokenFeedService.read_token")
     async def test_read_token(
         self,
         read_token_fn,
@@ -34,7 +34,7 @@ class TestTokenFeedRouter:
         assert response.json() == token_details.__dict__
 
     @pytest.mark.anyio
-    @patch("sintra.api.service.token_feed.TokenFeedService.read_token")
+    @patch("data_api.service.token_feed.TokenFeedService.read_token")
     async def test_read_token_when_token_doesnt_exists(
         self,
         read_token_fn,
@@ -56,7 +56,7 @@ class TestTokenFeedRouter:
         }
 
     @pytest.mark.anyio
-    @patch("sintra.api.service.token_feed.TokenFeedService.read_token")
+    @patch("data_api.service.token_feed.TokenFeedService.read_token")
     async def test_read_token_when_exception_occurs(
         self,
         read_token_fn,
@@ -77,7 +77,7 @@ class TestTokenFeedRouter:
         assert response.json() == {"detail": "Internal server error."}
 
     @pytest.mark.anyio
-    @patch("sintra.api.service.token_feed.TokenFeedService.read_tokens")
+    @patch("data_api.service.token_feed.TokenFeedService.read_tokens")
     async def test_read_tokens(
         self,
         read_tokens_fn,
@@ -100,7 +100,7 @@ class TestTokenFeedRouter:
         )
 
     @pytest.mark.anyio
-    @patch("sintra.api.service.token_feed.TokenFeedService.read_tokens_from")
+    @patch("data_api.service.token_feed.TokenFeedService.read_tokens_from")
     async def test_read_tokens_with_timestamp(
         self,
         read_tokens_from_fn,

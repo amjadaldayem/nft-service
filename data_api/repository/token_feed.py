@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
-from tkinter import W
 from typing import Any, Dict, List
 
-from sintra.api.model.token_feed import Token, TokenDetails
-from sintra.api.open_search.client import OpenSearchClient
-from sintra.api.open_search.query import QueryBuilder
+from data_api.model.token_feed import Token, TokenDetails
+from data_api.open_search.client import OpenSearchClient
+from data_api.open_search.query import QueryBuilder
 
 
 class AbstractTokenFeedRepository(ABC):

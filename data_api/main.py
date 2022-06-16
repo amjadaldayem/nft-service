@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from sintra.api.router import token_feed
+from data_api.router import token_feed
 
 app = FastAPI()
 

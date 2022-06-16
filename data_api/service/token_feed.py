@@ -2,11 +2,11 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
-from sintra.api.config import settings
-from sintra.api.exception import DataClientException, ResourceNotFoundException
-from sintra.api.model.token_feed import Token, TokenDetails
-from sintra.api.open_search.client import OpenSearchClient
-from sintra.api.repository.token_feed import TokenFeedRepository
+from data_api.config import settings
+from data_api.exception import DataClientException, ResourceNotFoundException
+from data_api.model.token_feed import Token, TokenDetails
+from data_api.open_search.client import OpenSearchClient
+from data_api.repository.token_feed import TokenFeedRepository
 
 
 class TokenFeedService:

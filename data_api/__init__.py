@@ -2,7 +2,7 @@ import logging
 import socket
 import sys
 
-from sintra.api.config import settings
+from data_api.config import settings
 
 logging.basicConfig(
     format="[%(hostname)s] - [%(app)s] - [%(asctime)s] - [%(levelname)s] - [%(name)s] - [%(message)s]",

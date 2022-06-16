@@ -8,3 +8,7 @@ class ResourceNotFoundException(SintraDataAPIException):
 
 class DataClientException(SintraDataAPIException):
     """Raised when data client is not able to execute query."""
+
+
+class EnvironmentVariableMissingException(SintraDataAPIException):
+    """Raised when environment variable doesn't exist."""
