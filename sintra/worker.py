@@ -23,7 +23,6 @@ from sintra.kinesis.producer import KinesisProducer
 from sintra.kinesis.record import KinesisRecord
 from sintra.subscriber.ethereum import EthereumRPCClient
 from sintra.subscriber.solana import SolanaRPCClient
-from sintra.utils import get_env_variable
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +55,6 @@ class SolanaTransactionWorker(TransactionWorker):
         http_timeout: float,
         ws_endpoint: str,
         ws_timeout: float,
-        aws_access_key_id: str,
-        aws_secret_access_key: str,
-        aws_region: str,
         stream_name: str,
     ) -> None:
         self.solana_rpc_client = SolanaRPCClient(
@@ -67,11 +63,7 @@ class SolanaTransactionWorker(TransactionWorker):
             ws_endpoint,
             ws_timeout,
         )
-        self.kinesis = KinesisProducer(
-            aws_access_key_id,
-            aws_secret_access_key,
-            aws_region,
-        )
+        self.kinesis = KinesisProducer()
         self.stream_name = stream_name
 
     async def listen_for_transactions(
@@ -107,9 +99,6 @@ class SolanaTransactionWorker(TransactionWorker):
             settings.blockchain.solana.http.timeout,
             settings.blockchain.solana.ws.endpoint,
             settings.blockchain.solana.ws.timeout,
-            get_env_variable("AWS_ACCESS_KEY_ID"),
-            get_env_variable("AWS_SECRET_ACCESS_KEY"),
-            settings.kinesis.region,
             settings.kinesis.stream,
         )
 
@@ -121,9 +110,6 @@ class EthereumTransactionWorker(TransactionWorker):
         http_timeout: float,
         ws_endpoint: str,
         ws_timeout: float,
-        aws_access_key_id: str,
-        aws_secret_access_key: str,
-        aws_region: str,
         stream_name: str,
     ) -> None:
         self.ethereum_rpc_client = EthereumRPCClient(
@@ -132,11 +118,7 @@ class EthereumTransactionWorker(TransactionWorker):
             ws_endpoint,
             ws_timeout,
         )
-        self.kinesis = KinesisProducer(
-            aws_access_key_id,
-            aws_secret_access_key,
-            aws_region,
-        )
+        self.kinesis = KinesisProducer()
         self.stream_name = stream_name
 
     async def listen_for_transactions(
@@ -172,9 +154,6 @@ class EthereumTransactionWorker(TransactionWorker):
             settings.blockchain.ethereum.http.timeout,
             settings.blockchain.ethereum.ws.endpoint,
             settings.blockchain.ethereum.ws.timeout,
-            get_env_variable("AWS_ACCESS_KEY_ID"),
-            get_env_variable("AWS_SECRET_ACCESS_KEY"),
-            settings.kinesis.region,
             settings.kinesis.stream,
         )
 
@@ -223,15 +202,15 @@ def start_worker(
 
 
 if __name__ == "__main__":
-    market_accounts: List[str] = list(set(market_accounts(settings.worker.type)))
+    accounts: List[str] = list(set(market_accounts(settings.worker.type)))
     account_address_map: Dict[str, int] = market_program_id_map(settings.worker.type)
     address_name_map: Dict[int, str] = market_name_map(settings.worker.type)
 
-    number_of_workers: int = len(market_accounts)
+    number_of_workers: int = len(accounts)
     thread_executor = ThreadPoolExecutor(max_workers=number_of_workers)
 
     try:
-        for market_account in market_accounts:
+        for market_account in accounts:
             market_address = account_address_map[market_account]
             market_name = address_name_map[market_address]
 
