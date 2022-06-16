@@ -11,19 +11,6 @@ from src.parser.magic_eden import MagicEdenParserV1, MagicEdenParserV2
 from src.parser.alpha_art import AlphaArtParser
 
 
-from pytest_factoryboy import register
-
-from tests.factories import (
-    InstructionFactory,
-    InnerInstructionsGroupFactory,
-    TransactionFactory,
-)
-
-register(InstructionFactory)
-register(InnerInstructionsGroupFactory)
-register(TransactionFactory)
-
-
 @pytest.fixture(scope="session")
 def data_path() -> Path:
     return Path(__file__).absolute().parent / "data"
@@ -37,6 +24,11 @@ def magic_eden_v1_transaction_path(data_path: Path) -> Path:
 @pytest.fixture(scope="session")
 def magic_eden_v2_transaction_path(data_path: Path) -> Path:
     return data_path / "magic_eden_v2"
+
+
+@pytest.fixture(scope="session")
+def alpha_art_transaction_path(data_path: Path) -> Path:
+    return data_path / "alpha_art"
 
 
 @pytest.fixture(scope="session")

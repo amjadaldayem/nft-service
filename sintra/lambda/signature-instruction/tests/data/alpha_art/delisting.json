@@ -1,0 +1,149 @@
+{
+   "blockTime":1638293105,
+   "meta":{
+      "err":null,
+      "fee":5000,
+      "innerInstructions":[
+         {
+            "index":0,
+            "instructions":[
+               {
+                  "accounts":[
+                     2,
+                     1,
+                     4,
+                     4
+                  ],
+                  "data":"3DdGGhkhJbjm",
+                  "programIdIndex":5
+               },
+               {
+                  "accounts":[
+                     2,
+                     0,
+                     4,
+                     4
+                  ],
+                  "data":"A",
+                  "programIdIndex":5
+               }
+            ]
+         }
+      ],
+      "logMessages":[
+         "Program HZaWndaNWHFDd9Dhk5pqUUtsmoBCqzb1MLu3NAh1VX6B invoke [1]",
+         "Program log: Instruction: Unlist",
+         "Program log: Calling the token program to transfer tokens to the initializer...",
+         "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]",
+         "Program log: Instruction: Transfer",
+         "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 3246 of 191472 compute units",
+         "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+         "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]",
+         "Program log: Instruction: CloseAccount",
+         "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 2422 of 185308 compute units",
+         "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+         "Program log: Closing the escrow account...",
+         "Program HZaWndaNWHFDd9Dhk5pqUUtsmoBCqzb1MLu3NAh1VX6B consumed 17971 of 200000 compute units",
+         "Program HZaWndaNWHFDd9Dhk5pqUUtsmoBCqzb1MLu3NAh1VX6B success"
+      ],
+      "postBalances":[
+         2604577553,
+         2039280,
+         0,
+         0,
+         10326856269,
+         1089991680,
+         1461600,
+         1141440
+      ],
+      "postTokenBalances":[
+         {
+            "accountIndex":1,
+            "mint":"2Pw69uefPXeqD2PvLjDMD3CohKWFixKVwkf5yJSzAu5K",
+            "uiTokenAmount":{
+               "amount":"1",
+               "decimals":0,
+               "uiAmount":1.0,
+               "uiAmountString":"1"
+            }
+         }
+      ],
+      "preBalances":[
+         2600858953,
+         2039280,
+         2039280,
+         1684320,
+         10326856269,
+         1089991680,
+         1461600,
+         1141440
+      ],
+      "preTokenBalances":[
+         {
+            "accountIndex":1,
+            "mint":"2Pw69uefPXeqD2PvLjDMD3CohKWFixKVwkf5yJSzAu5K",
+            "uiTokenAmount":{
+               "amount":"0",
+               "decimals":0,
+               "uiAmount":null,
+               "uiAmountString":"0"
+            }
+         },
+         {
+            "accountIndex":2,
+            "mint":"2Pw69uefPXeqD2PvLjDMD3CohKWFixKVwkf5yJSzAu5K",
+            "uiTokenAmount":{
+               "amount":"1",
+               "decimals":0,
+               "uiAmount":1.0,
+               "uiAmountString":"1"
+            }
+         }
+      ],
+      "rewards":[
+
+      ],
+      "status":{
+         "Ok":null
+      }
+   },
+   "slot":109449238,
+   "transaction":{
+      "message":{
+         "accountKeys":[
+            "okkVSrkBXGfMHvEfKGUW73XmJYbP4ojPbWsBXbYjvZf",
+            "8zstF6LeZVvY1b2Svcgf1cf2sJchakeUzL2CD4VREiyC",
+            "5CVsitgaXkSKWrYm2pBBLquGBGU6Sgx2oaeJAX7eQy6C",
+            "FHAbUodnKnvWs2CTnoY7A3TsgCntKocDMobUfCBVEboC",
+            "4pUQS4Jo2dsfWzt3VgHXy3H6RYnEDd11oWPiaM2rdAPw",
+            "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "2Pw69uefPXeqD2PvLjDMD3CohKWFixKVwkf5yJSzAu5K",
+            "HZaWndaNWHFDd9Dhk5pqUUtsmoBCqzb1MLu3NAh1VX6B"
+         ],
+         "header":{
+            "numReadonlySignedAccounts":0,
+            "numReadonlyUnsignedAccounts":4,
+            "numRequiredSignatures":1
+         },
+         "instructions":[
+            {
+               "accounts":[
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6
+               ],
+               "data":"2",
+               "programIdIndex":7
+            }
+         ],
+         "recentBlockhash":"AmYCR5iWJ2FNo3JG6VUcAMERwmJCRcz64YpygWRpJJfS"
+      },
+      "signatures":[
+         "3CWrdrMfaLYyF5ncRjFgm24RJhyDDCnKtwXwPHF1GXHC38VWZhG9bHW6GWCBZPwVAYQAfHjQ8dWNiw93gDXJCFcX"
+      ]
+   }
+}
