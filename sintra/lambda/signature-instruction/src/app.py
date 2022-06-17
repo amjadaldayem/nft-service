@@ -60,7 +60,7 @@ def lambda_handler(event: Dict[str, Any], context):
 
     for record in records:
         try:
-            logger.info("Received record" + str(record))
+            logger.info("Received record: " + str(record))
             signature_data = base64.b64decode(record["kinesis"]["data"]).decode("utf-8")
             signature_record = json.loads(signature_data)
             signature_event: SignatureEvent = SignatureEvent.from_dict(signature_record)
@@ -107,6 +107,7 @@ async def get_transaction(
 ) -> Dict[str, Any]:
     logger.info(f"Fetching transaction for signature: {event.signature}.")
     response = await client.get_transaction(event.signature)
+    logger.info("Got transaction: " + str(response))
     transaction_dict = response["result"]
 
     return transaction_dict
