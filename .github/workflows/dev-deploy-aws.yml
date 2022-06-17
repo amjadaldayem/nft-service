@@ -79,7 +79,7 @@ jobs:
           
           SIGNATURE_INSTRUCTION_LAMBDA_TAG_LATEST="${SIGNATURE_INSTRUCTION_LAMBDA_PREFIX}latest"
           SIGNATURE_INSTRUCTION_LAMBDA_TAG_HASH="${SIGNATURE_INSTRUCTION_LAMBDA_PREFIX}${GITHUB_SHORT_SHA}"
-          docker build -f ${LAMBDA_DIR_PREFIX}/fetch-nft-metadata/Dockerfile -t $ECR_REPO_URI:$SIGNATURE_INSTRUCTION_LAMBDA_TAG_LATEST -t $ECR_REPO_URI:$SIGNATURE_INSTRUCTION_LAMBDA_TAG_HASH ${LAMBDA_DIR_PREFIX}/fetch-nft-metadata/
+          docker build -f ${LAMBDA_DIR_PREFIX}/signature-instruction/Dockerfile -t $ECR_REPO_URI:$SIGNATURE_INSTRUCTION_LAMBDA_TAG_LATEST -t $ECR_REPO_URI:$SIGNATURE_INSTRUCTION_LAMBDA_TAG_HASH ${LAMBDA_DIR_PREFIX}/fetch-nft-metadata/
           
           last_commit_message=`git log -1 --pretty=%B | cat`
           joke=`curl -sH "Accept: text/plain" https://icanhazdadjoke.com/`
