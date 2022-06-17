@@ -116,6 +116,8 @@ async def get_transaction(
 
     transaction_dict = None
 
+    logger.info("Got response: " + str(response))
+
     if response["error"]:
         logger.error("Error occurred while fetching transaction data: " + str(response["error"]))
     else:
