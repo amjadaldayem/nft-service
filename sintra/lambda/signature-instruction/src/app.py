@@ -22,10 +22,16 @@ logger = logging.getLogger(__name__)
 
 
 def lambda_handler(event: Dict[str, Any], context):
+    logger.info("Connecting to Kinesis service...")
+
     kinesis: KinesisProducer = KinesisProducer(
         os.getenv("AWS_ACCESS_KEY_ID"),
         os.getenv("AWS_SECRET_ACCESS_KEY"),
         os.getenv("AWS_REGION"),
+    )
+
+    logger.info(
+        f"Initializing SolanaHTTPClient for endpoint: {settings.blockchain.solana.http.endpoint}."
     )
 
     solana_client: SolanaHTTPClient = SolanaHTTPClient(

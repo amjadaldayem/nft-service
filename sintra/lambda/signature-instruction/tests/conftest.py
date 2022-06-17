@@ -7,8 +7,9 @@ from typing import Any, Dict, Generator
 import boto3
 import pytest
 from moto import mock_kinesis
-from src.parser.magic_eden import MagicEdenParserV1, MagicEdenParserV2
 from src.parser.alpha_art import AlphaArtParser
+from src.parser.magic_eden import MagicEdenParserV1, MagicEdenParserV2
+from src.parser.solsea import SolseaParser
 
 
 @pytest.fixture(scope="session")
@@ -31,6 +32,10 @@ def alpha_art_transaction_path(data_path: Path) -> Path:
     return data_path / "alpha_art"
 
 
+def solsea_transaction_path(data_path: Path) -> Path:
+    return data_path / "solsea"
+
+
 @pytest.fixture(scope="session")
 def magic_eden_v1_parser() -> MagicEdenParserV1:
     return MagicEdenParserV1()
@@ -44,6 +49,11 @@ def magic_eden_v2_parser() -> MagicEdenParserV2:
 @pytest.fixture(scope="session")
 def alpha_art_parser() -> AlphaArtParser:
     return AlphaArtParser()
+
+
+@pytest.fixture(scope="session")
+def solsea_parser() -> SolseaParser:
+    return SolseaParser()
 
 
 @pytest.fixture(scope="session")

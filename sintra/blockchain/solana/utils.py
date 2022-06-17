@@ -87,7 +87,7 @@ def solana_market_accounts() -> List[str]:
     return list(solana_market_program_id_map().keys())
 
 
-def solana_market_addresses() -> Tuple[int, int, int, int, int, int]:
+def solana_market_addresses() -> Tuple[int, int, int, int, int, int, int, int]:
     solana_address = int(settings.blockchain.address.solana, 0)
     market_flag = int(settings.blockchain.market.flag, 0)
 
@@ -100,4 +100,13 @@ def solana_market_addresses() -> Tuple[int, int, int, int, int, int]:
     open_sea = solana_address | market_flag | 0x07
     exchange_art = solana_address | market_flag | 0x08
 
-    return magic_eden, alpha_art, solanart, digital_eyes, solsea, monkey_business, open_sea, exchange_art
+    return (
+        magic_eden,
+        alpha_art,
+        solanart,
+        digital_eyes,
+        solsea,
+        monkey_business,
+        open_sea,
+        exchange_art,
+    )
