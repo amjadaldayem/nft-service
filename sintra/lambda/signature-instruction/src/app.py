@@ -68,6 +68,10 @@ def lambda_handler(event: Dict[str, Any], context):
             transaction_dict = async_loop.run_until_complete(
                 get_transaction(solana_client, signature_event)
             )
+
+            if transaction_dict is None:
+                continue
+
             transaction = Transaction.from_dict(transaction_dict)
 
             try:
@@ -107,7 +111,12 @@ async def get_transaction(
 ) -> Dict[str, Any]:
     logger.info(f"Fetching transaction for signature: {event.signature}.")
     response = await client.get_transaction(event.signature)
-    logger.info("Got transaction: " + str(response))
-    transaction_dict = response["result"]
+
+    transaction_dict = None
+
+    if response["error"]:
+        logger.error("Error occurred while fetching transaction data: " + str(response["error"]))
+    else:
+        transaction_dict = response["result"]
 
     return transaction_dict
