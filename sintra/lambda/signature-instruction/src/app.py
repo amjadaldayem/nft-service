@@ -114,6 +114,7 @@ async def get_transaction(
 ) -> Dict[str, Any]:
     logger.info(f"Fetching transaction for signature: {event.signature}.")
     response = await client.get_transaction(event.signature)
+    logger.info("Fetched transaction data: " + str(response))
 
     transaction_dict = None
 
