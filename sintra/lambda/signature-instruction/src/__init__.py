@@ -2,7 +2,7 @@ import logging
 import socket
 import sys
 
-from .config import settings
+from src.config import settings
 
 logging.basicConfig(
     format="[%(hostname)s] - [%(app)s] - [%(asctime)s] - [%(levelname)s] - [%(name)s] - [%(message)s]",

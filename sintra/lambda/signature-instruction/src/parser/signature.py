@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from ..model import SecondaryMarketEvent, Transaction
+from src.model import SecondaryMarketEvent, Transaction
 
 
 class SignatureParser(ABC):

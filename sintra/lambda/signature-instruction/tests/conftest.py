@@ -32,6 +32,7 @@ def alpha_art_transaction_path(data_path: Path) -> Path:
     return data_path / "alpha_art"
 
 
+@pytest.fixture(scope="session")
 def solsea_transaction_path(data_path: Path) -> Path:
     return data_path / "solsea"
 

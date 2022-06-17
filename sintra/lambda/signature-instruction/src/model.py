@@ -7,8 +7,7 @@ from typing import Any, Dict, List, Optional
 import base58
 import orjson
 from pydantic import BaseModel
-
-from .config import settings
+from src.config import settings
 
 
 def orjson_dumps(v, *, default):

@@ -1,13 +1,13 @@
 import time
 
-from ..config import settings
-from ..exception import (
+from src.config import settings
+from src.exception import (
     SecondaryMarketDataMissingException,
     TransactionInstructionMissingException,
 )
-from ..model import SecondaryMarketEvent, Transaction
-from ..parser.signature import SignatureParser
-from ..utils import alpha_art_id
+from src.model import SecondaryMarketEvent, Transaction
+from src.parser.signature import SignatureParser
+from src.utils import alpha_art_id
 
 
 class AlphaArtParser(SignatureParser):

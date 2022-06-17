@@ -1,15 +1,15 @@
 import time
 from typing import Optional
 
-from ..config import settings
-from ..exception import (
+from src.config import settings
+from src.exception import (
     SecondaryMarketDataMissingException,
     TransactionInstructionMissingException,
     UnknownTransactionException,
 )
-from ..model import Instruction, SecondaryMarketEvent, Transaction
-from ..parser.signature import SignatureParser
-from ..utils import magic_eden_id
+from src.model import Instruction, SecondaryMarketEvent, Transaction
+from src.parser.signature import SignatureParser
+from src.utils import magic_eden_id
 
 
 class MagicEdenParserV1(SignatureParser):

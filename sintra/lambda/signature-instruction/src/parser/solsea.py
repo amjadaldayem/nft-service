@@ -1,10 +1,10 @@
 import time
 
-from ..config import settings
-from ..exception import TransactionInstructionMissingException
-from ..model import SecondaryMarketEvent, Transaction
-from ..utils import solsea_id
-from .signature import SignatureParser
+from src.config import settings
+from src.exception import TransactionInstructionMissingException
+from src.model import SecondaryMarketEvent, Transaction
+from src.parser.signature import SignatureParser
+from src.utils import solsea_id
 
 
 class SolseaParser(SignatureParser):
