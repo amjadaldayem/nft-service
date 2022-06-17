@@ -53,6 +53,7 @@ def lambda_handler(event: Dict[str, Any], context):
 
     for record in records:
         try:
+            logger.info("Received record" + str(record))
             signature_data = base64.b64decode(record["kinesis"]["data"]).decode("utf-8")
             signature_record = json.loads(signature_data)
             signature_event: SignatureEvent = SignatureEvent.from_dict(signature_record)
