@@ -85,6 +85,10 @@ jobs:
           joke=`curl -sH "Accept: text/plain" https://icanhazdadjoke.com/`
           echo "::set-output name=ecs_image::$ECS_IMAGE_TAG_HASH"
           echo "::set-output name=lambda_image::$LAMBDA_IMAGE_TAG_HASH"
+          echo "::set-output name=ecs_websocket_worker_image::$ECS_WORKER_SERVICE_IMAGE_TAG_HASH"
+          echo "::set-output name=fetch_nft_metadata_lambda_image::$FETCH_NFT_METADATA_LAMBDA_TAG_HASH"
+          echo "::set-output name=index_nft_data_lambda_image::$INDEX_NFT_DATA_LAMBDA_TAG_HASH"
+          echo "::set-output name=signature_instruction_lambda_image::$SIGNATURE_INSTRUCTION_LAMBDA_TAG_HASH"
           echo "::set-output name=last_commit_message::$last_commit_message"
           echo "::set-output name=joke::$joke"
 
@@ -106,6 +110,10 @@ jobs:
             Commit Message:  ${{steps.build-image.outputs.last_commit_message}}
             ECS Image Tag: ${{steps.build-image.outputs.ecs_image}}
             Lambda Image Tag: ${{steps.build-image.outputs.lambda_image}}
+            ECS Websocket Worker Image Tag: ${{steps.build-image.outputs.ecs_websocket_worker_image}}
+            Fetch NFT Metadata Lambda Image Tag: ${{steps.build-image.outputs.fetch_nft_metadata_lambda_image}}
+            Index NFT Data Lambda Image Tag: ${{steps.build-image.outputs.index_nft_data_lambda_image}}
+            Signature Instruction Lambda Image Tag: ${{steps.build-image.outputs.signature_instruction_lambda_image}}
           SLACK_TITLE: Images Ready - sintra-nft-service
           SLACK_ICON: https://avatars.githubusercontent.com/u/93632465?s=60&v=4
           SLACK_USERNAME: Github Actions

@@ -69,8 +69,10 @@ def lambda_handler(event: Dict[str, Any], context):
                 get_transaction(solana_client, signature_event)
             )
 
-            if transaction_dict is None:
+            if not transaction_dict:
                 continue
+
+            logger.info("Parsing transaction details: " + str(transaction_dict))
 
             transaction = Transaction.from_dict(transaction_dict)
 
