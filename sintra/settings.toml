@@ -1,6 +1,6 @@
 [WORKER]
-TYPE = "ethereum"
-NAME = "ethereum_worker"
+TYPE = "solana"
+NAME = "solana_worker"
 
 [BLOCKCHAIN.ADDRESS]
 NONE = "0x000000"

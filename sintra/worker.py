@@ -160,7 +160,7 @@ class EthereumTransactionWorker(TransactionWorker):
 
 _WORKER_CLASSES: Dict[str, Type[TransactionWorker]] = {
     "solana": SolanaTransactionWorker,
-    # "ethereum": EthereumTransactionWorker,
+    "ethereum": EthereumTransactionWorker,
 }
 
 
