@@ -4,6 +4,11 @@ NAME = "signature-instruction"
 [KINESIS]
 STREAM_NAME = "secondary-market"
 
+[LOCALSTACK]
+ACTIVE = "true"
+ENDPOINT = "http://localhost:4566"
+REGION = "eu-central-1"
+
 [BLOCKCHAIN.MARKET]
 FLAG = "0x00100"
 
