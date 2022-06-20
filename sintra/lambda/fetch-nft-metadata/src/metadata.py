@@ -76,7 +76,7 @@ class SolanaMetadataFetcher(MetadataFetcher):
         Returns: NFTMetadata model object.
 
         """
-        response = await self.client.get_account_info(program_account_key)
+        response = await self.solana_client.get_account_info(program_account_key)
 
         value = response["result"]["value"]
         if not value:
