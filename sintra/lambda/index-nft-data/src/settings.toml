@@ -1,6 +1,11 @@
 [FUNCTION]
 NAME = "index-nft-data"
 
+[LOCALSTACK]
+ACTIVE = "true"
+ENDPOINT = "http://localhost:4566"
+REGION = "eu-central-1"
+
 [KINESIS]
 STREAM_NAME = "nft-data-stream"
 

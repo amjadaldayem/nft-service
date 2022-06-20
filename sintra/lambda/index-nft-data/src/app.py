@@ -16,10 +16,17 @@ logger = logging.getLogger(__name__)
 
 
 def lambda_handler(event, context):
+    localstack_active_var = str(settings.localstack.active).lower()
+    localstack_active = localstack_active_var == "true"
+
+    if localstack_active:
+        logger.info("Localstack is active.")
+
     kinesis: KinesisProducer = KinesisProducer(
         os.getenv("AWS_ACCESS_KEY_ID"),
         os.getenv("AWS_SECRET_ACCESS_KEY"),
         os.getenv("AWS_REGION"),
+        localstack_active
     )
     token_fetcher: TokenDataFetcher = SolanaTokenDataFetcher(
         username=os.getenv("HTTP_USERNAME"),

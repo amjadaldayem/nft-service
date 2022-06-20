@@ -1,6 +1,11 @@
 [FUNCTION]
 NAME = "fetch-nft-metadata"
 
+[LOCALSTACK]
+ACTIVE = "true"
+ENDPOINT = "http://localhost:4566"
+REGION = "eu-central-1"
+
 [BLOCKCHAIN.ADDRESS]
 NONE = "0x000000"
 ALL = "0xFF0000"
