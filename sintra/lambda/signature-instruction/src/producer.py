@@ -54,8 +54,4 @@ class KinesisProducer:
             for record in records
         ]
 
-        try:
-            self.client.put_records(StreamName=stream_name, Records=records_to_send)
-        except Exception as error:
-            logger.error(error)
-            raise ProduceRecordFailedException from error
+        self.client.put_records(StreamName=stream_name, Records=records_to_send)
