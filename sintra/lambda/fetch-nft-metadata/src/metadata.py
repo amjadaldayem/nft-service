@@ -96,6 +96,7 @@ class SolanaMetadataFetcher(MetadataFetcher):
             except ValueError as error:
                 raise UnableToFetchMetadataException(error) from error
         except SolanaRpcException as error:
+            logger.error(error)
             raise UnableToFetchMetadataException(error) from error
 
     def _unpack_data(self, data: str, encoding: str) -> NFTMetadata:
