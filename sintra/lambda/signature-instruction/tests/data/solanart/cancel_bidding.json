@@ -1,0 +1,72 @@
+{
+  "blockTime": 1645664369,
+  "meta": {
+    "err": null,
+    "fee": 5000,
+    "innerInstructions": [],
+    "logMessages": [
+      "Program CJsLwbP1iu5DuUikHEJnLfANgKy6stB2uFgvBBHoyxwz invoke [1]",
+      "Program log: Instruction: Cancel Bid",
+      "Program log: Closing the PDA info account...",
+      "Program CJsLwbP1iu5DuUikHEJnLfANgKy6stB2uFgvBBHoyxwz consumed 6575 of 200000 compute units",
+      "Program CJsLwbP1iu5DuUikHEJnLfANgKy6stB2uFgvBBHoyxwz success"
+    ],
+    "postBalances": [
+      13347770760,
+      37347644664,
+      0,
+      1,
+      1461600,
+      1141440
+    ],
+    "postTokenBalances": [],
+    "preBalances": [
+      13157775760,
+      37345132104,
+      192512560,
+      1,
+      1461600,
+      1141440
+    ],
+    "preTokenBalances": [],
+    "rewards": [],
+    "status": {
+      "Ok": null
+    }
+  },
+  "slot": 122206073,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        "HvpKPZE423dAscvC48kMW2hbWR8xXthZzYT2hHnh93w",
+        "CA6WUwiH8E9Z6ZYJvjNkKAV6QPq7ySWvLTT8fW4CNPw4",
+        "HrL6RZKaDe1HB5B4Dpym3zja2MSSWdfyGL6mR3oUrTk1",
+        "11111111111111111111111111111111",
+        "8hbco5nJC1tSXgkk2XoA94YqaV7w5Y77XETEt6i1AsVC",
+        "CJsLwbP1iu5DuUikHEJnLfANgKy6stB2uFgvBBHoyxwz"
+      ],
+      "header": {
+        "numReadonlySignedAccounts": 0,
+        "numReadonlyUnsignedAccounts": 3,
+        "numRequiredSignatures": 1
+      },
+      "instructions": [
+        {
+          "accounts": [
+            0,
+            2,
+            1,
+            4,
+            3
+          ],
+          "data": "4",
+          "programIdIndex": 5
+        }
+      ],
+      "recentBlockhash": "8ArjD1fZXkqSxtdYLEfHqqthYRSeej7Pb5LPhLADoeND"
+    },
+    "signatures": [
+      "5egfZHdhr2L5vEpb4Cx8WTK3oBQRTWt9zD3TSMMv368u9ngwuqiv6TRTX59VEoK8PogroGXqB9MkjT7Wk8kEnXyh"
+    ]
+  }
+}

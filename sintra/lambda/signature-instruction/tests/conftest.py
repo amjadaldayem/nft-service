@@ -10,6 +10,7 @@ from moto import mock_kinesis
 from src.parser.alpha_art import AlphaArtParser
 from src.parser.magic_eden import MagicEdenParserV1, MagicEdenParserV2
 from src.parser.solsea import SolseaParser
+from src.parser.solanart import SolanartParser
 
 
 @pytest.fixture(scope="session")
@@ -38,6 +39,11 @@ def solsea_transaction_path(data_path: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
+def solanart_parser_transaction_path(data_path: Path) -> Path:
+    return data_path / "solanart"
+
+
+@pytest.fixture(scope="session")
 def magic_eden_v1_parser() -> MagicEdenParserV1:
     return MagicEdenParserV1()
 
@@ -55,6 +61,11 @@ def alpha_art_parser() -> AlphaArtParser:
 @pytest.fixture(scope="session")
 def solsea_parser() -> SolseaParser:
     return SolseaParser()
+
+
+@pytest.fixture(scope="session")
+def solanart_parser() -> SolanartParser:
+    return SolanartParser()
 
 
 @pytest.fixture(scope="session")
