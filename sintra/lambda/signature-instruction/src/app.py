@@ -18,7 +18,6 @@ from src.model import SecondaryMarketEvent, SignatureEvent, Transaction
 from src.parsing import TransactionParsing
 from src.producer import KinesisProducer
 
-from sintra.exception import ProduceRecordFailedException
 
 logger = logging.getLogger(__name__)
 
