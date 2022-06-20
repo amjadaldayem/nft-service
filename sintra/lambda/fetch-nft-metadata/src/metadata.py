@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from typing import List, Tuple, Union
 
 import base58
+from solana.exceptions import SolanaRpcException
 from solana.publickey import PublicKey
 from src.async_client import SolanaHTTPClient
 from src.config import settings
@@ -36,6 +37,10 @@ class SolanaMetadataFetcher(MetadataFetcher):
 
     async def get_nft_metadata(self, event: SecondaryMarketEvent) -> NFTMetadata:
         program_address_key = self._program_address(event.token_key)
+
+        logger.info(
+            f"Fetching metadata for program address key: {program_address_key}."
+        )
         nft_metadata = await self._fetch_metadata(program_address_key)
         return nft_metadata
 
@@ -76,18 +81,21 @@ class SolanaMetadataFetcher(MetadataFetcher):
         Returns: NFTMetadata model object.
 
         """
-        response = await self.solana_client.get_account_info(program_account_key)
-
-        value = response["result"]["value"]
-        if not value:
-            raise UnableToFetchMetadataException(
-                f"Can't find account info for program key: {program_account_key}."
-            )
-        data, encoding = value["data"]
         try:
-            nft_metadata = self._unpack_data(data, encoding)
-            return nft_metadata
-        except ValueError as error:
+            response = await self.solana_client.get_account_info(program_account_key)
+
+            value = response["result"]["value"]
+            if not value:
+                raise UnableToFetchMetadataException(
+                    f"Can't find account info for program key: {program_account_key}."
+                )
+            data, encoding = value["data"]
+            try:
+                nft_metadata = self._unpack_data(data, encoding)
+                return nft_metadata
+            except ValueError as error:
+                raise UnableToFetchMetadataException(error) from error
+        except SolanaRpcException as error:
             raise UnableToFetchMetadataException(error) from error
 
     def _unpack_data(self, data: str, encoding: str) -> NFTMetadata:

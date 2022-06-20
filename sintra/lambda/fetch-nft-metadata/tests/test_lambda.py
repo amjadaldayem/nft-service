@@ -7,7 +7,7 @@ from unittest.mock import patch
 import boto3
 import pytest
 from src.app import lambda_handler
-from src.exception import DecodingException
+from src.exception import DecodingException, UnableToFetchMetadataException
 from src.model import NFTMetadata
 
 
@@ -63,4 +63,19 @@ class TestLambdaFunction:
     ) -> None:
         response = lambda_handler(kinesis_non_existing_market_input_event, context={})
 
+        assert response["message"] == "Resulting batch of events is empty."
+
+    @patch("src.app.get_nft_metadata")
+    def test_lambda_when_metadata_cannot_be_fetched(
+        self,
+        get_nft_metadata_fn,
+        kinesis_nft_metadata_stream: Generator[boto3.client, None, None],
+        kinesis_input_event: Dict[str, Any],
+    ) -> None:
+        get_nft_metadata_fn.side_effect = UnableToFetchMetadataException(
+            "Unable to fetch metadata."
+        )
+        response = lambda_handler(kinesis_input_event, context={})
+
+        get_nft_metadata_fn.assert_called_once()
         assert response["message"] == "Resulting batch of events is empty."

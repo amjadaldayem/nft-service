@@ -6,7 +6,7 @@ import os
 from typing import Any, Dict, List
 
 from src.config import settings
-from src.exception import DecodingException
+from src.exception import DecodingException, UnableToFetchMetadataException
 from src.metadata import MetadataFetcher, SolanaMetadataFetcher
 from src.model import NFTMetadata, SecondaryMarketEvent
 from src.producer import KinesisProducer
@@ -30,7 +30,7 @@ def lambda_handler(event: Dict[str, Any], context):
         os.getenv("AWS_ACCESS_KEY_ID"),
         os.getenv("AWS_SECRET_ACCESS_KEY"),
         os.getenv("AWS_REGION"),
-        localstack_active
+        localstack_active,
     )
 
     records = event["Records"]
@@ -51,23 +51,27 @@ def lambda_handler(event: Dict[str, Any], context):
             )
 
             if market_event.blockchain_id == solana_address():
-                nft_metadata = async_loop.run_until_complete(
-                    get_nft_metadata(solana_metadata_fetcher, market_event)
-                )
-                nft_metadata.blockchain_id = market_event.blockchain_id
-                nft_metadata.timestamp = market_event.timestamp
-                nft_metadata.blocktime = market_event.blocktime
+                try:
+                    nft_metadata = async_loop.run_until_complete(
+                        get_nft_metadata(solana_metadata_fetcher, market_event)
+                    )
 
-                if _solana_sale_or_auction(market_event):
-                    nft_metadata.owner = market_event.buyer
-                else:
-                    nft_metadata.owner = market_event.owner
+                    nft_metadata.blockchain_id = market_event.blockchain_id
+                    nft_metadata.timestamp = market_event.timestamp
+                    nft_metadata.blocktime = market_event.blocktime
 
-                nft_metadata.last_market_activity = solana_event_type(
-                    market_event.event_type
-                )
-                nft_metadata.transaction_hash = market_event.transaction_hash
-                nft_metadata_list.append(nft_metadata)
+                    if _solana_sale_or_auction(market_event):
+                        nft_metadata.owner = market_event.buyer
+                    else:
+                        nft_metadata.owner = market_event.owner
+
+                    nft_metadata.last_market_activity = solana_event_type(
+                        market_event.event_type
+                    )
+                    nft_metadata.transaction_hash = market_event.transaction_hash
+                    nft_metadata_list.append(nft_metadata)
+                except UnableToFetchMetadataException as error:
+                    logger.error(error)
             elif market_event.blockchain_id == ethereum_address():
                 logger.warning(
                     "Metadata fetcher for blockchain: {market_event.blockchain_id}, not implemented."

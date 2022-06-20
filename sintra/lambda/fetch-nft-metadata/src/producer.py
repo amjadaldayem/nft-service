@@ -18,7 +18,7 @@ class KinesisProducer:
         access_key_id: str,
         secret_access_key: str,
         region: str,
-        localstack_active: bool
+        localstack_active: bool,
     ) -> None:
         if localstack_active:
             if access_key_id is None or secret_access_key is None:
