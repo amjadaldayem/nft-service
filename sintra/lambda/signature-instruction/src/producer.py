@@ -21,8 +21,6 @@ class KinesisProducer:
         localstack_active: bool
     ) -> None:
         if localstack_active:
-            self.client = boto3.client("kinesis")
-        else:
             if access_key_id is None or secret_access_key is None:
                 raise EnvironmentVariableMissingException("Missing AWS credentials.")
 
@@ -32,6 +30,8 @@ class KinesisProducer:
                 aws_secret_access_key=secret_access_key,
                 region_name=region,
             )
+        else:
+            self.client = boto3.client("kinesis")
 
     def produce_record(
         self, stream_name: str, record: SecondaryMarketEvent, partition_key: Any
