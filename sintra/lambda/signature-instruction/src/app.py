@@ -96,7 +96,7 @@ def lambda_handler(event: Dict[str, Any], context):
 
         except (json.JSONDecodeError, ValueError, TypeError, KeyError) as error:
             logger.error(error)
-            raise DecodingException("Failed to decode signature record.") from error
+            # raise DecodingException("Failed to decode signature record.") from error
 
     logger.info("Sending secondary event batch.")
     if len(sme_batch) > 0:
