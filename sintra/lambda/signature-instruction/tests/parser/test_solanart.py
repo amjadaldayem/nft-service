@@ -110,12 +110,10 @@ class TestSolanartParser:
         owner,
         buyer,
         transaction_hash,
-        solanart_parser_transaction_path: Path,
+        solanart_transaction_path: Path,
         solanart_parser: SolanartParser,
     ) -> None:
-        with open(
-            solanart_parser_transaction_path / (event_name + ".json"), "r"
-        ) as json_file:
+        with open(solanart_transaction_path / (event_name + ".json"), "r") as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
             transaction = Transaction.from_dict(transaction_dict)

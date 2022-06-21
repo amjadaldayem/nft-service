@@ -233,3 +233,95 @@ class MagicEdenParserV2(SignatureParser):
         raise SecondaryMarketDataMissingException(
             f"Token key or event_type missing for transaction: {transaction.signature}."
         )
+
+
+class MagicEdenAuctionParser(SignatureParser):
+
+    # TODO: Later we should capture PlaceBid and PlaceBidv2
+    #   Now only captures the settlements.
+    magic_eden_auction_settle_v1 = 0xD466839057B92AAF
+    magic_eden_auction_settle_v2 = 0x912751DB8DEE2905
+
+    def __init__(self):
+        self.program_account = (
+            settings.blockchain.solana.market.magic_eden.auction_program_account
+        )
+
+    def find_magic_eden_auction_instruction(
+        self, transaction: Transaction
+    ) -> Optional[Instruction]:
+        instruction = transaction.find_instruction(
+            self.program_account, offset=self.magic_eden_auction_settle_v2, width=8
+        )
+
+        if not instruction:
+            instruction = transaction.find_instruction(
+                self.program_account, offset=self.magic_eden_auction_settle_v1, width=8
+            )
+
+        if not instruction:
+            instruction = transaction.find_instruction(self.program_account)
+
+        return instruction
+
+    def parse(self, transaction: Transaction):
+        instruction = self.find_magic_eden_auction_instruction(transaction)
+        if not instruction:
+            raise TransactionInstructionMissingException(
+                f"No instruction for this program account: {self.program_account}."
+            )
+
+        inner_instructions_group = transaction.find_inner_instructions(instruction)
+        if not inner_instructions_group:
+            raise TransactionInstructionMissingException(
+                "Inner instruction group missing."
+            )
+
+        owner = ""
+        buyer = instruction.accounts[0]
+        event_type = settings.blockchain.solana.market.event.sale_auction
+        price = 0
+        token_account = None
+        for inner_instruction in inner_instructions_group.instructions:
+
+            if self.is_token_transfer(inner_instruction):
+                token_account = instruction.accounts[0]
+            elif self.is_system_transfer(inner_instruction):
+                if inner_instruction.accounts[0] != buyer:
+                    # Exclude the tiny amount directly transferred from buyer
+                    # for fee.
+                    price += inner_instruction.get_int(4, 8)
+
+        token_key, _ = transaction.find_token_address_and_owner(token_account)
+
+        if token_key and (owner or buyer):
+            return SecondaryMarketEvent(
+                blockchain_id=int(settings.blockchain.address.solana, 0),
+                market_id=magic_eden_id(),
+                blocktime=transaction.block_time,
+                timestamp=time.time_ns(),
+                event_type=event_type,
+                transaction_hash=transaction.signature,
+                owner=owner,
+                buyer=buyer,
+                price=price,
+                token_key=token_key,
+            )
+
+        raise SecondaryMarketDataMissingException(
+            f"Token key or event_type missing for transaction: {transaction.signature}."
+        )
+
+    def is_token_transfer(self, inner_instruction) -> bool:
+        return (
+            inner_instruction.is_token_program_instruction
+            and inner_instruction.get_function_offset()
+            == settings.blockchain.solana.internal.token.transfer
+        )
+
+    def is_system_transfer(self, inner_instruction) -> bool:
+        return (
+            inner_instruction.is_system_program_instruction
+            and inner_instruction.get_function_offset()
+            == settings.blockchain.solana.internal.system.transfer
+        )

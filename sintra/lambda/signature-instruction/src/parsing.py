@@ -1,6 +1,10 @@
 from src.exception import TransactionParserNotFoundException
 from src.model import SecondaryMarketEvent, Transaction
-from src.parser.magic_eden import MagicEdenParserV1, MagicEdenParserV2
+from src.parser.magic_eden import (
+    MagicEdenParserV1,
+    MagicEdenParserV2,
+    MagicEdenAuctionParser,
+)
 from src.parser.alpha_art import AlphaArtParser
 from src.parser.solanart import SolanartParser
 
@@ -26,6 +30,7 @@ class TransactionParsing:
         return [
             MagicEdenParserV1(),
             MagicEdenParserV2(),
+            MagicEdenAuctionParser(),
             AlphaArtParser(),
             SolanartParser(),
         ]

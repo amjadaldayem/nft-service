@@ -8,7 +8,11 @@ import boto3
 import pytest
 from moto import mock_kinesis
 from src.parser.alpha_art import AlphaArtParser
-from src.parser.magic_eden import MagicEdenParserV1, MagicEdenParserV2
+from src.parser.magic_eden import (
+    MagicEdenParserV1,
+    MagicEdenParserV2,
+    MagicEdenAuctionParser,
+)
 from src.parser.solsea import SolseaParser
 from src.parser.solanart import SolanartParser
 
@@ -29,6 +33,11 @@ def magic_eden_v2_transaction_path(data_path: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
+def magic_eden_auction_transaction_path(data_path: Path) -> Path:
+    return data_path / "magic_eden_auction"
+
+
+@pytest.fixture(scope="session")
 def alpha_art_transaction_path(data_path: Path) -> Path:
     return data_path / "alpha_art"
 
@@ -39,7 +48,7 @@ def solsea_transaction_path(data_path: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
-def solanart_parser_transaction_path(data_path: Path) -> Path:
+def solanart_transaction_path(data_path: Path) -> Path:
     return data_path / "solanart"
 
 
@@ -51,6 +60,11 @@ def magic_eden_v1_parser() -> MagicEdenParserV1:
 @pytest.fixture(scope="session")
 def magic_eden_v2_parser() -> MagicEdenParserV2:
     return MagicEdenParserV2()
+
+
+@pytest.fixture(scope="session")
+def magic_eden_auction_parser() -> MagicEdenAuctionParser:
+    return MagicEdenAuctionParser()
 
 
 @pytest.fixture(scope="session")
