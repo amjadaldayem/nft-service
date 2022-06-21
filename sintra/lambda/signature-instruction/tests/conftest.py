@@ -20,6 +20,7 @@ from src.parser.magic_eden import (
 )
 from src.parser.solanart import SolanartParser
 from src.parser.solsea import SolseaParser
+from src.parser.digital_eyes import DigitalEyesParserV1, DigitalEyesParserV2
 
 
 @pytest.fixture(scope="session")
@@ -60,6 +61,16 @@ def solanart_transaction_path(data_path: Path) -> Path:
 @pytest.fixture(scope="session")
 def exchange_art_transaction_path(data_path: Path) -> Path:
     return data_path / "exchange_art"
+
+
+@pytest.fixture(scope="session")
+def digital_eyes_v1_transaction_path(data_path: Path) -> Path:
+    return data_path / "digital_eyes_v1"
+
+
+@pytest.fixture(scope="session")
+def digital_eyes_v2_transaction_path(data_path: Path) -> Path:
+    return data_path / "digital_eyes_v2"
 
 
 @pytest.fixture(scope="session")
@@ -105,6 +116,16 @@ def exchange_art_v2_parser() -> ExchangeArtParserV2:
 @pytest.fixture(scope="session")
 def exchange_art_auction_parser() -> ExchangeArtParserAuction:
     return ExchangeArtParserAuction()
+
+
+@pytest.fixture(scope="session")
+def digital_eyes_v1_parser() -> DigitalEyesParserV1:
+    return DigitalEyesParserV1()
+
+
+@pytest.fixture(scope="session")
+def digital_eyes_v2_parser() -> DigitalEyesParserV2:
+    return DigitalEyesParserV2()
 
 
 @pytest.fixture(scope="session")

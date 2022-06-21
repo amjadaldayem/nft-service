@@ -12,6 +12,7 @@ from src.parser.magic_eden import (
     MagicEdenParserV2,
 )
 from src.parser.solanart import SolanartParser
+from src.parser.digital_eyes import DigitalEyesV1, DigitalEyesV2
 
 
 class TransactionParsing:
@@ -41,4 +42,6 @@ class TransactionParsing:
             ExchangeArtParserV1(),
             ExchangeArtParserV2(),
             ExchangeArtParserAuction(),
+            DigitalEyesV1(),
+            DigitalEyesV2(),
         ]
