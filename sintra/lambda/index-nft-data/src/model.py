@@ -120,6 +120,7 @@ class NFTMetadata:
     creators: List[str]
     verified: List[str]
     share: List[str]
+    price: float
 
     @classmethod
     def from_dict(cls, metadata_dict: Dict[str, Any]) -> NFTMetadata:
@@ -141,4 +142,5 @@ class NFTMetadata:
             creators=metadata_dict["creators"],
             verified=metadata_dict["verified"],
             share=metadata_dict["share"],
+            price=metadata_dict["price"],
         )

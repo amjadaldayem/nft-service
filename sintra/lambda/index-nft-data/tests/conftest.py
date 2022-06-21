@@ -70,6 +70,7 @@ def kinesis_input_event() -> Dict[str, Any]:
         "creators": ["Creator #1", "Creator #2"],
         "verified": ["true", "true"],
         "share": [],
+        "price": 0.01
     }
     event = json.dumps(event)
     event = event.encode()
@@ -117,6 +118,7 @@ def kinesis_input_event_with_fake_blockchain() -> Dict[str, Any]:
         "creators": ["Creator #1", "Creator #2"],
         "verified": ["true", "true"],
         "share": [],
+        "price": 0.01
     }
     event = json.dumps(event)
     event = event.encode()

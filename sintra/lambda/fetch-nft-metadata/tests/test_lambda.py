@@ -30,6 +30,7 @@ def nft_metadata() -> NFTMetadata:
         creators=[],
         verified=[],
         share=[],
+        price=0.01
     )
 
 

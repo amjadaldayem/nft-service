@@ -70,6 +70,7 @@ class NFTMetadata:
     creators: List[str]
     verified: List[str]
     share: List[str]
+    price: float
 
     def __init__(
         self,
@@ -85,6 +86,7 @@ class NFTMetadata:
         creators,
         verified,
         share,
+        price,
         blockchain_id: int = None,
         blocktime: int = None,
         transaction_hash: str = None,
@@ -104,6 +106,7 @@ class NFTMetadata:
         self.creators = creators
         self.verified = verified
         self.share = share
+        self.price = price
         self.blockchain_id = blockchain_id
         self.blocktime = blocktime
         self.transaction_hash = transaction_hash
@@ -151,4 +154,5 @@ class NFTMetadata:
             "creators": self.creators,
             "verified": self.verified,
             "share": self.share,
+            "price": self.price,
         }
