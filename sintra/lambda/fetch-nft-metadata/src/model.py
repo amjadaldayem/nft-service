@@ -86,7 +86,7 @@ class NFTMetadata:
         creators,
         verified,
         share,
-        price,
+        price: float = None,
         blockchain_id: int = None,
         blocktime: int = None,
         transaction_hash: str = None,
