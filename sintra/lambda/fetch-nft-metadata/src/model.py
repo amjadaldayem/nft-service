@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any, Dict, List, Mapping, Optional
 
 import orjson
@@ -53,7 +52,6 @@ class SecondaryMarketEvent(DataClassBase):
         )
 
 
-@dataclass
 class NFTMetadata:
     blockchain_id: Optional[int]
     token_key: str
@@ -72,6 +70,46 @@ class NFTMetadata:
     creators: List[str]
     verified: List[str]
     share: List[str]
+
+    def __init__(
+        self,
+        program_account_key,
+        token_key,
+        timestamp,
+        primary_sale_happened,
+        is_mutable,
+        name,
+        symbol,
+        uri,
+        seller_fee_basis_points,
+        creators,
+        verified,
+        share,
+        blockchain_id: int = None,
+        blocktime: int = None,
+        transaction_hash: str = None,
+        last_market_activity: str = None,
+        owner: str = None,
+        buyer: str = None,
+    ) -> None:
+        self.program_account_key = program_account_key
+        self.token_key = token_key
+        self.timestamp = timestamp
+        self.primary_sale_happened = primary_sale_happened
+        self.is_mutable = is_mutable
+        self.name = name
+        self.symbol = symbol
+        self.uri = uri
+        self.seller_fee_basis_points = seller_fee_basis_points
+        self.creators = creators
+        self.verified = verified
+        self.share = share
+        self.blockchain_id = blockchain_id
+        self.blocktime = blocktime
+        self.transaction_hash = transaction_hash
+        self.last_market_activity = last_market_activity
+        self.owner = owner
+        self.buyer = buyer
 
     @property
     def creators_info(self) -> List[Mapping]:

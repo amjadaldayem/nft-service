@@ -42,7 +42,6 @@ class TestLambdaFunction:
         kinesis_input_event: Dict[str, Any],
     ) -> None:
         get_nft_metadata_fn.return_value = nft_metadata()
-
         response = lambda_handler(kinesis_input_event, context={})
 
         get_nft_metadata_fn.assert_called_once()

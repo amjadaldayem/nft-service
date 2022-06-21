@@ -57,7 +57,6 @@ def lambda_handler(event: Dict[str, Any], context):
                     )
 
                     nft_metadata.blockchain_id = market_event.blockchain_id
-                    nft_metadata.timestamp = market_event.timestamp
                     nft_metadata.blocktime = market_event.blocktime
 
                     if _solana_sale_or_auction(market_event):

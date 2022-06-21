@@ -1,6 +1,7 @@
 # pylint: disable=too-many-return-statements
 
 import struct
+import time
 
 import base58
 from solana.rpc.api import MemcmpOpt
@@ -113,6 +114,7 @@ class MetadataUnpacker:
             program_account_key=bytes(source_account).decode("utf-8"),
             token_key=bytes(mint_account).decode("utf-8"),
             primary_sale_happened=primary_sale_happened,
+            timestamp=time.time_ns(),
             is_mutable=is_mutable,
             name=bytes(name).decode("utf-8").strip("\x00"),
             symbol=bytes(symbol).decode("utf-8").strip("\x00"),
