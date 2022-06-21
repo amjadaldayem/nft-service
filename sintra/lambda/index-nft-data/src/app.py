@@ -46,6 +46,9 @@ def lambda_handler(event, context):
         try:
             metadata = base64.b64decode(record["kinesis"]["data"]).decode("utf-8")
             metadata_record = json.loads(metadata)
+
+            logger.info(f"Received record: {metadata_record}")
+
             nft_metadata: NFTMetadata = NFTMetadata.from_dict(metadata_record)
 
             if nft_metadata.blockchain_id == solana_address():
