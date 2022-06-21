@@ -18,6 +18,7 @@ from src.parser.magic_eden import (
     MagicEdenParserV1,
     MagicEdenParserV2,
 )
+from src.parser.monkey_business import MonkeyBusinessParserV2
 from src.parser.solanart import SolanartParser
 from src.parser.solsea import SolseaParser
 from src.parser.digital_eyes import DigitalEyesParserV1, DigitalEyesParserV2
@@ -41,6 +42,11 @@ def magic_eden_v2_transaction_path(data_path: Path) -> Path:
 @pytest.fixture(scope="session")
 def magic_eden_auction_transaction_path(data_path: Path) -> Path:
     return data_path / "magic_eden_auction"
+
+
+@pytest.fixture(scope="session")
+def monkey_business_v2_transaction_path(data_path: Path) -> Path:
+    return data_path / "monkey_business_v2"
 
 
 @pytest.fixture(scope="session")
@@ -116,6 +122,11 @@ def exchange_art_v2_parser() -> ExchangeArtParserV2:
 @pytest.fixture(scope="session")
 def exchange_art_auction_parser() -> ExchangeArtParserAuction:
     return ExchangeArtParserAuction()
+
+
+@pytest.fixture(scope="session")
+def monkey_business_v2_parser() -> MonkeyBusinessParserV2:
+    return MonkeyBusinessParserV2()
 
 
 @pytest.fixture(scope="session")

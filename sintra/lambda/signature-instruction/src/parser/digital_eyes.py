@@ -1,13 +1,11 @@
 import time
-from typing import Optional
 
 from src.config import settings
 from src.exception import (
     SecondaryMarketDataMissingException,
     TransactionInstructionMissingException,
-    UnknownTransactionException,
 )
-from src.model import Instruction, SecondaryMarketEvent, Transaction
+from src.model import SecondaryMarketEvent, Transaction
 from src.parser.signature import SignatureParser
 from src.utils import digital_eyes_id
 
@@ -129,8 +127,6 @@ class DigitalEyesParserV2(SignatureParser):
             raise TransactionInstructionMissingException(
                 f"No instruction for this program account: {self.program_account}."
             )
-
-        inner_instructions_group = transaction.find_inner_instructions(instruction)
 
         token_key = None
         buyer, owner = "", ""  # Not use this as default value instead of None

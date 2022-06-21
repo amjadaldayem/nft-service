@@ -1,6 +1,7 @@
 from src.exception import TransactionParserNotFoundException
 from src.model import SecondaryMarketEvent, Transaction
 from src.parser.alpha_art import AlphaArtParser
+from src.parser.digital_eyes import DigitalEyesParserV1, DigitalEyesParserV2
 from src.parser.exchange_art import (
     ExchangeArtParserAuction,
     ExchangeArtParserV1,
@@ -11,8 +12,13 @@ from src.parser.magic_eden import (
     MagicEdenParserV1,
     MagicEdenParserV2,
 )
+from src.parser.monkey_business import (
+    MonkeyBusinessParserV1,
+    MonkeyBusinessParserV2,
+    MonkeyBusinessParserV3,
+)
 from src.parser.solanart import SolanartParser
-from src.parser.digital_eyes import DigitalEyesV1, DigitalEyesV2
+from src.parser.solsea import SolseaParser
 
 
 class TransactionParsing:
@@ -34,6 +40,7 @@ class TransactionParsing:
 
     def _create_parsers(self):
         return [
+            SolseaParser(),
             MagicEdenParserV1(),
             MagicEdenParserV2(),
             MagicEdenAuctionParser(),
@@ -42,6 +49,9 @@ class TransactionParsing:
             ExchangeArtParserV1(),
             ExchangeArtParserV2(),
             ExchangeArtParserAuction(),
-            DigitalEyesV1(),
-            DigitalEyesV2(),
+            DigitalEyesParserV1(),
+            DigitalEyesParserV2(),
+            MonkeyBusinessParserV1(),
+            MonkeyBusinessParserV2(),
+            MonkeyBusinessParserV3(),
         ]
