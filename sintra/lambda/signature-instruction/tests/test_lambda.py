@@ -220,17 +220,6 @@ class TestLambdaFunction:
         assert response["message"] == "Successfully processed signature batch."
 
     @patch("src.app.get_transaction")
-    def test_lambda_handler_when_invalid_transaction(
-        self,
-        get_transaction_fn,
-        kinesis_secondary_market_stream: Generator[boto3.client, None, None],
-        kinesis_input_event: Dict[str, Any],
-    ) -> None:
-        get_transaction_fn.return_value = invalid_transaction_example()
-        with pytest.raises(DecodingException):
-            lambda_handler(event=kinesis_input_event, context={})
-
-    @patch("src.app.get_transaction")
     def test_lambda_handler_when_missing_parser(
         self,
         get_transaction_fn,

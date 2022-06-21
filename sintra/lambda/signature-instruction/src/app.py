@@ -8,7 +8,6 @@ from typing import Any, Dict, List
 from src.async_client import SolanaHTTPClient
 from src.config import settings
 from src.exception import (
-    DecodingException,
     SecondaryMarketDataMissingException,
     TransactionInstructionMissingException,
     TransactionParserNotFoundException,
@@ -17,7 +16,6 @@ from src.exception import (
 from src.model import SecondaryMarketEvent, SignatureEvent, Transaction
 from src.parsing import TransactionParsing
 from src.producer import KinesisProducer
-
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +40,7 @@ def lambda_handler(event: Dict[str, Any], context):
         os.getenv("AWS_ACCESS_KEY_ID"),
         os.getenv("AWS_SECRET_ACCESS_KEY"),
         os.getenv("AWS_REGION"),
-        localstack_active
+        localstack_active,
     )
 
     logger.info(
@@ -103,7 +101,6 @@ def lambda_handler(event: Dict[str, Any], context):
 
         except (json.JSONDecodeError, ValueError, TypeError, KeyError) as error:
             logger.error(error)
-            # raise DecodingException("Failed to decode signature record.") from error
 
     logger.info("Sending secondary event batch.")
     if len(sme_batch) > 0:
@@ -127,7 +124,9 @@ async def get_transaction(
     transaction_dict = None
 
     if "error" in response:
-        logger.error("Error occurred while fetching transaction data: " + str(response["error"]))
+        logger.error(
+            "Error occurred while fetching transaction data: " + str(response["error"])
+        )
     elif "result" in response:
         transaction_dict = response["result"]
 

@@ -8,13 +8,18 @@ import boto3
 import pytest
 from moto import mock_kinesis
 from src.parser.alpha_art import AlphaArtParser
+from src.parser.exchange_art import (
+    ExchangeArtParserAuction,
+    ExchangeArtParserV1,
+    ExchangeArtParserV2,
+)
 from src.parser.magic_eden import (
+    MagicEdenAuctionParser,
     MagicEdenParserV1,
     MagicEdenParserV2,
-    MagicEdenAuctionParser,
 )
-from src.parser.solsea import SolseaParser
 from src.parser.solanart import SolanartParser
+from src.parser.solsea import SolseaParser
 
 
 @pytest.fixture(scope="session")
@@ -53,6 +58,11 @@ def solanart_transaction_path(data_path: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
+def exchange_art_transaction_path(data_path: Path) -> Path:
+    return data_path / "exchange_art"
+
+
+@pytest.fixture(scope="session")
 def magic_eden_v1_parser() -> MagicEdenParserV1:
     return MagicEdenParserV1()
 
@@ -80,6 +90,21 @@ def solsea_parser() -> SolseaParser:
 @pytest.fixture(scope="session")
 def solanart_parser() -> SolanartParser:
     return SolanartParser()
+
+
+@pytest.fixture(scope="session")
+def exchange_art_v1_parser() -> ExchangeArtParserV1:
+    return ExchangeArtParserV1()
+
+
+@pytest.fixture(scope="session")
+def exchange_art_v2_parser() -> ExchangeArtParserV2:
+    return ExchangeArtParserV2()
+
+
+@pytest.fixture(scope="session")
+def exchange_art_auction_parser() -> ExchangeArtParserAuction:
+    return ExchangeArtParserAuction()
 
 
 @pytest.fixture(scope="session")
