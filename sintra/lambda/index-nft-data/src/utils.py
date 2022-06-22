@@ -2,6 +2,14 @@ from src.config import settings
 from src.exception import UnknownBlockchainException
 
 
+def base_curency_for_blockchain(blockchain_id: int) -> str:
+    if int(settings.blockchain.address.solana, 0) == blockchain_id:
+        return "Lamport"
+
+    if int(settings.blockchain.address.ethereum, 0) == blockchain_id:
+        return "Wei"
+
+
 def solana_address() -> int:
     return int(settings.blockchain.address.solana, 0)
 

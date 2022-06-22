@@ -4,6 +4,7 @@
       "blockchain_id": { "type": "integer" },
       "blockchain_name": { "type": "text" },
       "collection_id": { "type": "text" },
+      "collection_name": {"type": "text"},
       "token_key": { "type": "text" },
       "owner": { "type": "text" },
       "token_id": { "type": "text" },

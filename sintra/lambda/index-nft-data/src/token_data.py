@@ -9,7 +9,7 @@ import requests
 from requests import HTTPError, Timeout
 from src.exception import FetchTokenDataException, UnknownBlockchainException
 from src.model import MediaFile, NFTCreator, NFTData, NFTMetadata
-from src.utils import blockchain_id_to_name
+from src.utils import base_curency_for_blockchain, blockchain_id_to_name
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class TokenDataFetcher(ABC):
 
 class SolanaTokenDataFetcher(TokenDataFetcher):
     def __init__(
-        self, username=None, password=None, allow_redirects=True, timeout=10
+        self, username=None, password=None, allow_redirects=True, timeout=30
     ) -> None:
         self.session: requests.Session = requests.Session()
         self.session.auth = (username, password)
@@ -36,6 +36,10 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
                 allow_redirects=self.allow_redirects,
                 timeout=self.timeout,
             )
+            if response.status_code >= 400:
+                raise FetchTokenDataException(
+                    f"Response status code: {response.status_code}. Reason: {response.reason}."
+                )
             token_data = response.json()
             return self._transform_token_data(metadata, token_data)
         except (Timeout, HTTPError) as error:
@@ -68,11 +72,16 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
                     if uri == image_uri:
                         media_files[0].file_type = file_type
                         continue
+                elif isinstance(property_file, List):
+                    for uri_data in property_file:
+                        uri = uri_data.get("uri")
+                        file_type = uri_data.get("type")
+                        if uri == image_uri:
+                            media_files[0].file_type = file_type
+                            continue
                 else:
-                    uri = property_file
+                    uri = property_file if isinstance(property_file, str) else ""
                     file_type = ""
-                if not uri:
-                    continue
 
                 media_files.append(MediaFile(uri=uri, file_type=file_type))
 
@@ -92,6 +101,12 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
             logger.error(error)
             blockchain_name = None
 
+        collection_data = token_data.get("collection", None)
+        if collection_data:
+            collection_name = collection_data["name"]
+        else:
+            collection_name = None
+
         blocktime_datetime = datetime.utcfromtimestamp(metadata.blocktime)
         blocktime_formatted = blocktime_datetime.strftime("%Y-%m-%d %H:%M:%S")
         event_time = datetime.utcfromtimestamp(time())
@@ -100,10 +115,11 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
         nft_data = NFTData(
             blockchain_id=metadata.blockchain_id,
             blockchain_name=blockchain_name,
-            collection_id=f"bc#{blockchain_name}#{metadata.program_account_key}",
+            collection_id=f"bc-{blockchain_name}-{metadata.program_account_key}",
+            collection_name=collection_name,
             token_key=metadata.token_key,
             owner=metadata.owner,
-            token_id=f"bc#{blockchain_name}#{metadata.token_key}",
+            token_id=f"bc-{blockchain_name}-{metadata.token_key}",
             token_name=metadata.name,
             description=token_data.get("description", ""),
             symbol=metadata.symbol,
@@ -115,7 +131,7 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
             attributes=token_attributes,
             transaction_hash=metadata.transaction_hash,
             price=metadata.price,
-            price_currency="SOL",
+            price_currency=base_curency_for_blockchain(metadata.blockchain_id),
             creators=token_creators,
             edition=str(token_data.get("edition", -1)),
             external_url=token_data.get("external_url", ""),

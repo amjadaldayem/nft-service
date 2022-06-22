@@ -33,7 +33,7 @@ def lambda_handler(event, context):
         os.getenv("AWS_ACCESS_KEY_ID"),
         os.getenv("AWS_SECRET_ACCESS_KEY"),
         os.getenv("AWS_REGION"),
-        localstack_active
+        localstack_active,
     )
     token_fetcher: TokenDataFetcher = SolanaTokenDataFetcher(
         username=os.getenv("HTTP_USERNAME"),
@@ -78,7 +78,9 @@ def lambda_handler(event, context):
 
     if len(nft_data_list) > 0:
         kinesis.produce_records(settings.kinesis.stream_name, nft_data_list)
-        return {"message": "Successfully processed metadata batch."}
+        return {
+            "message": f"Successfully processed metadata batch of length: {len(nft_data_list)}."
+        }
 
     return {"message": "Resulting batch of events is empty."}
 

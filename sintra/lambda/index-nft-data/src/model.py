@@ -39,6 +39,7 @@ class NFTData:
     blockchain_id: int
     blockchain_name: Optional[str]
     collection_id: str
+    collection_name: Optional[str]
     token_key: str
     owner: str
     token_id: str
@@ -62,8 +63,13 @@ class NFTData:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "blockchain_id": self.blockchain_id,
-            "blockchain_name": self.blockchain_name,
+            "blockchain_name": ""
+            if self.blockchain_name is None
+            else self.blockchain_name,
             "collection_id": self.collection_id,
+            "collection_name": ""
+            if self.collection_name is None
+            else self.collection_name,
             "token_id": self.token_id,
             "token_key": self.token_key,
             "owner": self.owner,
