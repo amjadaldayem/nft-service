@@ -67,15 +67,15 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
         if property_files:
             for property_file in property_files:
                 if isinstance(property_file, Dict):
-                    uri = property_file.get("uri")
-                    file_type = property_file.get("type")
+                    uri = property_file.get("uri", "")
+                    file_type = property_file.get("type", "")
                     if uri == image_uri:
                         media_files[0].file_type = file_type
                         continue
                 elif isinstance(property_file, List):
                     for uri_data in property_file:
-                        uri = uri_data.get("uri")
-                        file_type = uri_data.get("type")
+                        uri = uri_data.get("uri", "")
+                        file_type = uri_data.get("type", "")
                         if uri == image_uri:
                             media_files[0].file_type = file_type
                             continue

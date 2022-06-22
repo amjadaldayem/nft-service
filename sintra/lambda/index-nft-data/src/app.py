@@ -6,7 +6,7 @@ import os
 from typing import List
 
 from src.config import settings
-from src.exception import DecodingException
+from src.exception import DecodingException, FetchTokenDataException
 from src.model import NFTData, NFTMetadata
 from src.producer import KinesisProducer
 from src.token_data import SolanaTokenDataFetcher, TokenDataFetcher
@@ -59,10 +59,13 @@ def lambda_handler(event, context):
             nft_metadata: NFTMetadata = NFTMetadata.from_dict(metadata_record)
 
             if nft_metadata.blockchain_id == solana_address():
-                nft_data = async_loop.run_until_complete(
-                    get_nft_data(token_fetcher, nft_metadata)
-                )
-                nft_data_list.append(nft_data)
+                try:
+                    nft_data = async_loop.run_until_complete(
+                        get_nft_data(token_fetcher, nft_metadata)
+                    )
+                    nft_data_list.append(nft_data)
+                except (FetchTokenDataException, json.JSONDecodeError):
+                    continue
             elif nft_metadata.blockchain_id == ethereum_address():
                 logger.warning(
                     f"NFT Metadata from blockchain: {nft_metadata.blockchain_id} is not supported."
