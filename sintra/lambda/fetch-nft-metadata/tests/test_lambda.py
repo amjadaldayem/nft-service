@@ -14,6 +14,7 @@ from src.model import NFTMetadata
 def nft_metadata() -> NFTMetadata:
     return NFTMetadata(
         blockchain_id=65536,
+        market_id=65792,
         token_key="9djKfEoRp4pZf8YHDYLBXgd84cGiHBbhjh5mHF8e9Vvy",
         blocktime=time.time_ns(),
         timestamp=time.time_ns(),
@@ -30,7 +31,7 @@ def nft_metadata() -> NFTMetadata:
         creators=[],
         verified=[],
         share=[],
-        price=0.01
+        price=0.01,
     )
 
 

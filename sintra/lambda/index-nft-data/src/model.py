@@ -40,10 +40,13 @@ class NFTData:
     blockchain_name: Optional[str]
     collection_id: str
     collection_name: Optional[str]
+    collection_name_slug: Optional[str]
+    market_id: int
     token_key: str
     owner: str
     token_id: str
     token_name: str
+    token_name_slug: str
     description: str
     symbol: str
     primary_sale_happened: bool
@@ -70,10 +73,15 @@ class NFTData:
             "collection_name": ""
             if self.collection_name is None
             else self.collection_name,
+            "collection_name_slug": ""
+            if self.collection_name_slug is None
+            else self.collection_name_slug,
+            "market_id": self.market_id,
             "token_id": self.token_id,
             "token_key": self.token_key,
             "owner": self.owner,
             "token_name": self.token_name,
+            "token_name_slug": self.token_name_slug,
             "description": self.description,
             "symbol": self.symbol,
             "primary_sale_happened": self.primary_sale_happened,
@@ -110,6 +118,7 @@ class NFTData:
 @dataclass
 class NFTMetadata:
     blockchain_id: Optional[int]
+    market_id: int
     token_key: str
     blocktime: int
     timestamp: int
@@ -132,6 +141,7 @@ class NFTMetadata:
     def from_dict(cls, metadata_dict: Dict[str, Any]) -> NFTMetadata:
         return cls(
             blockchain_id=metadata_dict["blockchain_id"],
+            market_id=metadata_dict["market_id"],
             token_key=metadata_dict["token_key"],
             blocktime=metadata_dict["blocktime"],
             timestamp=metadata_dict["timestamp"],

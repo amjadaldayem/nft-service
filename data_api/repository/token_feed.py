@@ -12,8 +12,10 @@ class AbstractTokenFeedRepository(ABC):
         """Read last N tokens sorted by descending time."""
 
     @abstractmethod
-    def read_token(self, token_id: str) -> TokenDetails:
-        """Read token data by id."""
+    def read_token(
+        self, blockchain_name: str, collection_name: str, token_name: str
+    ) -> TokenDetails:
+        """Read token data by blockchain name, collection name and token name."""
 
     @abstractmethod
     def read_tokens_from(self, timestamp: str) -> List[Token]:
@@ -25,8 +27,12 @@ class TokenFeedRepository(AbstractTokenFeedRepository):
         self.client = client
         self.query_builder = QueryBuilder()
 
-    def read_token(self, token_id: str) -> Dict[str, Any]:
-        query = self.query_builder.read_token_query(token_id)
+    def read_token(
+        self, blockchain_name: str, collection_name: str, token_name: str
+    ) -> Dict[str, Any]:
+        query = self.query_builder.read_token_query(
+            blockchain_name, collection_name, token_name
+        )
         return self.client.submit_query(query)
 
     def read_tokens(self) -> List[Token]:

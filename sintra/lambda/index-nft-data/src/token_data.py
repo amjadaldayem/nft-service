@@ -6,6 +6,7 @@ from time import time
 from typing import Any, Dict, List
 
 import requests
+import slugify
 from requests import HTTPError, Timeout
 from src.exception import FetchTokenDataException, UnknownBlockchainException
 from src.model import MediaFile, NFTCreator, NFTData, NFTMetadata
@@ -117,10 +118,13 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
             blockchain_name=blockchain_name,
             collection_id=f"bc-{blockchain_name}-{metadata.program_account_key}",
             collection_name=collection_name,
+            collection_name_slug=slugify.slugify(collection_name),
+            market_id=metadata.market_id,
             token_key=metadata.token_key,
             owner=metadata.owner,
             token_id=f"bc-{blockchain_name}-{metadata.token_key}",
             token_name=metadata.name,
+            token_name_slug=slugify.slugify(metadata.name),
             description=token_data.get("description", ""),
             symbol=metadata.symbol,
             primary_sale_happened=metadata.primary_sale_happened,

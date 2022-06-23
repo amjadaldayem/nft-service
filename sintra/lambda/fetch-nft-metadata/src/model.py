@@ -54,6 +54,7 @@ class SecondaryMarketEvent(DataClassBase):
 
 class NFTMetadata:
     blockchain_id: Optional[int]
+    market_id: int
     token_key: str
     blocktime: int
     timestamp: int
@@ -86,6 +87,7 @@ class NFTMetadata:
         creators,
         verified,
         share,
+        market_id: int = None,
         price: float = None,
         blockchain_id: int = None,
         blocktime: int = None,
@@ -106,6 +108,7 @@ class NFTMetadata:
         self.creators = creators
         self.verified = verified
         self.share = share
+        self.market_id = market_id
         self.price = price
         self.blockchain_id = blockchain_id
         self.blocktime = blocktime
@@ -146,6 +149,7 @@ class NFTMetadata:
             "primary_sale_happened": self.primary_sale_happened,
             "last_market_activity": self.last_market_activity,
             "is_mutable": self.is_mutable,
+            "market_id": 0 if self.market_id is None else self.market_id,
             "name": "" if self.name is None else self.name,
             "symbol": "" if self.symbol is None else self.symbol,
             "uri": "" if self.uri is None else self.uri,

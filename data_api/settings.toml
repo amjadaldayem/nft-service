@@ -6,3 +6,13 @@ HOST = "localhost.localstack.cloud"
 PORT = 4566
 TOKEN_FEED_INDEX = "token-feed-index"
 DOMAIN = "my-demo"
+
+[BLOCKCHAIN.ADDRESS]
+NONE = "0x000000"
+ALL = "0xFF0000"
+SOLANA = "0x010000"
+TERRA = "0x020000"
+ETHEREUM = "0x030000"
+
+[BLOCKCHAIN.MARKET]
+FLAG = "0x00100"

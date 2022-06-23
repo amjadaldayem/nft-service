@@ -54,6 +54,7 @@ def kinesis_index_nft_data_stream(
 def kinesis_input_event() -> Dict[str, Any]:
     event = {
         "blockchain_id": 65536,
+        "market_id": 65792,
         "token_key": "9djKfEoRp4pZf8YHDYLBXgd84cGiHBbhjh5mHF8e9Vvy",
         "blocktime": "2022-06-01 13:15:55",
         "timestamp": "2022-06-03 14:25:30",
@@ -70,7 +71,7 @@ def kinesis_input_event() -> Dict[str, Any]:
         "creators": ["Creator #1", "Creator #2"],
         "verified": ["true", "true"],
         "share": [],
-        "price": 0.01
+        "price": 0.01,
     }
     event = json.dumps(event)
     event = event.encode()
@@ -102,6 +103,7 @@ def kinesis_input_event() -> Dict[str, Any]:
 def kinesis_input_event_with_fake_blockchain() -> Dict[str, Any]:
     event = {
         "blockchain_id": 000000,
+        "market_id": 00000,
         "token_key": "9djKfEoRp4pZf8YHDYLBXgd84cGiHBbhjh5mHF8e9Vvy",
         "blocktime": "2022-06-01 13:15:55",
         "timestamp": "2022-06-03 14:25:30",
@@ -118,7 +120,7 @@ def kinesis_input_event_with_fake_blockchain() -> Dict[str, Any]:
         "creators": ["Creator #1", "Creator #2"],
         "verified": ["true", "true"],
         "share": [],
-        "price": 0.01
+        "price": 0.01,
     }
     event = json.dumps(event)
     event = event.encode()

@@ -23,8 +23,13 @@ class TokenFeedService:
         )
         self.token_feed_repository = TokenFeedRepository(open_search_client)
 
-    def read_token(self, token_id: str) -> TokenDetails:
-        json_response = self.token_feed_repository.read_token(token_id)
+    def read_token(
+        self, blockchain_name: str, collection_name: str, token_name: str
+    ) -> TokenDetails:
+        blockchain_name = blockchain_name.capitalize()
+        json_response = self.token_feed_repository.read_token(
+            blockchain_name, collection_name, token_name
+        )
         if not json_response:
             raise DataClientException("Problems with client querying data store.")
 
@@ -36,7 +41,7 @@ class TokenFeedService:
 
             return token_details
 
-        raise ResourceNotFoundException(f"Token with id: {token_id} not found.")
+        raise ResourceNotFoundException("Token not found.")
 
     def read_tokens(self) -> List[Token]:
         json_response = self.token_feed_repository.read_tokens()

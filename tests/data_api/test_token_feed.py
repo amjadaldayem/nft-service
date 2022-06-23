@@ -11,7 +11,7 @@ from data_api.model.token_feed import Token, TokenDetails
 
 @pytest.fixture(scope="module")
 def router_endpoint() -> str:
-    return "/v1/nft/feed"
+    return "/v1/nft"
 
 
 class TestTokenFeedRouter:
@@ -27,7 +27,7 @@ class TestTokenFeedRouter:
         read_token_fn.return_value = token_details
         async with AsyncClient(app=app, base_url=base_url) as client:
             response = await client.get(
-                url=f"{router_endpoint}/token/{token_details.token_id}"
+                url=f"{router_endpoint}/{token_details.blockchain_name}/{token_details.collection_name}/{token_details.token_name}"
             )
 
         assert response.status_code == 200
@@ -47,13 +47,11 @@ class TestTokenFeedRouter:
         )
         async with AsyncClient(app=app, base_url=base_url) as client:
             response = await client.get(
-                url=f"{router_endpoint}/token/{token_details.token_id}"
+                url=f"{router_endpoint}/{token_details.blockchain_name}/{token_details.collection_name}/{token_details.token_name}"
             )
 
         assert response.status_code == 404
-        assert response.json() == {
-            "detail": f"Token with id: {token_details.token_id} does not exist."
-        }
+        assert response.json() == {"detail": "Token does not exist."}
 
     @pytest.mark.anyio
     @patch("data_api.service.token_feed.TokenFeedService.read_token")
@@ -70,7 +68,7 @@ class TestTokenFeedRouter:
 
         async with AsyncClient(app=app, base_url=base_url) as client:
             response = await client.get(
-                url=f"{router_endpoint}/token/{token_details.token_id}"
+                url=f"{router_endpoint}/{token_details.blockchain_name}/{token_details.collection_name}/{token_details.token_name}"
             )
 
         assert response.status_code == 500
