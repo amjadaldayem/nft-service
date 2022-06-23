@@ -19,6 +19,7 @@ from src.parser.monkey_business import (
 )
 from src.parser.solanart import SolanartParser
 from src.parser.solsea import SolseaParser
+from src.parser.open_sea import OpenSeaParser, OpenSeaParserAuction
 
 
 class TransactionParsing:
@@ -54,4 +55,6 @@ class TransactionParsing:
             MonkeyBusinessParserV1(),
             MonkeyBusinessParserV2(),
             MonkeyBusinessParserV3(),
+            OpenSeaParser(),
+            OpenSeaParserAuction(),
         ]

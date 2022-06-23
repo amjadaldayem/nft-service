@@ -22,6 +22,7 @@ from src.parser.monkey_business import MonkeyBusinessParserV2
 from src.parser.solanart import SolanartParser
 from src.parser.solsea import SolseaParser
 from src.parser.digital_eyes import DigitalEyesParserV1, DigitalEyesParserV2
+from src.parser.open_sea import OpenSeaParser, OpenSeaParserAuction
 
 
 @pytest.fixture(scope="session")
@@ -77,6 +78,16 @@ def digital_eyes_v1_transaction_path(data_path: Path) -> Path:
 @pytest.fixture(scope="session")
 def digital_eyes_v2_transaction_path(data_path: Path) -> Path:
     return data_path / "digital_eyes_v2"
+
+
+@pytest.fixture(scope="session")
+def open_sea_transaction_path(data_path: Path) -> Path:
+    return data_path / "open_sea"
+
+
+@pytest.fixture(scope="session")
+def open_sea_auction_transaction_path(data_path: Path) -> Path:
+    return data_path / "open_sea_auction"
 
 
 @pytest.fixture(scope="session")
@@ -137,6 +148,16 @@ def digital_eyes_v1_parser() -> DigitalEyesParserV1:
 @pytest.fixture(scope="session")
 def digital_eyes_v2_parser() -> DigitalEyesParserV2:
     return DigitalEyesParserV2()
+
+
+@pytest.fixture(scope="session")
+def open_sea_parser() -> OpenSeaParser:
+    return OpenSeaParser()
+
+
+@pytest.fixture(scope="session")
+def open_sea_parser_auction() -> OpenSeaParserAuction:
+    return OpenSeaParserAuction()
 
 
 @pytest.fixture(scope="session")
