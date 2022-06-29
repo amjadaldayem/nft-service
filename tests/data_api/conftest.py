@@ -11,6 +11,11 @@ def base_url() -> str:
 
 
 @pytest.fixture(scope="session")
+def router_endpoint_v1() -> str:
+    return "/api/v1"
+
+
+@pytest.fixture(scope="session")
 def token_details() -> TokenDetails:
     return TokenDetails(
         blockchain_id=65536,

@@ -8,9 +8,7 @@ from data_api.exception import ResourceNotFoundException
 from data_api.model.token_feed import Token, TokenDetails
 from data_api.service.token_feed import TokenFeedService
 
-router = APIRouter(
-    tags=["feed"], prefix="/v1/nft", responses={404: {"description": "Not found"}}
-)
+router = APIRouter(responses={404: {"description": "Not found"}})
 
 logger = logging.getLogger(__name__)
 

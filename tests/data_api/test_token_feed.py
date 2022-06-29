@@ -10,8 +10,8 @@ from data_api.model.token_feed import Token, TokenDetails
 
 
 @pytest.fixture(scope="module")
-def router_endpoint() -> str:
-    return "/v1/nft"
+def token_feed_prefix() -> str:
+    return "/feed"
 
 
 class TestTokenFeedRouter:
@@ -21,13 +21,14 @@ class TestTokenFeedRouter:
         self,
         read_token_fn,
         base_url: str,
-        router_endpoint: str,
+        router_endpoint_v1: str,
+        token_feed_prefix: str,
         token_details: TokenDetails,
     ) -> None:
         read_token_fn.return_value = token_details
         async with AsyncClient(app=app, base_url=base_url) as client:
             response = await client.get(
-                url=f"{router_endpoint}/{token_details.blockchain_name}/{token_details.collection_name}/{token_details.token_name}"
+                url=f"{router_endpoint_v1}{token_feed_prefix}/{token_details.blockchain_name}/{token_details.collection_name}/{token_details.token_name}"
             )
 
         assert response.status_code == 200
@@ -39,7 +40,8 @@ class TestTokenFeedRouter:
         self,
         read_token_fn,
         base_url: str,
-        router_endpoint: str,
+        router_endpoint_v1: str,
+        token_feed_prefix: str,
         token_details: TokenDetails,
     ) -> None:
         read_token_fn.side_effect = ResourceNotFoundException(
@@ -47,7 +49,7 @@ class TestTokenFeedRouter:
         )
         async with AsyncClient(app=app, base_url=base_url) as client:
             response = await client.get(
-                url=f"{router_endpoint}/{token_details.blockchain_name}/{token_details.collection_name}/{token_details.token_name}"
+                url=f"{router_endpoint_v1}{token_feed_prefix}/{token_details.blockchain_name}/{token_details.collection_name}/{token_details.token_name}"
             )
 
         assert response.status_code == 404
@@ -59,7 +61,8 @@ class TestTokenFeedRouter:
         self,
         read_token_fn,
         base_url: str,
-        router_endpoint: str,
+        router_endpoint_v1: str,
+        token_feed_prefix: str,
         token_details: TokenDetails,
     ) -> None:
         read_token_fn.side_effect = DataClientException(
@@ -68,7 +71,7 @@ class TestTokenFeedRouter:
 
         async with AsyncClient(app=app, base_url=base_url) as client:
             response = await client.get(
-                url=f"{router_endpoint}/{token_details.blockchain_name}/{token_details.collection_name}/{token_details.token_name}"
+                url=f"{router_endpoint_v1}{token_feed_prefix}/{token_details.blockchain_name}/{token_details.collection_name}/{token_details.token_name}"
             )
 
         assert response.status_code == 500
@@ -80,13 +83,16 @@ class TestTokenFeedRouter:
         self,
         read_tokens_fn,
         base_url: str,
-        router_endpoint: str,
+        router_endpoint_v1: str,
+        token_feed_prefix: str,
         tokens: List[Token],
     ) -> None:
         read_tokens_fn.return_value = tokens
 
         async with AsyncClient(app=app, base_url=base_url) as client:
-            response = await client.get(url=f"{router_endpoint}/tokens")
+            response = await client.get(
+                url=f"{router_endpoint_v1}{token_feed_prefix}/tokens"
+            )
 
         assert response.status_code == 200
         response_tokens = response.json()
@@ -103,14 +109,15 @@ class TestTokenFeedRouter:
         self,
         read_tokens_from_fn,
         base_url: str,
-        router_endpoint: str,
+        router_endpoint_v1: str,
+        token_feed_prefix: str,
         tokens: List[Token],
     ) -> None:
         read_tokens_from_fn.return_value = tokens
 
         async with AsyncClient(app=app, base_url=base_url) as client:
             response = await client.get(
-                url=f"{router_endpoint}/tokens?timestamp=2022-02-02T15:05:45"
+                url=f"{router_endpoint_v1}{token_feed_prefix}/tokens?timestamp=2022-02-02T15:05:45"
             )
 
         assert response.status_code == 200

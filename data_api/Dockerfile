@@ -1,4 +1,4 @@
-FROM python:3.8.12-slim
+FROM public.ecr.aws/python:3.8
 
 ENV PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
@@ -10,14 +10,12 @@ ENV PYTHONFAULTHANDLER=1 \
 
 RUN pip install "poetry==$POETRY_VERSION"
 
-WORKDIR /sintra
-
-COPY poetry.lock pyproject.toml /sintra/
+COPY poetry.lock pyproject.toml ${LAMBDA_TASK_ROOT}
 
 RUN POETRY_VIRTUALENVS_CREATE=false \
     poetry install --no-dev --no-root --no-interaction --no-ansi
 
-COPY data_api/ /sintra/data_api/
+COPY data_api ${LAMBDA_TASK_ROOT}/data_api
 
-CMD ["uvicorn", "data_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["data_api.main.handler"]
 
