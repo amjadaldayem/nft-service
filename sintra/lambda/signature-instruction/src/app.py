@@ -3,7 +3,7 @@ import base64
 import json
 import logging
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from src.async_client import SolanaHTTPClient
 from src.config import settings
@@ -13,9 +13,19 @@ from src.exception import (
     TransactionParserNotFoundException,
     UnknownTransactionException,
 )
-from src.model import SecondaryMarketEvent, SignatureEvent, Transaction
+from src.model import (
+    SecondaryMarketEvent,
+    SignatureEvent,
+    Transaction,
+    SolanaTransaction,
+    EthereumTransaction,
+)
 from src.parsing import TransactionParsing
 from src.producer import KinesisProducer
+from web3 import Web3
+from sintra.config import settings
+
+alchemy_api_key = os.getenv("ALCHEMY_API_KEY")
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +63,15 @@ def lambda_handler(event: Dict[str, Any], context):
         username=os.getenv("SOLANA_RPC_HTTP_USERNAME"),
         password=os.getenv("SOLANA_RPC_HTTP_PASSWORD"),
     )
+
+    logger.info(
+        f"Initializing AlchemyHTTPClient for endpoint: {settings.blockchain.ethereum.http.endpoint}."
+    )
+
+    alchemy_http_url = f"{settings.blockchain.ethereum.http.endpoint}/{alchemy_api_key}"
+    http_provider = Web3.HTTPProvider(alchemy_http_url)
+    alchemy_client = Web3(http_provider)
+
     parsing_service: TransactionParsing = TransactionParsing()
 
     records = event["Records"]
@@ -71,34 +90,80 @@ def lambda_handler(event: Dict[str, Any], context):
             signature_record = json.loads(signature_data)
             signature_event: SignatureEvent = SignatureEvent.from_dict(signature_record)
 
-            transaction_dict = async_loop.run_until_complete(
-                get_transaction(solana_client, signature_event)
-            )
+            if signature_event.blockchain == int(settings.blockchain.address.solana, 0):
 
-            if not transaction_dict:
-                logger.warning(
-                    f"Could not fetch transaction details for transaction {signature_event.signature}."
+                transaction_dict = async_loop.run_until_complete(
+                    get_transaction(solana_client, signature_event)
                 )
-                continue
 
-            transaction = Transaction.from_dict(transaction_dict)
+                if not transaction_dict:
+                    logger.warning(
+                        f"Could not fetch transaction details for transaction {signature_event.signature}."
+                    )
+                    continue
 
-            try:
-                secondary_market_event = parsing_service.parse(
-                    transaction, signature_event.market_account
+                transaction = SolanaTransaction.from_dict(transaction_dict)
+
+                try:
+                    secondary_market_event = parsing_service.parse(
+                        transaction, signature_event.market_account
+                    )
+                    sme_batch.append(secondary_market_event)
+                except TransactionParserNotFoundException as error:
+                    logger.warning(error)
+                    continue
+                except (
+                    TransactionInstructionMissingException,
+                    UnknownTransactionException,
+                    SecondaryMarketDataMissingException,
+                ) as error:
+                    logger.error(error)
+                    raise RuntimeError from error
+            if signature_event.blockchain == int(
+                settings.blockchain.address.ethereum, 0
+            ):
+
+                (
+                    transaction_details,
+                    transaction_receipt_event_logs,
+                ) = async_loop.run_until_complete(
+                    get_transaction_ethereum(alchemy_client, signature_event)
                 )
-                sme_batch.append(secondary_market_event)
-            except TransactionParserNotFoundException as error:
-                logger.warning(error)
-                continue
-            except (
-                TransactionInstructionMissingException,
-                UnknownTransactionException,
-                SecondaryMarketDataMissingException,
-            ) as error:
-                logger.error(error)
-                raise RuntimeError from error
 
+                if not transaction_details:
+                    logger.warning(
+                        f"Could not fetch transaction details for transaction {signature_event.signature}."
+                    )
+                    continue
+
+                if not transaction_receipt_event_logs:
+                    logger.warning(
+                        f"Could not fetch transaction receipt event logs for transaction {signature_event.signature}."
+                    )
+                    continue
+
+                transaction = EthereumTransaction.from_dict(
+                    transaction_details, transaction_receipt_event_logs
+                )
+
+                try:
+                    secondary_market_event = parsing_service.parse(
+                        transaction, signature_event.market_account
+                    )
+                    sme_batch.append(secondary_market_event)
+                except TransactionParserNotFoundException as error:
+                    logger.warning(error)
+                    continue
+                except (
+                    TransactionInstructionMissingException,
+                    UnknownTransactionException,
+                    SecondaryMarketDataMissingException,
+                ) as error:
+                    logger.error(error)
+                    raise RuntimeError from error
+
+            else:
+                logger.error("Unknown blockchain name: " + signature_event.blockchain)
         except (json.JSONDecodeError, ValueError, TypeError, KeyError) as error:
             logger.error(error)
 
@@ -131,3 +196,19 @@ async def get_transaction(
         transaction_dict = response["result"]
 
     return transaction_dict
+
+
+async def get_transaction_ethereum(
+    client: Web3,
+    event: SignatureEvent,
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    logger.info(f"Fetching transaction for signature: {event.signature}.")
+    transaction_details = client.eth.get_transaction(event.signature)
+    transaction_receipt_event_logs = client.eth.getTransactionReceipt(event.signature)
+    logger.info("Fetched transaction details data: " + str(transaction_details))
+    logger.info(
+        "Fetched transaction receipt event logs data: "
+        + str(transaction_receipt_event_logs)
+    )
+
+    return transaction_details, transaction_receipt_event_logs

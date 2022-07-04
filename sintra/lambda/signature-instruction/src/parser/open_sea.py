@@ -6,7 +6,7 @@ from src.exception import (
     SecondaryMarketDataMissingException,
     TransactionInstructionMissingException,
 )
-from src.model import SecondaryMarketEvent, Transaction, Instruction
+from src.model import SecondaryMarketEvent, Instruction, SolanaTransaction
 from src.parser.signature import SignatureParser
 from src.utils import open_sea_id
 
@@ -25,7 +25,7 @@ class OpenSeaParser(SignatureParser):
         )
 
     def find_open_sea_instruction(
-        self, transaction: Transaction
+        self, transaction: SolanaTransaction
     ) -> Optional[Instruction]:
         instruction = transaction.find_instruction(
             self.program_account, offset=self.sale, width=8
@@ -54,7 +54,7 @@ class OpenSeaParser(SignatureParser):
 
         return instruction
 
-    def parse(self, transaction: Transaction) -> Optional[SecondaryMarketEvent]:
+    def parse(self, transaction: SolanaTransaction) -> Optional[SecondaryMarketEvent]:
         instruction = self.find_open_sea_instruction(transaction)
 
         if not instruction:
@@ -69,7 +69,7 @@ class OpenSeaParser(SignatureParser):
 
         if offset == self.sale:
             # Sale event on OpenSea is equal to ExecuteSale event.
-            event_type = settings.blockchain.solana.market.event.sale
+            event_type = settings.blockchain.market.event.sale
             buyer = instruction.accounts[0]
             # Sale price in the smallest UNIT. E.g., for Solana this is lamports
             price = instruction.get_int(10, 5)
@@ -77,7 +77,7 @@ class OpenSeaParser(SignatureParser):
             token_key = instruction.accounts[4]
         elif offset == self.listing:
             # Listing event on OpenSea has same offset as Sale event.
-            event_type = settings.blockchain.solana.market.event.listing
+            event_type = settings.blockchain.market.event.listing
             owner = instruction.accounts[0]
             # Listing price in the smallest UNIT. E.g., for Solana this is lamports
             price = instruction.get_int(10, 5)
@@ -85,7 +85,7 @@ class OpenSeaParser(SignatureParser):
             token_key = instruction.accounts[4]
         elif offset == self.delisting:
             # Delisting event on OpenSea is equal to CancelSell event.
-            event_type = settings.blockchain.solana.market.event.delisting
+            event_type = settings.blockchain.market.event.delisting
             owner = instruction.accounts[0]
             # Fixed price for delisting transactions
             price = 0
@@ -93,7 +93,7 @@ class OpenSeaParser(SignatureParser):
             token_key = instruction.accounts[3]
         elif offset == self.bid:
             # Bid event on OpenSea is equal to Buy event.
-            event_type = settings.blockchain.solana.market.event.bid
+            event_type = settings.blockchain.market.event.bid
             buyer = instruction.accounts[0]
             # Bid price in the smallest UNIT. E.g., for Solana this is lamports
             price = instruction.get_int(10, 5)
@@ -109,14 +109,14 @@ class OpenSeaParser(SignatureParser):
                 token_key = instruction.accounts[2]
         elif offset == self.cancel_bidding:
             # Cancel bidding event on OpenSea is equal to CancelBuy event.
-            event_type = settings.blockchain.solana.market.event.cancel_bidding
+            event_type = settings.blockchain.market.event.cancel_bidding
             buyer = instruction.accounts[0]
             # Fixed price for cancel bidding transactions
             price = 0
             # Token address / Mint key
             token_key = instruction.accounts[2]
         else:
-            event_type = settings.blockchain.solana.market.event.unknown
+            event_type = settings.blockchain.market.event.unknown
 
         if event_type and token_key and (owner or buyer):
             event = SecondaryMarketEvent(
@@ -148,7 +148,7 @@ class OpenSeaParserAuction(SignatureParser):
         )
 
     def find_open_sea_auction_instruction(
-        self, transaction: Transaction
+        self, transaction: SolanaTransaction
     ) -> Optional[Instruction]:
         instruction = transaction.find_instruction(
             self.program_account, offset=self.bid, width=8
@@ -159,7 +159,7 @@ class OpenSeaParserAuction(SignatureParser):
 
         return instruction
 
-    def parse(self, transaction: Transaction) -> Optional[SecondaryMarketEvent]:
+    def parse(self, transaction: SolanaTransaction) -> Optional[SecondaryMarketEvent]:
         instruction = self.find_open_sea_auction_instruction(transaction)
 
         if not instruction:
@@ -174,7 +174,7 @@ class OpenSeaParserAuction(SignatureParser):
 
         if offset == self.bid:
             # Bid event on OpenSea is equal to Buy event.
-            event_type = settings.blockchain.solana.market.event.bid
+            event_type = settings.blockchain.market.event.bid
             buyer = instruction.accounts[0]
             # Bid price in the smallest UNIT. E.g., for Solana this is lamports
             price = instruction.get_int(10, 5)
@@ -190,7 +190,7 @@ class OpenSeaParserAuction(SignatureParser):
                 token_key = instruction.accounts[2]
         elif offset == self.listing:
             # Auction event on OpenSea has same offset as Sale event.
-            event_type = settings.blockchain.solana.market.event.sale_auction
+            event_type = settings.blockchain.market.event.sale_auction
             # Auction price in the smallest UNIT. E.g., for Solana this is lamports
             price = instruction.get_int(11, 5)
             # Iterate through the postBalance and find the entry with `amount` == 1
@@ -202,7 +202,7 @@ class OpenSeaParserAuction(SignatureParser):
                     token_key = balance["mint"]
                     break
         else:
-            event_type = settings.blockchain.solana.market.event.unknown
+            event_type = settings.blockchain.market.event.unknown
 
         if event_type and token_key and (owner or buyer):
             event = SecondaryMarketEvent(

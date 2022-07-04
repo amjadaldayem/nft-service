@@ -5,7 +5,7 @@ from src.exception import (
     SecondaryMarketDataMissingException,
     TransactionInstructionMissingException,
 )
-from src.model import SecondaryMarketEvent, Transaction
+from src.model import SecondaryMarketEvent, SolanaTransaction
 from src.parser.signature import SignatureParser
 from src.utils import digital_eyes_id
 
@@ -20,7 +20,7 @@ class DigitalEyesParserV1(SignatureParser):
             settings.blockchain.solana.market.digital_eyes.program_account_v1
         )
 
-    def parse(self, transaction: Transaction):
+    def parse(self, transaction: SolanaTransaction):
         """
         DigitalEyes has two program account: Direct Sale and NFT marketplace. This one is NFT marketplace.
         Args:
@@ -43,7 +43,7 @@ class DigitalEyesParserV1(SignatureParser):
         offset = instruction.get_function_offset(1)
 
         if offset == self.listing_event:
-            event_type = settings.blockchain.solana.market.event.listing
+            event_type = settings.blockchain.market.event.listing
             owner = instruction.accounts[0]
             token_key = instruction.accounts[2]
             price = instruction.get_int(1)
@@ -63,13 +63,13 @@ class DigitalEyesParserV1(SignatureParser):
             price = int(round(accumulated_price, 3))
 
             if has_sol_transfer:
-                event_type = settings.blockchain.solana.market.event.sale
+                event_type = settings.blockchain.market.event.sale
                 buyer = instruction.accounts[0]
             else:
-                event_type = settings.blockchain.solana.market.event.delisting
+                event_type = settings.blockchain.market.event.delisting
                 owner = instruction.accounts[0]
         else:
-            event_type = settings.blockchain.solana.market.event.unknown
+            event_type = settings.blockchain.market.event.unknown
 
         if event_type and token_key and (owner or buyer):
             return SecondaryMarketEvent(
@@ -113,7 +113,7 @@ class DigitalEyesParserV2(SignatureParser):
             settings.blockchain.solana.market.digital_eyes.program_account_v2
         )
 
-    def parse(self, transaction: Transaction):
+    def parse(self, transaction: SolanaTransaction):
         """
         DigitalEyes has two program account: Direct Sale and NFT marketplace. This one is Direct Sale.
         Args:
@@ -136,31 +136,31 @@ class DigitalEyesParserV2(SignatureParser):
         if offset == self.direct_sale_listing_func_offset:
             # if the lasts 2bytes == feff, then the price is not visible
             # it will display as "contact owner"
-            event_type = settings.blockchain.solana.market.event.listing
+            event_type = settings.blockchain.market.event.listing
             token_key = instruction.accounts[2]
             owner = instruction.accounts[0]
             price = instruction.get_int(8, 8)
         elif offset == self.direct_sale_price_update_func_offset:
-            event_type = settings.blockchain.solana.market.event.price_update
+            event_type = settings.blockchain.market.event.price_update
             token_key = instruction.accounts[1]
             price = instruction.get_int(8, 8)
             owner = instruction.accounts[0]
         elif offset == self.direct_sale_delisting_func_offset:
-            event_type = settings.blockchain.solana.market.event.delisting
+            event_type = settings.blockchain.market.event.delisting
             token_key = instruction.accounts[2]
             owner = instruction.accounts[0]
         elif offset == self.direct_sale_sale_func_offset:
-            event_type = settings.blockchain.solana.market.event.sale
+            event_type = settings.blockchain.market.event.sale
             token_key = instruction.accounts[4]
             buyer = instruction.accounts[0]
             price = instruction.get_int(8, 8)
         elif offset == self.direct_sale_delisting_with_authority:
-            event_type = settings.blockchain.solana.market.event.delisting
+            event_type = settings.blockchain.market.event.delisting
             token_key = instruction.accounts[2]
             owner = instruction.accounts[1]
             price = instruction.get_int(8, 8)
         else:
-            event_type = settings.blockchain.solana.market.event.unknown
+            event_type = settings.blockchain.market.event.unknown
 
         if token_key and (owner or buyer):
             return SecondaryMarketEvent(

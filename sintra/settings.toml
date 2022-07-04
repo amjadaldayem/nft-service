@@ -1,6 +1,6 @@
 [WORKER]
-TYPE = "solana"
-NAME = "solana_worker"
+TYPE = "ethereum"
+NAME = "ethereum_worker"
 
 [BLOCKCHAIN.ADDRESS]
 NONE = "0x000000"
@@ -18,17 +18,17 @@ ENDPOINT = "wss://ssc-dao.genesysgo.net"
 TIMEOUT = 50
 
 [BLOCKCHAIN.ETHEREUM.HTTP]
-ENDPOINT = "https://mainnet.infura.io/v3/734ac6585f894854b6118e067f95a827"
+ENDPOINT = "https://eth-mainnet.alchemyapi.io/v2"
 TIMEOUT = 50
 
 [BLOCKCHAIN.ETHEREUM.WS]
-ENDPOINT = "wss://mainnet.infura.io/ws/v3/734ac6585f894854b6118e067f95a827"
+ENDPOINT = "wss://eth-mainnet.alchemyapi.io/v2"
 TIMEOUT = 50
 
 [BLOCKCHAIN.MARKET]
 FLAG = "0x00100"
 
-[BLOCKCHAIN.SOLANA.MARKET.EVENT]
+[BLOCKCHAIN.MARKET.EVENT]
 UNKNOWN = 0
 LISTING = 1
 DELISTING = 2

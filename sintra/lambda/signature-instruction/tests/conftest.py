@@ -23,6 +23,7 @@ from src.parser.solanart import SolanartParser
 from src.parser.solsea import SolseaParser
 from src.parser.digital_eyes import DigitalEyesParserV1, DigitalEyesParserV2
 from src.parser.open_sea import OpenSeaParser, OpenSeaParserAuction
+from src.parser.ethereum.open_sea import EthereumOpenSeaParser
 
 
 @pytest.fixture(scope="session")
@@ -88,6 +89,11 @@ def open_sea_transaction_path(data_path: Path) -> Path:
 @pytest.fixture(scope="session")
 def open_sea_auction_transaction_path(data_path: Path) -> Path:
     return data_path / "open_sea_auction"
+
+
+@pytest.fixture(scope="session")
+def ethereum_open_sea_transaction_path(data_path: Path) -> Path:
+    return data_path / "ethereum" / "open_sea"
 
 
 @pytest.fixture(scope="session")
@@ -158,6 +164,11 @@ def open_sea_parser() -> OpenSeaParser:
 @pytest.fixture(scope="session")
 def open_sea_parser_auction() -> OpenSeaParserAuction:
     return OpenSeaParserAuction()
+
+
+@pytest.fixture(scope="session")
+def ethereum_open_sea_parser() -> EthereumOpenSeaParser:
+    return EthereumOpenSeaParser()
 
 
 @pytest.fixture(scope="session")

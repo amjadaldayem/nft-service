@@ -6,7 +6,7 @@ from src.exception import (
     SecondaryMarketDataMissingException,
     TransactionInstructionMissingException,
 )
-from src.model import SecondaryMarketEvent, Transaction
+from src.model import SecondaryMarketEvent, SolanaTransaction
 from src.parser.signature import SignatureParser
 from src.utils import exchange_art_id
 
@@ -23,7 +23,7 @@ class ExchangeArtParserV1(SignatureParser):
             settings.blockchain.solana.market.exchange_art.program_account_v1
         )
 
-    def parse(self, transaction: Transaction) -> Optional[SecondaryMarketEvent]:
+    def parse(self, transaction: SolanaTransaction) -> Optional[SecondaryMarketEvent]:
         instruction = transaction.find_instruction(account_key=self.program_account)
         inner_instructions = transaction.find_inner_instructions(instruction)
 
@@ -38,7 +38,7 @@ class ExchangeArtParserV1(SignatureParser):
         offset = instruction.get_function_offset()
 
         if offset == self.sale:
-            event_type = settings.blockchain.solana.market.event.sale
+            event_type = settings.blockchain.market.event.sale
             buyer = instruction.accounts[0]
             token_key = instruction.accounts[6]
             accumulated_price = 0
@@ -51,27 +51,27 @@ class ExchangeArtParserV1(SignatureParser):
                     accumulated_price += inner_instruction.get_int(4, 8)
             price = int(round(accumulated_price, 3))
         elif offset == self.listing:
-            event_type = settings.blockchain.solana.market.event.listing
+            event_type = settings.blockchain.market.event.listing
             owner = instruction.accounts[0]
             price = instruction.get_int(1, 6)
             token_key = instruction.accounts[2]
         elif offset == self.delisting:
-            event_type = settings.blockchain.solana.market.event.delisting
+            event_type = settings.blockchain.market.event.delisting
             owner = instruction.accounts[0]
             price = 0
             token_key = instruction.accounts[6]
         elif offset == self.bid:
-            event_type = settings.blockchain.solana.market.event.bid
+            event_type = settings.blockchain.market.event.bid
             buyer = instruction.accounts[0]
             price = instruction.get_int(8, 5)
             token_key = instruction.accounts[1]
         elif offset == self.cancel_bidding:
-            event_type = settings.blockchain.solana.market.event.cancel_bidding
+            event_type = settings.blockchain.market.event.cancel_bidding
             buyer = instruction.accounts[0]
             price = 0
             token_key = instruction.accounts[1]
         else:
-            event_type = settings.blockchain.solana.market.event.unknown
+            event_type = settings.blockchain.market.event.unknown
 
         if event_type and token_key and (owner or buyer):
             event = SecondaryMarketEvent(
@@ -105,7 +105,7 @@ class ExchangeArtParserV2(SignatureParser):
             settings.blockchain.solana.market.exchange_art.program_account_v2
         )
 
-    def parse(self, transaction: Transaction) -> Optional[SecondaryMarketEvent]:
+    def parse(self, transaction: SolanaTransaction) -> Optional[SecondaryMarketEvent]:
         instruction = transaction.find_instruction(account_key=self.program_account)
         inner_instructions = transaction.find_inner_instructions(instruction)
 
@@ -120,7 +120,7 @@ class ExchangeArtParserV2(SignatureParser):
         offset = instruction.get_function_offset(8)
 
         if offset == self.sale:
-            event_type = settings.blockchain.solana.market.event.sale
+            event_type = settings.blockchain.market.event.sale
             buyer = instruction.accounts[0]
             token_key = instruction.accounts[6]
             accumulated_price = 0
@@ -133,27 +133,27 @@ class ExchangeArtParserV2(SignatureParser):
                     accumulated_price += inner_instruction.get_int(4, 8)
             price = int(round(accumulated_price, 3))
         elif offset == self.listing:
-            event_type = settings.blockchain.solana.market.event.listing
+            event_type = settings.blockchain.market.event.listing
             owner = instruction.accounts[0]
             price = instruction.get_int(1, 6)
             token_key = instruction.accounts[2]
         elif offset == self.delisting:
-            event_type = settings.blockchain.solana.market.event.delisting
+            event_type = settings.blockchain.market.event.delisting
             owner = instruction.accounts[0]
             price = 0
             token_key = instruction.accounts[6]
         elif offset == self.bid:
-            event_type = settings.blockchain.solana.market.event.bid
+            event_type = settings.blockchain.market.event.bid
             buyer = instruction.accounts[0]
             price = instruction.get_int(8, 5)
             token_key = instruction.accounts[1]
         elif offset == self.cancel_bidding:
-            event_type = settings.blockchain.solana.market.event.cancel_bidding
+            event_type = settings.blockchain.market.event.cancel_bidding
             buyer = instruction.accounts[0]
             price = 0
             token_key = instruction.accounts[1]
         else:
-            event_type = settings.blockchain.solana.market.event.unknown
+            event_type = settings.blockchain.market.event.unknown
 
         if event_type and token_key and (owner or buyer):
             event = SecondaryMarketEvent(
@@ -187,7 +187,7 @@ class ExchangeArtParserAuction(SignatureParser):
             settings.blockchain.solana.market.exchange_art.auction_program_account
         )
 
-    def parse(self, transaction: Transaction) -> Optional[SecondaryMarketEvent]:
+    def parse(self, transaction: SolanaTransaction) -> Optional[SecondaryMarketEvent]:
         instruction = transaction.find_instruction(account_key=self.program_account)
 
         if not instruction:
@@ -201,32 +201,32 @@ class ExchangeArtParserAuction(SignatureParser):
         offset = instruction.get_function_offset()
 
         if offset == self.sale:
-            event_type = settings.blockchain.solana.market.event.sale
+            event_type = settings.blockchain.market.event.sale
             buyer = instruction.accounts[0]
             price = instruction.get_int(1, 6)
             token_key = instruction.accounts[1]
         elif offset == self.listing:
-            event_type = settings.blockchain.solana.market.event.listing
+            event_type = settings.blockchain.market.event.listing
             owner = instruction.accounts[0]
             price = instruction.get_int(1, 6)
             token_key = instruction.accounts[2]
         elif offset == self.delisting:
-            event_type = settings.blockchain.solana.market.event.delisting
+            event_type = settings.blockchain.market.event.delisting
             owner = instruction.accounts[0]
             price = 0
             token_key = instruction.accounts[6]
         elif offset == self.bid:
-            event_type = settings.blockchain.solana.market.event.bid
+            event_type = settings.blockchain.market.event.bid
             buyer = instruction.accounts[0]
             price = instruction.get_int(8, 5)
             token_key = instruction.accounts[1]
         elif offset == self.cancel_bidding:
-            event_type = settings.blockchain.solana.market.event.cancel_bidding
+            event_type = settings.blockchain.market.event.cancel_bidding
             buyer = instruction.accounts[0]
             price = 0
             token_key = instruction.accounts[1]
         else:
-            event_type = settings.blockchain.solana.market.event.unknown
+            event_type = settings.blockchain.market.event.unknown
 
         if event_type and token_key and (owner or buyer):
             event = SecondaryMarketEvent(

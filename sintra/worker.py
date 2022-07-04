@@ -12,6 +12,7 @@ from sintra.blockchain.utils import (
     market_accounts,
     market_name_map,
     market_program_id_map,
+    get_blockchain_id,
 )
 from sintra.config import settings
 from sintra.exception import (
@@ -23,6 +24,9 @@ from sintra.kinesis.producer import KinesisProducer
 from sintra.kinesis.record import KinesisRecord
 from sintra.subscriber.ethereum import EthereumRPCClient
 from sintra.subscriber.solana import SolanaRPCClient
+import os
+
+alchemy_api_key = os.getenv("ALCHEMY_API_KEY")
 
 logger = logging.getLogger(__name__)
 
@@ -30,15 +34,20 @@ logger = logging.getLogger(__name__)
 class TransactionWorker(ABC):
     @abstractmethod
     async def listen_for_transactions(
-        self, market: str, market_address: int, market_accounts: List[str]
+        self,
+        blockchain_id: int,
+        market: str,
+        market_address: int,
+        market_accounts: List[str],
     ) -> None:
         """Subscribe to RPC client, listen for transaction signatures
         and send them to sink connector.
 
         Args:
-          market (str):  Name of secondary marketplace where transaction originates from.
-          market_address (int): Secondary marketplace address.
-          market_accounts (List(str)): List of secondary marketplace accounts.
+            blockchain_id: (int): ID of blockchain.
+            market (str):  Name of secondary marketplace where transaction originates from.
+            market_address (int): Secondary marketplace address.
+            market_accounts (List(str)): List of secondary marketplace accounts.
 
         """
 
@@ -67,7 +76,11 @@ class SolanaTransactionWorker(TransactionWorker):
         self.stream_name = stream_name
 
     async def listen_for_transactions(
-        self, market: str, market_address: int, market_accounts: List[str]
+        self,
+        blockchain_id: int,
+        market: str,
+        market_address: int,
+        market_accounts: List[str],
     ) -> None:
         while True:
             try:
@@ -78,6 +91,7 @@ class SolanaTransactionWorker(TransactionWorker):
                         f"Transaction signature: {signature} with timestamp: {timestamp} from worker: {id(self)}"
                     )
                     record = KinesisRecord(
+                        blockchain_id=blockchain_id,
                         market=market,
                         market_address=market_address,
                         market_account=market_accounts[0],
@@ -122,7 +136,11 @@ class EthereumTransactionWorker(TransactionWorker):
         self.stream_name = stream_name
 
     async def listen_for_transactions(
-        self, market: str, market_address: int, market_accounts: List[str]
+        self,
+        blockchain_id: int,
+        market: str,
+        market_address: int,
+        market_accounts: List[str],
     ) -> None:
         while True:
             try:
@@ -133,6 +151,7 @@ class EthereumTransactionWorker(TransactionWorker):
                         f"Transaction signature: {signature} with timestamp: {timestamp} from worker: {id(self)}"
                     )
                     record = KinesisRecord(
+                        blockchain_id=blockchain_id,
                         market=market,
                         market_address=market_address,
                         market_account=market_accounts[0],
@@ -150,9 +169,9 @@ class EthereumTransactionWorker(TransactionWorker):
     @classmethod
     def build_from_settings(cls) -> EthereumTransactionWorker:
         return cls(
-            settings.blockchain.ethereum.http.endpoint,
+            f"{settings.blockchain.ethereum.http.endpoint}/{alchemy_api_key}",
             settings.blockchain.ethereum.http.timeout,
-            settings.blockchain.ethereum.ws.endpoint,
+            f"{settings.blockchain.ethereum.ws.endpoint}/{alchemy_api_key}",
             settings.blockchain.ethereum.ws.timeout,
             settings.kinesis.stream,
         )
@@ -172,7 +191,11 @@ def _build_worker(
 
 
 def start_worker(
-    worker: TransactionWorker, market: str, market_address: int, market_account: str
+    worker: TransactionWorker,
+    blockchain_id: int,
+    market: str,
+    market_address: int,
+    market_account: str,
 ) -> None:
     try:
         async_loop = asyncio.new_event_loop()
@@ -181,7 +204,7 @@ def start_worker(
         future = asyncio.ensure_future(
             asyncio.wait_for(
                 worker.listen_for_transactions(
-                    market, market_address, [market_account]
+                    blockchain_id, market, market_address, [market_account]
                 ),
                 timeout=None,
             ),
@@ -202,6 +225,7 @@ def start_worker(
 
 
 if __name__ == "__main__":
+    blockchain_id: int = get_blockchain_id(settings.worker.type)
     accounts: List[str] = list(set(market_accounts(settings.worker.type)))
     account_address_map: Dict[str, int] = market_program_id_map(settings.worker.type)
     address_name_map: Dict[int, str] = market_name_map(settings.worker.type)
@@ -211,6 +235,7 @@ if __name__ == "__main__":
 
     try:
         for market_account in accounts:
+            blockchain_id = blockchain_id
             market_address = account_address_map[market_account]
             market_name = address_name_map[market_address]
 
@@ -221,6 +246,7 @@ if __name__ == "__main__":
             thread_executor.submit(
                 start_worker,
                 worker,
+                blockchain_id,
                 market_name,
                 market_address,
                 market_account,

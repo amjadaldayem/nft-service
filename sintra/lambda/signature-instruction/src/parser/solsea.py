@@ -2,7 +2,7 @@ import time
 
 from ..config import settings
 from ..exception import TransactionInstructionMissingException
-from ..model import SecondaryMarketEvent, Transaction
+from ..model import SecondaryMarketEvent, SolanaTransaction
 from ..utils import solsea_id
 from .signature import SignatureParser
 
@@ -17,7 +17,7 @@ class SolseaParser(SignatureParser):
         self.program_account = settings.blockchain.solana.market.solsea.program_account
         self.market_authority_address = settings.blockchain.solana.market.solsea.address
 
-    def parse(self, transaction: Transaction) -> SecondaryMarketEvent:
+    def parse(self, transaction: SolanaTransaction) -> SecondaryMarketEvent:
         instruction = transaction.find_instruction(account_key=self.program_account)
         if not instruction:
             raise TransactionInstructionMissingException(
@@ -39,7 +39,7 @@ class SolseaParser(SignatureParser):
         event_type = None
 
         if offset == self.listing_event:
-            event_type = settings.blockchain.solana.market.event.listing
+            event_type = settings.blockchain.market.event.listing
             price = instruction.get_int(1, 8)
             token_key = instruction.accounts[2]
             token_offset = settings.blockchain.solana.internal.token.transfer
@@ -51,7 +51,7 @@ class SolseaParser(SignatureParser):
                     owner = inner_instruction.accounts[2]
                     break
         elif offset == self.delisting_event:
-            event_type = settings.blockchain.solana.market.event.delisting
+            event_type = settings.blockchain.market.event.delisting
             post_token_balances = transaction.post_token_balances
             for balance in post_token_balances:
                 if balance["uiTokenAmount"]["amount"] == "1":
@@ -59,7 +59,7 @@ class SolseaParser(SignatureParser):
                     token_key = balance["mint"]
                     break
         elif offset == self.sale_event:
-            event_type = settings.blockchain.solana.market.event.sale
+            event_type = settings.blockchain.market.event.sale
             sys_transfer_offset = settings.blockchain.solana.internal.system.transfer
             for inner_instruction in inner_instructions_group.instructions:
                 if (

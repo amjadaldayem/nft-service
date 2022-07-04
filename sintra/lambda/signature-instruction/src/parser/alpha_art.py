@@ -5,7 +5,7 @@ from src.exception import (
     SecondaryMarketDataMissingException,
     TransactionInstructionMissingException,
 )
-from src.model import SecondaryMarketEvent, Transaction
+from src.model import SecondaryMarketEvent, SolanaTransaction
 from src.parser.signature import SignatureParser
 from src.utils import alpha_art_id
 
@@ -19,7 +19,7 @@ class AlphaArtParser(SignatureParser):
             settings.blockchain.solana.market.alpha_art.address
         )
 
-    def parse(self, transaction: Transaction) -> SecondaryMarketEvent:
+    def parse(self, transaction: SolanaTransaction) -> SecondaryMarketEvent:
         """
         Delisting event on AlphaArt is done by transferring the token back to the
         original owner, then closing the previous token account.
@@ -39,7 +39,7 @@ class AlphaArtParser(SignatureParser):
             market_id=alpha_art_id(),
             blocktime=transaction.block_time,
             timestamp=time.time_ns(),
-            event_type=settings.blockchain.solana.market.event.sale,
+            event_type=settings.blockchain.market.event.sale,
             transaction_hash=transaction.signature,
         )
         # in the event of sale, the 8th account in the `matched_pi` is the
@@ -78,7 +78,7 @@ class AlphaArtParser(SignatureParser):
                         # in the event of delisting for Alpha Art,
                         # accounts[0] on `instruction` the owner
                         event.event_type = (
-                            settings.blockchain.solana.market.event.delisting
+                            settings.blockchain.market.event.delisting
                         )
                         event.owner = instruction.accounts[0]
                 elif self.is_set_new_authority(inner_instruction):
@@ -92,7 +92,7 @@ class AlphaArtParser(SignatureParser):
                         lamports = instruction.get_int(1)
                         event.owner = inner_instruction.accounts[1]
                         event.event_type = (
-                            settings.blockchain.solana.market.event.listing
+                            settings.blockchain.market.event.listing
                         )
                         event.price = lamports
                         token_account_to_match = inner_instruction.accounts[0]

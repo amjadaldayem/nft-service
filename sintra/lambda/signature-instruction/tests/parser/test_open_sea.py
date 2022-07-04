@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-from src.model import SecondaryMarketEvent, Transaction
+from src.model import SecondaryMarketEvent, SolanaTransaction
 from src.parser.open_sea import OpenSeaParser, OpenSeaParserAuction
 
 
@@ -92,7 +92,7 @@ class TestSolanartParser:
         with open(open_sea_transaction_path / (event_name + ".json"), "r") as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = open_sea_parser.parse(transaction)
 
@@ -157,7 +157,7 @@ class TestSolanartParser:
         ) as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = open_sea_parser_auction.parse(transaction)
 

@@ -1,5 +1,5 @@
 from src.exception import TransactionParserNotFoundException
-from src.model import SecondaryMarketEvent, Transaction
+from src.model import SecondaryMarketEvent, SolanaTransaction, EthereumTransaction
 from src.parser.alpha_art import AlphaArtParser
 from src.parser.digital_eyes import DigitalEyesParserV1, DigitalEyesParserV2
 from src.parser.exchange_art import (
@@ -21,6 +21,9 @@ from src.parser.solanart import SolanartParser
 from src.parser.solsea import SolseaParser
 from src.parser.open_sea import OpenSeaParser, OpenSeaParserAuction
 
+from src.parser.ethereum.open_sea import EthereumOpenSeaParser
+from typing import Union
+
 
 class TransactionParsing:
     def __init__(self):
@@ -29,7 +32,9 @@ class TransactionParsing:
             self.parsers[parser.program_account] = parser
 
     def parse(
-        self, transaction: Transaction, market_account: str
+        self,
+        transaction: Union[SolanaTransaction, EthereumTransaction],
+        market_account: str,
     ) -> SecondaryMarketEvent:
         parser = self.parsers.get(market_account, None)
         if parser:
@@ -57,4 +62,5 @@ class TransactionParsing:
             MonkeyBusinessParserV3(),
             OpenSeaParser(),
             OpenSeaParserAuction(),
+            EthereumOpenSeaParser(),
         ]

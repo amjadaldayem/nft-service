@@ -55,3 +55,10 @@ def open_sea_id() -> int:
     market_flag = int(settings.blockchain.market.flag, 0)
 
     return solana_address | market_flag | 0x07
+
+
+def ethereum_open_sea_id() -> int:
+    ethereum_address = int(settings.blockchain.address.ethereum, 0)
+    market_flag = int(settings.blockchain.market.flag, 0)
+
+    return ethereum_address | market_flag | 0x01

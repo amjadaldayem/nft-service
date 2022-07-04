@@ -3,7 +3,7 @@ from typing import Optional
 
 from ..config import settings
 from ..exception import TransactionInstructionMissingException
-from ..model import SecondaryMarketEvent, Transaction
+from ..model import SecondaryMarketEvent, SolanaTransaction
 from ..utils import monkey_business_id
 from .signature import SignatureParser
 
@@ -16,7 +16,7 @@ class MonkeyBusinessParser(SignatureParser):
     def __init__(self) -> None:
         self.program_account = None
 
-    def parse(self, transaction: Transaction) -> Optional[SecondaryMarketEvent]:
+    def parse(self, transaction: SolanaTransaction) -> Optional[SecondaryMarketEvent]:
         instruction = transaction.find_instruction(
             account_key=self.program_account, offset=self.sale, width=8
         )
@@ -43,24 +43,24 @@ class MonkeyBusinessParser(SignatureParser):
         offset = instruction.get_function_offset(8)
 
         if offset == self.sale:
-            event_type = settings.blockchain.solana.market.event.sale
+            event_type = settings.blockchain.market.event.sale
             buyer = instruction.accounts[0]
             price = instruction.get_int(8, 5)
             token_key = instruction.accounts[1]
         elif offset == self.listing:
-            event_type = settings.blockchain.solana.market.event.listing
+            event_type = settings.blockchain.market.event.listing
             owner = instruction.accounts[0]
             price = instruction.get_int(16, 6)
             token_key = instruction.accounts[1]
         elif offset == self.delisting:
             # Delisting event on SMB is done by transferring the token back to the
             # original owner, then closing the previous token account.
-            event_type = settings.blockchain.solana.market.event.delisting
+            event_type = settings.blockchain.market.event.delisting
             owner = instruction.accounts[0]
             price = 0
             token_key = instruction.accounts[1]
         else:
-            event_type = settings.blockchain.solana.market.event.unknown
+            event_type = settings.blockchain.market.event.unknown
 
         event = SecondaryMarketEvent(
             blockchain_id=int(settings.blockchain.address.solana, 0),

@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 import pytest
-from src.model import SecondaryMarketEvent, Transaction
+from src.model import SecondaryMarketEvent, SolanaTransaction
 from src.parser.exchange_art import (
     ExchangeArtParserAuction,
     ExchangeArtParserV1,
@@ -60,7 +60,7 @@ class TestExchangeArtParser:
         ) as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = exchange_art_v1_parser.parse(transaction)
 
@@ -124,7 +124,7 @@ class TestExchangeArtParser:
         ) as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = exchange_art_v2_parser.parse(transaction)
 
@@ -176,7 +176,7 @@ class TestExchangeArtParser:
         ) as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = exchange_art_auction_parser.parse(transaction)
 

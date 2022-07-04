@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 import pytest
-from src.model import SecondaryMarketEvent, Transaction
+from src.model import SecondaryMarketEvent, SolanaTransaction
 from src.parser.solsea import SolseaParser
 
 
@@ -20,7 +20,7 @@ class TestSolseaParser:
         with open(solsea_transaction_path / (event_name + ".json"), "r") as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = solsea_parser.parse(transaction)
 

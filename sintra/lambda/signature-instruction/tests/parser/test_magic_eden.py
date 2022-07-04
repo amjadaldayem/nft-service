@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from src.exception import TransactionInstructionMissingException
-from src.model import SecondaryMarketEvent, Transaction
+from src.model import SecondaryMarketEvent, SolanaTransaction
 from src.parser.magic_eden import (
     MagicEdenParserV1,
     MagicEdenParserV2,
@@ -75,7 +75,7 @@ class TestMagicEdenParser:
         ) as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = magic_eden_v1_parser.parse(transaction)
 
@@ -99,7 +99,7 @@ class TestMagicEdenParser:
         with open(magic_eden_v1_transaction_path / "bid.json", "r") as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             with pytest.raises(TransactionInstructionMissingException):
                 magic_eden_v1_parser.parse(transaction)
@@ -177,7 +177,7 @@ class TestMagicEdenParser:
         ) as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = magic_eden_v2_parser.parse(transaction)
 
@@ -230,7 +230,7 @@ class TestMagicEdenParser:
         ) as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = magic_eden_v2_parser.parse(transaction)
 
@@ -283,7 +283,7 @@ class TestMagicEdenParser:
         ) as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = magic_eden_auction_parser.parse(transaction)
 
@@ -336,7 +336,7 @@ class TestMagicEdenParser:
         ) as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = magic_eden_auction_parser.parse(transaction)
 

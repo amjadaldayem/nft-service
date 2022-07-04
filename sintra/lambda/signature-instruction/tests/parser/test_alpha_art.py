@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-from src.model import SecondaryMarketEvent, Transaction
+from src.model import SecondaryMarketEvent, SolanaTransaction
 from src.parser.alpha_art import AlphaArtParser
 
 
@@ -70,7 +70,7 @@ class TestAlphaArtParser:
         ) as json_file:
             json_event = json_file.read()
             transaction_dict = json.loads(json_event)
-            transaction = Transaction.from_dict(transaction_dict)
+            transaction = SolanaTransaction.from_dict(transaction_dict)
 
             secondary_market_event = alpha_art_parser.parse(transaction)
 

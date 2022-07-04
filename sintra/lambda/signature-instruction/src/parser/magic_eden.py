@@ -7,7 +7,7 @@ from src.exception import (
     TransactionInstructionMissingException,
     UnknownTransactionException,
 )
-from src.model import Instruction, SecondaryMarketEvent, Transaction
+from src.model import Instruction, SecondaryMarketEvent, SolanaTransaction
 from src.parser.signature import SignatureParser
 from src.utils import magic_eden_id
 
@@ -22,7 +22,7 @@ class MagicEdenParserV1(SignatureParser):
         )
         self.market_authority_address = "GUfCR9mK6azb9vcpsxgXyj7XRPAKJd4KMHTTVvtncGgp"
 
-    def parse(self, transaction: Transaction) -> SecondaryMarketEvent:
+    def parse(self, transaction: SolanaTransaction) -> SecondaryMarketEvent:
         # If the inner instruction array contains `transfer`s, this is a
         # sale; otherwise, if the length of the array is 2, it is a listing or
         # delisting
@@ -35,7 +35,7 @@ class MagicEdenParserV1(SignatureParser):
 
         offset = instruction.get_function_offset(8)
 
-        event_type = settings.blockchain.solana.market.event.sale
+        event_type = settings.blockchain.market.event.sale
         if offset == self.BID_EVENT:
             # Let's not capture Bid events because it is not quite easy
             # now to figure out the token address
@@ -85,14 +85,14 @@ class MagicEdenParserV1(SignatureParser):
                             lamports = instruction.get_int(8, 8)
                             event.owner = inner_instruction.accounts[1]
                             event.event_type = (
-                                settings.blockchain.solana.market.event.listing
+                                settings.blockchain.market.event.listing
                             )
                             event.price = lamports
 
                             token_account_to_match = inner_instruction.accounts[0]
                         else:
                             event.event_type = (
-                                settings.blockchain.solana.market.event.delisting
+                                settings.blockchain.market.event.delisting
                             )
                             event.owner = new_owner_key
                             token_account_to_match = inner_instruction.accounts[0]
@@ -142,7 +142,7 @@ class MagicEdenParserV2(SignatureParser):
         )
 
     def find_magic_eden_v2_instruction(
-        self, transaction: Transaction
+        self, transaction: SolanaTransaction
     ) -> Optional[Instruction]:
         instruction = transaction.find_instruction(
             self.program_account, offset=self.sale_event, width=8
@@ -158,7 +158,7 @@ class MagicEdenParserV2(SignatureParser):
 
         return instruction
 
-    def parse(self, transaction: Transaction):
+    def parse(self, transaction: SolanaTransaction):
         # So for sales event there could be variable number of
         # instructions that all match, we need to check and match to see if
         # any of the instruction matches.
@@ -184,7 +184,7 @@ class MagicEdenParserV2(SignatureParser):
             owner = instruction.accounts[0]
             token_key = instruction.accounts[4]
             price = instruction.get_int(10, 8)
-            event_type = settings.blockchain.solana.market.event.listing
+            event_type = settings.blockchain.market.event.listing
             # Try to find if there is any set authority inner instruction,
             # if so, it is a listing otherwise it is a price update
             if inner_instructions_group:
@@ -194,24 +194,24 @@ class MagicEdenParserV2(SignatureParser):
                         and inner_instruction.get_function_offset()
                         == settings.blockchain.solana.internal.token.set_authority
                     ):
-                        event_type = settings.blockchain.solana.market.event.listing
+                        event_type = settings.blockchain.market.event.listing
                         break
         elif offset == self.delisting_event:
             owner = instruction.accounts[0]
             token_key = instruction.accounts[3]
-            event_type = settings.blockchain.solana.market.event.delisting
+            event_type = settings.blockchain.market.event.delisting
         elif offset == self.bid_event:
             buyer = instruction.accounts[0]
             price = instruction.get_int(10, 8)
-            event_type = settings.blockchain.solana.market.event.bid
+            event_type = settings.blockchain.market.event.bid
             token_key = instruction.accounts[2]
         elif offset == self.sale_event:
-            event_type = settings.blockchain.solana.market.event.sale
+            event_type = settings.blockchain.market.event.sale
             buyer = instruction.accounts[0]
             price = instruction.get_int(10, 8)
             token_key = instruction.accounts[4]
         elif offset == self.cancel_bidding_event:
-            event_type = settings.blockchain.solana.market.event.bidding
+            event_type = settings.blockchain.market.event.bidding
             buyer = instruction.accounts[0]
             price = 0
             token_key = instruction.accounts[2]
@@ -248,7 +248,7 @@ class MagicEdenAuctionParser(SignatureParser):
         )
 
     def find_magic_eden_auction_instruction(
-        self, transaction: Transaction
+        self, transaction: SolanaTransaction
     ) -> Optional[Instruction]:
         instruction = transaction.find_instruction(
             self.program_account, offset=self.magic_eden_auction_settle_v2, width=8
@@ -264,7 +264,7 @@ class MagicEdenAuctionParser(SignatureParser):
 
         return instruction
 
-    def parse(self, transaction: Transaction):
+    def parse(self, transaction: SolanaTransaction):
         instruction = self.find_magic_eden_auction_instruction(transaction)
         if not instruction:
             raise TransactionInstructionMissingException(
@@ -279,7 +279,7 @@ class MagicEdenAuctionParser(SignatureParser):
 
         owner = ""
         buyer = instruction.accounts[0]
-        event_type = settings.blockchain.solana.market.event.sale_auction
+        event_type = settings.blockchain.market.event.sale_auction
         price = 0
         token_account = None
         for inner_instruction in inner_instructions_group.instructions:
