@@ -1,25 +1,25 @@
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import List
 
-from data_api.config import settings
 from data_api.exception import DataClientException, ResourceNotFoundException
 from data_api.model.token_feed import Token, TokenDetails
-from data_api.open_search.client import OpenSearchClient
 from data_api.repository.token_feed import TokenFeedRepository
+from data_api.storage.postgres.client import PostgresClient
+from data_api.utils import postgres_params
 
 
 class TokenFeedService:
     def __init__(self) -> None:
-        domain, host, index = self._opensearch_params()
+        host, port, database_name, max_connections = postgres_params()
 
-        open_search_client = OpenSearchClient(
-            os.getenv("AWS_ACCESS_KEY_ID"),
-            os.getenv("AWS_SECRET_ACCESS_KEY"),
-            os.getenv("AWS_REGION"),
-            domain,
+        open_search_client = PostgresClient(
             host,
-            index,
+            port,
+            os.getenv("POSTGRES_USERNAME", None),
+            os.getenv("POSTGRES_PASSWORD", None),
+            database_name,
+            max_connections,
         )
         self.token_feed_repository = TokenFeedRepository(open_search_client)
 
@@ -27,55 +27,31 @@ class TokenFeedService:
         self, blockchain_name: str, collection_name: str, token_name: str
     ) -> TokenDetails:
         blockchain_name = blockchain_name.capitalize()
-        json_response = self.token_feed_repository.read_token(
+        response = self.token_feed_repository.read_token(
             blockchain_name, collection_name, token_name
         )
-        if not json_response:
+        if not response:
             raise DataClientException("Problems with client querying data store.")
 
-        hits: List[Dict[str, Any]] = json_response.get("hits", [])
-        if len(hits) > 0:
-            token_hit = hits[0]
-            token_dict = token_hit["_source"]
-            token_details = TokenDetails.from_dict(token_dict)
-
+        if len(response) > 0:
+            token_details = TokenDetails.from_dict(response[0])
             return token_details
 
         raise ResourceNotFoundException("Token not found.")
 
     def read_tokens(self) -> List[Token]:
-        json_response = self.token_feed_repository.read_tokens()
-        if not json_response:
+        response = self.token_feed_repository.read_tokens()
+        if not response:
             raise DataClientException("Problems with client querying data store.")
 
-        token_hits: List[Dict[str, Any]] = json_response.get("hits", [])
-
-        tokens: List[Token] = [
-            Token.from_dict(token_hit["_source"]) for token_hit in token_hits
-        ]
-
+        tokens: List[Token] = [Token.from_dict(row) for row in response]
         return tokens
 
     def read_tokens_from(self, timestamp: datetime) -> List[Token]:
         formatted_dt = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        json_response = self.token_feed_repository.read_tokens_from(formatted_dt)
-        if not json_response:
+        response = self.token_feed_repository.read_tokens_from(formatted_dt)
+        if not response:
             raise DataClientException("Problems with client querying data store.")
 
-        token_hits: List[Dict[str, Any]] = json_response.get("hits", [])
-
-        tokens: List[Token] = [
-            Token.from_dict(token_hit["_source"]) for token_hit in token_hits
-        ]
-
+        tokens: List[Token] = [Token.from_dict(row) for row in response]
         return tokens
-
-    def _opensearch_params(self) -> Tuple[str, str, str]:
-        hostname = settings.opensearch.host
-        port = settings.opensearch.port
-        domain = settings.opensearch.domain
-        index = settings.opensearch.token_feed_index
-
-        host = f"{hostname}:{port}"
-
-        return domain, host, index

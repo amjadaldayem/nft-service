@@ -7,6 +7,12 @@ PORT = 4566
 TOKEN_FEED_INDEX = "token-feed-index"
 DOMAIN = "my-demo"
 
+[POSTGRES]
+HOST = "localhost"
+PORT = "5432"
+MAX_CONNECTIONS = 10
+DATABASE_NAME = "sintra-insight"
+
 [BLOCKCHAIN.ADDRESS]
 NONE = "0x000000"
 ALL = "0xFF0000"

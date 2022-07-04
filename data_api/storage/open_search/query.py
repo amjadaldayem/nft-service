@@ -1,7 +1,9 @@
 from typing import Any, Dict
 
+from data_api.storage.query_builder import QueryBuilder
 
-class QueryBuilder:
+
+class OpenSearchQueryBuilder(QueryBuilder):
     def read_token_query(
         self, blockchain_name: str, collection_name_slug: str, token_name_slug: str
     ) -> Dict[str, Any]:

@@ -3,6 +3,26 @@ from typing import Dict, Tuple
 from data_api.config import settings
 
 
+def opensearch_params() -> Tuple[str, str, str]:
+    hostname = settings.opensearch.host
+    port = settings.opensearch.port
+    domain = settings.opensearch.domain
+    index = settings.opensearch.token_feed_index
+
+    host = f"{hostname}:{port}"
+
+    return domain, host, index
+
+
+def postgres_params() -> Tuple[str, str, str, str]:
+    host = settings.postgres.host
+    port = settings.postgres.port
+    database_name = settings.postgres.database_name
+    max_connections = settings.postgres.max_connections
+
+    return host, port, database_name, max_connections
+
+
 def solana_market_name_map() -> Dict[int, str]:
     (
         magic_eden,

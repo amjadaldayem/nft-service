@@ -1,0 +1,15 @@
+version: '3.3'
+
+services:
+  postgres:
+    image: "bitnami/postgresql:13.6.0"
+    container_name: "postgres"
+    environment: 
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - /tmp/postgres:/var/lib/postgres/data
+      - ./data/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    network_mode: "bridge"

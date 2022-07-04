@@ -45,6 +45,7 @@ class EntityDetails(BaseModel):
 
 
 class Token(BaseModel):
+    id: int
     blockchain_id: int
     blockchain_name: Optional[str]
     collection_id: str
@@ -69,6 +70,7 @@ class Token(BaseModel):
     @classmethod
     def from_dict(cls, token_dict: Dict[str, Any]) -> Token:
         return cls(
+            id=token_dict["id"],
             blockchain_id=token_dict["blockchain_id"],
             blockchain_name=token_dict.get("blockchain_name", ""),
             collection_id=token_dict["collection_id"],
@@ -93,6 +95,7 @@ class Token(BaseModel):
 
 
 class TokenDetails(BaseModel):
+    id: int
     blockchain_id: int
     blockchain_name: Optional[str]
     collection_id: str
@@ -112,6 +115,7 @@ class TokenDetails(BaseModel):
     @classmethod
     def from_dict(cls, token_details: Dict[str, Any]) -> TokenDetails:
         return cls(
+            id=token_details["id"],
             blockchain_id=token_details["blockchain_id"],
             blockchain_name=token_details.get("blockchain_name", ""),
             collection_id=token_details["collection_id"],
