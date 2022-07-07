@@ -12,7 +12,7 @@ ALL = "0xFF0000"
 SOLANA = "0x010000"
 ETHEREUM = "0x030000"
 
-[BLOCKCHAIN.SOLANA.MARKET.EVENT]
+[BLOCKCHAIN.MARKET.EVENT]
 UNKNOWN = 0
 LISTING = 1
 DELISTING = 2
@@ -28,3 +28,8 @@ STREAM_NAME = "nft-metadata-stream"
 [BLOCKCHAIN.SOLANA.HTTP]
 ENDPOINT = "https://api.devnet.solana.com"
 TIMEOUT = 50
+
+[BLOCKCHAIN.ETHEREUM.HTTP]
+ENDPOINT = "https://eth-mainnet.alchemyapi.io/v2"
+TIMEOUT = 50
+FLOOR_PRICE = "https://eth-mainnet.g.alchemy.com/nft/v2"

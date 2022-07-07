@@ -45,4 +45,15 @@ class SolanaHTTPClient(AsyncClient):
         self._provider = AsynchronousHTTPProvider(endpoint, timeout, username, password)
 
 
-__all__ = ["SolanaHTTPClient"]
+class EthereumHTTPClient:
+    def __init__(
+        self,
+        endpoint: str,
+        timeout: float,
+    ) -> None:
+
+        self.endpoint = endpoint
+        self.timeout = timeout
+
+
+__all__ = ["SolanaHTTPClient", "EthereumHTTPClient"]

@@ -2,18 +2,22 @@ import base64
 import logging
 import os
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Any, Dict
 
 import base58
 from solana.exceptions import SolanaRpcException
 from solana.publickey import PublicKey
-from src.async_client import SolanaHTTPClient
+from src.async_client import SolanaHTTPClient, EthereumHTTPClient
 from src.config import settings
 from src.exception import DecodingException, UnableToFetchMetadataException
 from src.model import NFTMetadata, SecondaryMarketEvent
 from src.utils import MetadataUnpacker
+import requests
 
 logger = logging.getLogger(__file__)
+
+
+alchemy_api_key = os.getenv("ALCHEMY_API_KEY")
 
 
 class MetadataFetcher(ABC):
@@ -115,7 +119,59 @@ class SolanaMetadataFetcher(MetadataFetcher):
             data = base58.b58decode(data)
 
         try:
-            return self.unpacker.unpack(data)
+            return self.unpacker.solana_metadata_unpack(data)
         except DecodingException as error:
             logger.error(error)
             raise ValueError from error
+
+
+class EthereumMetadataFetcher(MetadataFetcher):
+    def __init__(self) -> None:
+        self.ethereum_client = EthereumHTTPClient(
+            endpoint=settings.blockchain.ethereum.http.endpoint,
+            timeout=settings.blockchain.ethereum.http.timeout,
+        )
+        self.unpacker = MetadataUnpacker()
+
+    async def get_nft_metadata(self, event: SecondaryMarketEvent) -> NFTMetadata:
+        token_key = event.token_key
+        alchemy_params = token_key.split("/")
+        contract_address = alchemy_params[0]
+        token_id = alchemy_params[1]
+        logger.info(f"Fetching metadata for contract address: {contract_address}.")
+        nft_metadata = await self._fetch_metadata(contract_address, token_id)
+        return nft_metadata
+
+    async def _fetch_metadata(
+        self, contract_address: str, token_id: str
+    ) -> NFTMetadata:
+        params = {
+            "contractAddress": contract_address,
+            "tokenId": token_id,
+        }
+
+        try:
+            response = requests.get(
+                f"{self.ethereum_client.endpoint}/{alchemy_api_key}/getNFTMetadata",
+                params=params,
+            )
+
+            data = response.json()
+            if not data:
+                raise UnableToFetchMetadataException(
+                    f"Unable to fetch metadata for token with token id: {token_id}."
+                )
+            try:
+                nft_metadata = self._unpack_data(data)
+                return nft_metadata
+            except ValueError as error:
+                raise UnableToFetchMetadataException(error) from error
+        except ValueError as error:
+            logger.error(error)
+            raise UnableToFetchMetadataException(error) from error
+
+    def _unpack_data(self, data: Dict[str, Any]) -> NFTMetadata:
+        try:
+            return self.unpacker.ethereum_metadata_unpack(data)
+        except ValueError as error:
+            logger.error(error)

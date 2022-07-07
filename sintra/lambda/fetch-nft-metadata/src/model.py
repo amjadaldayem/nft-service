@@ -60,18 +60,19 @@ class NFTMetadata:
     timestamp: int
     program_account_key: str
     transaction_hash: str
-    primary_sale_happened: bool
-    last_market_activity: str
-    is_mutable: bool
+    primary_sale_happened: Optional[bool]
+    last_market_activity: Optional[str]
+    is_mutable: Optional[bool]
     name: Optional[str]
     symbol: Optional[str]
     uri: Optional[str]
     owner: Optional[str]
-    seller_fee_basis_points: str
+    seller_fee_basis_points: Optional[str]
     creators: List[str]
     verified: List[str]
-    share: List[str]
+    share: Optional[List[str]]
     price: float
+    floor_price: Optional[float]
 
     def __init__(
         self,
@@ -87,6 +88,7 @@ class NFTMetadata:
         creators,
         verified,
         share,
+        floor_price: float = None,
         market_id: int = None,
         price: float = None,
         blockchain_id: int = None,
@@ -108,6 +110,7 @@ class NFTMetadata:
         self.creators = creators
         self.verified = verified
         self.share = share
+        self.floor_price = floor_price
         self.market_id = market_id
         self.price = price
         self.blockchain_id = blockchain_id

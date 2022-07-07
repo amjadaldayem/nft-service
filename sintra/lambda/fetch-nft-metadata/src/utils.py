@@ -2,34 +2,41 @@
 
 import struct
 import time
+import os
 
 import base58
 from solana.rpc.api import MemcmpOpt
 from src.config import settings
-from src.exception import DecodingException
+from src.exception import DecodingException, UnableToFetchFloorPriceException
 from src.model import NFTMetadata
+import logging
+import requests
 
 
-def solana_event_type(event_type: int) -> str:
-    if event_type == settings.blockchain.solana.market.event.listing:
+logger = logging.getLogger(__file__)
+alchemy_api_key = os.getenv("ALCHEMY_API_KEY")
+
+
+def transaction_event_type(event_type: int) -> str:
+    if event_type == settings.blockchain.market.event.listing:
         return "Listing"
 
-    if event_type == settings.blockchain.solana.market.event.delisting:
+    if event_type == settings.blockchain.market.event.delisting:
         return "Delisting"
 
-    if event_type == settings.blockchain.solana.market.event.sale:
+    if event_type == settings.blockchain.market.event.sale:
         return "Sale"
 
-    if event_type == settings.blockchain.solana.market.event.update:
+    if event_type == settings.blockchain.market.event.update:
         return "Price update"
 
-    if event_type == settings.blockchain.solana.market.event.bid:
+    if event_type == settings.blockchain.market.event.bid:
         return "Bid"
 
-    if event_type == settings.blockchain.solana.market.event.sale_auction:
+    if event_type == settings.blockchain.market.event.sale_auction:
         return "Sale auction"
 
-    if event_type == settings.blockchain.solana.market.event.bidding:
+    if event_type == settings.blockchain.market.event.bidding:
         return "Bidding"
 
     return None
@@ -63,7 +70,7 @@ class MetadataUnpacker:
             ],
         }
 
-    def unpack(self, data) -> NFTMetadata:
+    def solana_metadata_unpack(self, data) -> NFTMetadata:
         if data[0] != 4:
             raise DecodingException("Can't decode NFT metadata.")
         i = 1
@@ -123,6 +130,32 @@ class MetadataUnpacker:
             creators=creators,
             verified=verified,
             share=share,
+        )
+        return metadata
+
+    def ethereum_metadata_unpack(self, data) -> NFTMetadata:
+        name = data["metadata"]["name"]
+        uri = data["tokenUri"]["raw"]
+        contract_address = data["contract"]["address"]
+        token_id = data["id"]["tokenId"]
+        token_key = f"{contract_address}/{token_id}"
+
+        try:
+            response = requests.get(
+                f"{settings.blockchain.ethereum.http.floor_price}/{alchemy_api_key}/getFloorPrice?contractAddress={contract_address}"
+            ).json()
+            floor_price = response["openSea"]["floorPrice"]
+
+        except KeyError as error:
+            logger.error(error)
+            raise UnableToFetchFloorPriceException(error) from error
+
+        metadata = NFTMetadata(
+            name=name,
+            uri=uri,
+            timestamp=time.time_ns(),
+            token_key=token_key,
+            floor_price=floor_price,
         )
         return metadata
 

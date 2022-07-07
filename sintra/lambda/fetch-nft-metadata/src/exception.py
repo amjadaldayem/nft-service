@@ -16,3 +16,7 @@ class DecodingException(SintraException):
 
 class UnableToFetchMetadataException(SintraException):
     """Raised when process of decoding NFT metadata fails."""
+
+
+class UnableToFetchFloorPriceException(SintraException):
+    """Raised when process of fetching floor price fails."""
