@@ -42,11 +42,6 @@ jobs:
       - name: Build API Lambda Image and ECS Image
         id: build-image
         env:
-          # Tagging format:
-          #  repo:<env>-[lambda|ecs]/<hash|latest>
-          # e.g., dev-lambda latest, dev-17ae13a
-          LAMBDA_TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-lambda-
-          ECS_TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-ecs-
           ECS_WORKER_SERVICE_TAG_PREFIX: ${{ env.DEPLOYMENT_ENV }}-ecs-worker-service-
           FETCH_NFT_METADATA_LAMBDA_PREFIX: ${{ env.DEPLOYMENT_ENV }}-fetch-nft-metadata-lambda-
           INDEX_NFT_DATA_LAMBDA_PREFIX: ${{ env.DEPLOYMENT_ENV }}-index-nft-data-lambda-
@@ -57,14 +52,6 @@ jobs:
           KINESIS_PRODUCER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-p-
           KINESIS_CONSUMER_TAG_HEAD: ${{ env.DEPLOYMENT_ENV }}-kine-c-
         run: |
-          LAMBDA_IMAGE_TAG_LATEST="${LAMBDA_TAG_PREFIX}latest"
-          LAMBDA_IMAGE_TAG_HASH="${LAMBDA_TAG_PREFIX}${GITHUB_SHORT_SHA}"
-          docker build -f Dockerfile-lambda -t $ECR_REPO_URI:$LAMBDA_IMAGE_TAG_LATEST -t $ECR_REPO_URI:$LAMBDA_IMAGE_TAG_HASH .
-          
-          ECS_IMAGE_TAG_LATEST="${ECS_TAG_PREFIX}latest"
-          ECS_IMAGE_TAG_HASH="${ECS_TAG_PREFIX}${GITHUB_SHORT_SHA}"
-          docker build -f Dockerfile-ecs -t $ECR_REPO_URI:$ECS_IMAGE_TAG_LATEST -t $ECR_REPO_URI:$ECS_IMAGE_TAG_HASH .
-          
           ECS_WORKER_SERVICE_IMAGE_TAG_LATEST="${ECS_WORKER_SERVICE_TAG_PREFIX}latest"
           ECS_WORKER_SERVICE_IMAGE_TAG_HASH="${ECS_WORKER_SERVICE_TAG_PREFIX}${GITHUB_SHORT_SHA}"
           docker build -f Dockerfile -t $ECR_REPO_URI:$ECS_WORKER_SERVICE_IMAGE_TAG_LATEST -t $ECR_REPO_URI:$ECS_WORKER_SERVICE_IMAGE_TAG_HASH .
