@@ -3,10 +3,10 @@ from typing import Dict, List
 from strenum import StrEnum
 
 from sintra.blockchain.ethereum.utils import (
-    ethereum_market_name_map,
-    ethereum_market_address_map,
-    ethereum_market_program_id_map,
     ethereum_market_accounts,
+    ethereum_market_address_map,
+    ethereum_market_name_map,
+    ethereum_market_program_id_map,
 )
 from sintra.blockchain.solana.utils import (
     solana_market_accounts,
@@ -14,7 +14,7 @@ from sintra.blockchain.solana.utils import (
     solana_market_name_map,
     solana_market_program_id_map,
 )
-from src.config import settings
+from sintra.config import settings
 
 
 class BlockchainName(StrEnum):

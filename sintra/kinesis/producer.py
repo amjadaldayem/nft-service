@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 class KinesisProducer:
     def __init__(self) -> None:
-        active_var = str(settings.localstack.active).lower()
-        active = active_var == "true"
+        active_param = str(settings.localstack.active).lower()
+        active = active_param == "true"
 
         if active:
             self.client = boto3.client(

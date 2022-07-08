@@ -9,10 +9,10 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Type
 
 from sintra.blockchain.utils import (
+    get_blockchain_id,
     market_accounts,
     market_name_map,
     market_program_id_map,
-    get_blockchain_id,
 )
 from sintra.config import settings
 from sintra.exception import (
@@ -24,9 +24,7 @@ from sintra.kinesis.producer import KinesisProducer
 from sintra.kinesis.record import KinesisRecord
 from sintra.subscriber.ethereum import EthereumRPCClient
 from sintra.subscriber.solana import SolanaRPCClient
-import os
-
-alchemy_api_key = os.getenv("ALCHEMY_API_KEY")
+from sintra.utils import get_env_variable
 
 logger = logging.getLogger(__name__)
 
@@ -168,6 +166,8 @@ class EthereumTransactionWorker(TransactionWorker):
 
     @classmethod
     def build_from_settings(cls) -> EthereumTransactionWorker:
+        alchemy_api_key = get_env_variable("ALCHEMY_API_KEY")
+
         return cls(
             f"{settings.blockchain.ethereum.http.endpoint}/{alchemy_api_key}",
             settings.blockchain.ethereum.http.timeout,
@@ -235,7 +235,6 @@ if __name__ == "__main__":
 
     try:
         for market_account in accounts:
-            blockchain_id = blockchain_id
             market_address = account_address_map[market_account]
             market_name = address_name_map[market_address]
 

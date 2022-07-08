@@ -7,7 +7,6 @@ from typing import AsyncGenerator, List, Optional, Tuple
 from websockets import connect
 from websockets.client import WebSocketClientProtocol
 
-
 from sintra.utils import get_env_variable
 
 logger = logging.getLogger(__name__)
