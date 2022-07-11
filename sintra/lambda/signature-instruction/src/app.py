@@ -14,18 +14,14 @@ from src.exception import (
     UnknownTransactionException,
 )
 from src.model import (
+    EthereumTransaction,
     SecondaryMarketEvent,
     SignatureEvent,
-    Transaction,
     SolanaTransaction,
-    EthereumTransaction,
 )
 from src.parsing import TransactionParsing
 from src.producer import KinesisProducer
 from web3 import Web3
-from sintra.config import settings
-
-alchemy_api_key = os.getenv("ALCHEMY_API_KEY")
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +64,7 @@ def lambda_handler(event: Dict[str, Any], context):
         f"Initializing AlchemyHTTPClient for endpoint: {settings.blockchain.ethereum.http.endpoint}."
     )
 
+    alchemy_api_key = os.getenv("ALCHEMY_API_KEY")
     alchemy_http_url = f"{settings.blockchain.ethereum.http.endpoint}/{alchemy_api_key}"
     http_provider = Web3.HTTPProvider(alchemy_http_url)
     alchemy_client = Web3(http_provider)

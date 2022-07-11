@@ -111,7 +111,7 @@ class SolanaTransactionWorker(TransactionWorker):
             settings.blockchain.solana.http.timeout,
             settings.blockchain.solana.ws.endpoint,
             settings.blockchain.solana.ws.timeout,
-            settings.kinesis.stream,
+            settings.kinesis.stream_name,
         )
 
 
@@ -173,7 +173,7 @@ class EthereumTransactionWorker(TransactionWorker):
             settings.blockchain.ethereum.http.timeout,
             f"{settings.blockchain.ethereum.ws.endpoint}/{alchemy_api_key}",
             settings.blockchain.ethereum.ws.timeout,
-            settings.kinesis.stream,
+            settings.kinesis.stream_name,
         )
 
 

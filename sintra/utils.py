@@ -36,7 +36,6 @@ def get_env_variable(env_name: str) -> Any:
     else:
         secrets_manager = boto3.client(
             "secretsmanager",
-            region_name=settings.secretsmanager.region,
         )
 
     try:
