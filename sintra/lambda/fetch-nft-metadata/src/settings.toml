@@ -32,4 +32,3 @@ TIMEOUT = 50
 [BLOCKCHAIN.ETHEREUM.HTTP]
 ENDPOINT = "https://eth-mainnet.alchemyapi.io/v2"
 TIMEOUT = 50
-FLOOR_PRICE = "https://eth-mainnet.g.alchemy.com/nft/v2"

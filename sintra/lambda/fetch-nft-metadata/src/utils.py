@@ -7,7 +7,7 @@ import os
 import base58
 from solana.rpc.api import MemcmpOpt
 from src.config import settings
-from src.exception import DecodingException, UnableToFetchFloorPriceException
+from src.exception import DecodingException
 from src.model import NFTMetadata
 import logging
 import requests
@@ -140,22 +140,11 @@ class MetadataUnpacker:
         token_id = data["id"]["tokenId"]
         token_key = f"{contract_address}/{token_id}"
 
-        try:
-            response = requests.get(
-                f"{settings.blockchain.ethereum.http.floor_price}/{alchemy_api_key}/getFloorPrice?contractAddress={contract_address}"
-            ).json()
-            floor_price = response["openSea"]["floorPrice"]
-
-        except KeyError as error:
-            logger.error(error)
-            raise UnableToFetchFloorPriceException(error) from error
-
         metadata = NFTMetadata(
             name=name,
             uri=uri,
             timestamp=time.time_ns(),
             token_key=token_key,
-            floor_price=floor_price,
         )
         return metadata
 

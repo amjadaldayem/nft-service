@@ -9,7 +9,11 @@ from src.config import settings
 from src.exception import DecodingException, FetchTokenDataException
 from src.model import NFTData, NFTMetadata
 from src.producer import KinesisProducer
-from src.token_data import SolanaTokenDataFetcher, TokenDataFetcher
+from src.token_data import (
+    SolanaTokenDataFetcher,
+    TokenDataFetcher,
+    EthereumTokenDataFetcher,
+)
 from src.utils import ethereum_address, solana_address
 
 logger = logging.getLogger(__name__)
@@ -35,10 +39,12 @@ def lambda_handler(event, context):
         os.getenv("AWS_REGION"),
         localstack_active,
     )
-    token_fetcher: TokenDataFetcher = SolanaTokenDataFetcher(
+    solana_token_fetcher: TokenDataFetcher = SolanaTokenDataFetcher(
         username=os.getenv("HTTP_USERNAME"),
         password=os.getenv("HTTP_PASSWORD"),
     )
+
+    ethereum_token_fetcher: TokenDataFetcher = EthereumTokenDataFetcher()
 
     records = event["Records"]
 
@@ -61,15 +67,19 @@ def lambda_handler(event, context):
             if nft_metadata.blockchain_id == solana_address():
                 try:
                     nft_data = async_loop.run_until_complete(
-                        get_nft_data(token_fetcher, nft_metadata)
+                        get_nft_data(solana_token_fetcher, nft_metadata)
                     )
                     nft_data_list.append(nft_data)
                 except (FetchTokenDataException, json.JSONDecodeError):
                     continue
             elif nft_metadata.blockchain_id == ethereum_address():
-                logger.warning(
-                    f"NFT Metadata from blockchain: {nft_metadata.blockchain_id} is not supported."
-                )
+                try:
+                    nft_data = async_loop.run_until_complete(
+                        get_nft_data(ethereum_token_fetcher, nft_metadata)
+                    )
+                    nft_data_list.append(nft_data)
+                except (FetchTokenDataException, json.JSONDecodeError):
+                    continue
                 continue
             else:
                 logger.warning(

@@ -72,7 +72,6 @@ class NFTMetadata:
     verified: List[str]
     share: Optional[List[str]]
     price: float
-    floor_price: Optional[float]
 
     def __init__(
         self,
@@ -88,7 +87,6 @@ class NFTMetadata:
         creators,
         verified,
         share,
-        floor_price: float = None,
         market_id: int = None,
         price: float = None,
         blockchain_id: int = None,
@@ -110,7 +108,6 @@ class NFTMetadata:
         self.creators = creators
         self.verified = verified
         self.share = share
-        self.floor_price = floor_price
         self.market_id = market_id
         self.price = price
         self.blockchain_id = blockchain_id

@@ -51,7 +51,7 @@ def kinesis_index_nft_data_stream(
 
 
 @pytest.fixture(scope="session")
-def kinesis_input_event() -> Dict[str, Any]:
+def solana_kinesis_input_event() -> Dict[str, Any]:
     event = {
         "blockchain_id": 65536,
         "market_id": 65792,
@@ -60,6 +60,55 @@ def kinesis_input_event() -> Dict[str, Any]:
         "timestamp": "2022-06-03 14:25:30",
         "program_account_key": "M2mx93ekt1fmXSVkTrUL9xVFHkmME8HTUi5Cyc5aF7K",
         "transaction_hash": "1eE5Sw16rNVg6Z7xWhiQA7Lijp8DDZ2XGoRGK8GR9fCeCA5CYKib3qpQNVYh25hzUaUxhLguGgtdmSFJG13yRsz",
+        "primary_sale_happened": True,
+        "last_market_activity": "Listing",
+        "is_mutable": False,
+        "name": "Example NFT",
+        "symbol": "eNFT",
+        "uri": "http://example.nft",
+        "owner": "5AmZM5qY2LZtBMVSTVzyZmUGFCgiMTD9xaRuLF8XF1hK",
+        "seller_fee_basis_points": "",
+        "creators": ["Creator #1", "Creator #2"],
+        "verified": ["true", "true"],
+        "share": [],
+        "price": 0.01,
+    }
+    event = json.dumps(event)
+    event = event.encode()
+    event_data = base64.b64encode(event)
+
+    return {
+        "Records": [
+            {
+                "kinesis": {
+                    "kinesisSchemaVersion": "1.0",
+                    "partitionKey": "1",
+                    "sequenceNumber": "49590338271490256608559692538361571095921575989136588898",
+                    "data": event_data,
+                    "approximateArrivalTimestamp": 1545084650.987,
+                },
+                "eventSource": "aws:kinesis",
+                "eventVersion": "1.0",
+                "eventID": "shardId-000000000006:49590338271490256608559692538361571095921575989136588898",
+                "eventName": "aws:kinesis:record",
+                "invokeIdentityArn": "arn:aws:iam::123456789012:role/lambda-kinesis-role",
+                "awsRegion": "eu-central-1",
+                "eventSourceARN": "arn:aws:kinesis:us-east-2:123456789012:stream/lambda-stream",
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def ethereum_kinesis_input_event() -> Dict[str, Any]:
+    event = {
+        "blockchain_id": 196608,
+        "market_id": 196865,
+        "token_key": "0xaf6D892177BBabCD71623f55728eb7bc1E919B8e/15",
+        "blocktime": "2022-06-01 13:15:55",
+        "timestamp": "2022-06-03 14:25:30",
+        "program_account_key": "M2mx93ekt1fmXSVkTrUL9xVFHkmME8HTUi5Cyc5aF7K",
+        "transaction_hash": "0x67e68505498206d75c80c545e6832934082439290649ba59f6efde545c23c77a",
         "primary_sale_happened": True,
         "last_market_activity": "Listing",
         "is_mutable": False,
@@ -149,9 +198,45 @@ def kinesis_input_event_with_fake_blockchain() -> Dict[str, Any]:
 
 
 @pytest.fixture(scope="session")
-def kinesis_invalid_input_event() -> Dict[str, Any]:
+def solana_kinesis_invalid_input_event() -> Dict[str, Any]:
     event = {
         "blockchain_id": 65536,
+        "program_account_key": "M2mx93ekt1fmXSVkTrUL9xVFHkmME8HTUi5Cyc5aF7K",
+        "seller_fee_basis_points": "",
+        "creators": ["Creator #1", "Creator #2"],
+        "verified": ["true", "true"],
+        "share": [],
+    }
+    event = json.dumps(event)
+    event = event.encode()
+    event_data = base64.b64encode(event)
+
+    return {
+        "Records": [
+            {
+                "kinesis": {
+                    "kinesisSchemaVersion": "1.0",
+                    "partitionKey": "1",
+                    "sequenceNumber": "49590338271490256608559692538361571095921575989136588898",
+                    "data": event_data,
+                    "approximateArrivalTimestamp": 1545084650.987,
+                },
+                "eventSource": "aws:kinesis",
+                "eventVersion": "1.0",
+                "eventID": "shardId-000000000006:49590338271490256608559692538361571095921575989136588898",
+                "eventName": "aws:kinesis:record",
+                "invokeIdentityArn": "arn:aws:iam::123456789012:role/lambda-kinesis-role",
+                "awsRegion": "eu-central-1",
+                "eventSourceARN": "arn:aws:kinesis:us-east-2:123456789012:stream/lambda-stream",
+            }
+        ]
+    }
+
+
+@pytest.fixture(scope="session")
+def ethereum_kinesis_invalid_input_event() -> Dict[str, Any]:
+    event = {
+        "blockchain_id": 196608,
         "program_account_key": "M2mx93ekt1fmXSVkTrUL9xVFHkmME8HTUi5Cyc5aF7K",
         "seller_fee_basis_points": "",
         "creators": ["Creator #1", "Creator #2"],
