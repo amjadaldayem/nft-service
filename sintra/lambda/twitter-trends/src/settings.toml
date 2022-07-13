@@ -1,0 +1,17 @@
+[FUNCTION]
+NAME = "twitter-trend"
+
+[TWITTER]
+COUNT_ENDPOINT = "https://api.twitter.com/2/tweets/counts/recent"
+FOLLOWERS_ENDPOINT = "https://api.twitter.com/2/users/by/username"
+
+[DATA.API]
+PROJECT_ENDPOINT = "https://api.dev.sintra.com/v1/projects"
+
+[KINESIS]
+STREAM_NAME = "twitter-trends-stream"
+
+[LOCALSTACK]
+ACTIVE = "true"
+ENDPOINT = "http://localhost:4566"
+REGION = "eu-central-1"
