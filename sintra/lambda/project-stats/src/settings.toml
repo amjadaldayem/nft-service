@@ -1,0 +1,26 @@
+[FUNCTION]
+NAME = "project-stats"
+
+[KINESIS]
+STREAM_NAME = "project-stats-stream"
+
+[LOCALSTACK]
+ACTIVE = "true"
+ENDPOINT = "http://localhost:4566"
+REGION = "eu-central-1"
+
+[NFT.PORT]
+ENDPOINT = "https://api.nftport.xyz/v0/transactions/stats"
+
+[DATA.API]
+PROJECT_ENDPOINT = "https://api.dev.sintra.com/v1/projects"
+
+[BLOCKCHAIN.NAME]
+ETHEREUM = "ethereum"
+
+
+
+
+
+
+
