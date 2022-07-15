@@ -2,9 +2,7 @@ from typing import Any, Dict, Generator
 from unittest.mock import patch
 
 import boto3
-import pytest
 from src.app import lambda_handler
-from src.exception import DecodingException
 
 
 def transaction_example() -> Dict[str, Any]:

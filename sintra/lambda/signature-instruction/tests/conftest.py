@@ -8,6 +8,8 @@ import boto3
 import pytest
 from moto import mock_kinesis
 from src.parser.alpha_art import AlphaArtParser
+from src.parser.digital_eyes import DigitalEyesParserV1, DigitalEyesParserV2
+from src.parser.ethereum.open_sea import EthereumOpenSeaParser
 from src.parser.exchange_art import (
     ExchangeArtParserAuction,
     ExchangeArtParserV1,
@@ -19,11 +21,9 @@ from src.parser.magic_eden import (
     MagicEdenParserV2,
 )
 from src.parser.monkey_business import MonkeyBusinessParserV2
+from src.parser.open_sea import OpenSeaParser, OpenSeaParserAuction
 from src.parser.solanart import SolanartParser
 from src.parser.solsea import SolseaParser
-from src.parser.digital_eyes import DigitalEyesParserV1, DigitalEyesParserV2
-from src.parser.open_sea import OpenSeaParser, OpenSeaParserAuction
-from src.parser.ethereum.open_sea import EthereumOpenSeaParser
 
 
 @pytest.fixture(scope="session")
@@ -167,7 +167,7 @@ def open_sea_parser_auction() -> OpenSeaParserAuction:
 
 
 @pytest.fixture(scope="session")
-def ethereum_open_sea_parser() -> EthereumOpenSeaParser:
+def ethereum_open_sea_parser(alchemy_api_key) -> EthereumOpenSeaParser:
     return EthereumOpenSeaParser()
 
 
@@ -182,8 +182,14 @@ def aws_credentials() -> None:
 
 
 @pytest.fixture(scope="session")
+def alchemy_api_key() -> None:
+    os.environ["ALCHEMY_API_KEY"] = "krgQ9kDxgYTw-GIp5vJDTlC5BhzJ6ZZg"
+
+
+@pytest.fixture(scope="session")
 def kinesis_input_event() -> Dict[str, Any]:
     event = {
+        "blockchain_id": 65536,
         "market": "Magic Eden",
         "market_address": "GUfCR9mK6azb9vcpsxgXyj7XRPAKJd4KMHTTVvtncGgp",
         "market_account": "MEisE1HzehtrDpAAT8PnLHjpSSkRYakotTuJRPjTpo8",
@@ -219,6 +225,7 @@ def kinesis_input_event() -> Dict[str, Any]:
 @pytest.fixture(scope="session")
 def kinesis_invalid_input_event() -> Dict[str, Any]:
     event = {
+        "blockchain_id": 65536,
         "market": "Non-existing market",
         "market_address": "95B0BXJlba9Fy7HyDBZyR587eZYjUlLexTvduce0va1",
         "market_account": "lCcoFtZMKdqf58WcpkM9EbLhVjk4f6Y2aw8R0H6G9tp",

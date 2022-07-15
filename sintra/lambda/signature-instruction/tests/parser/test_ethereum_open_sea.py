@@ -1,13 +1,13 @@
 # pylint: disable=unspecified-encoding
 
+import json
 from pathlib import Path
+from typing import Any, Dict
 
 import pytest
-from src.model import SecondaryMarketEvent, EthereumTransaction
-from src.parser.ethereum.open_sea import EthereumOpenSeaParser
-import json
-from typing import Any, Dict
 from hexbytes import HexBytes
+from src.model import EthereumTransaction, SecondaryMarketEvent
+from src.parser.ethereum.open_sea import EthereumOpenSeaParser
 
 
 class TestEthereumOpenSeaParser:

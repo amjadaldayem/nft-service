@@ -87,7 +87,9 @@ def lambda_handler(event: Dict[str, Any], context):
             signature_record = json.loads(signature_data)
             signature_event: SignatureEvent = SignatureEvent.from_dict(signature_record)
 
-            if signature_event.blockchain == int(settings.blockchain.address.solana, 0):
+            if signature_event.blockchain_id == int(
+                settings.blockchain.address.solana, 0
+            ):
 
                 transaction_dict = async_loop.run_until_complete(
                     get_transaction(solana_client, signature_event)
@@ -116,7 +118,7 @@ def lambda_handler(event: Dict[str, Any], context):
                 ) as error:
                     logger.error(error)
                     raise RuntimeError from error
-            if signature_event.blockchain == int(
+            if signature_event.blockchain_id == int(
                 settings.blockchain.address.ethereum, 0
             ):
 
@@ -160,7 +162,9 @@ def lambda_handler(event: Dict[str, Any], context):
                     raise RuntimeError from error
 
             else:
-                logger.error("Unknown blockchain name: " + signature_event.blockchain)
+                logger.error(
+                    "Unknown blockchain name: " + signature_event.blockchain_id
+                )
         except (json.JSONDecodeError, ValueError, TypeError, KeyError) as error:
             logger.error(error)
 

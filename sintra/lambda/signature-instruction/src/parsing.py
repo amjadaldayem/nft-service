@@ -1,7 +1,13 @@
+from typing import Union
+
 from src.exception import TransactionParserNotFoundException
-from src.model import SecondaryMarketEvent, SolanaTransaction, EthereumTransaction
+from src.model import EthereumTransaction, SecondaryMarketEvent, SolanaTransaction
 from src.parser.alpha_art import AlphaArtParser
 from src.parser.digital_eyes import DigitalEyesParserV1, DigitalEyesParserV2
+from src.parser.ethereum.open_sea import (
+    EthereumOpenSeaParserV1,
+    EthereumOpenSeaParserV2,
+)
 from src.parser.exchange_art import (
     ExchangeArtParserAuction,
     ExchangeArtParserV1,
@@ -17,12 +23,9 @@ from src.parser.monkey_business import (
     MonkeyBusinessParserV2,
     MonkeyBusinessParserV3,
 )
+from src.parser.open_sea import OpenSeaParser, OpenSeaParserAuction
 from src.parser.solanart import SolanartParser
 from src.parser.solsea import SolseaParser
-from src.parser.open_sea import OpenSeaParser, OpenSeaParserAuction
-
-from src.parser.ethereum.open_sea import EthereumOpenSeaParser
-from typing import Union
 
 
 class TransactionParsing:
@@ -62,5 +65,6 @@ class TransactionParsing:
             MonkeyBusinessParserV3(),
             OpenSeaParser(),
             OpenSeaParserAuction(),
-            EthereumOpenSeaParser(),
+            EthereumOpenSeaParserV1(),
+            EthereumOpenSeaParserV2(),
         ]
