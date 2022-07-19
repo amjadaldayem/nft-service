@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 from time import time
@@ -8,11 +9,10 @@ from typing import Any, Dict, List
 import requests
 import slugify
 from requests import HTTPError, Timeout
+from src.config import settings
 from src.exception import FetchTokenDataException, UnknownBlockchainException
 from src.model import MediaFile, NFTCreator, NFTData, NFTMetadata
 from src.utils import base_curency_for_blockchain, blockchain_id_to_name
-from src.config import settings
-import os
 
 logger = logging.getLogger(__name__)
 alchemy_api_key = os.getenv("ALCHEMY_API_KEY")
@@ -95,8 +95,8 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
                 metadata.creators, metadata.verified, metadata.share
             )
         ]
-        token_attributes = (
-            self._transform_token_attributes(token_data.get("attributes", [])),
+        token_attributes = self._transform_token_attributes(
+            token_data.get("attributes", [])
         )
 
         try:
