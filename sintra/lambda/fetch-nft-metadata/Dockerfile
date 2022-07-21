@@ -1,4 +1,4 @@
-FROM 391319738221.dkr.ecr.us-west-2.amazonaws.com/public-images:python-3.8
+FROM public.ecr.aws/x0l3b3a0/public-images:python3.8
 
 COPY src ${LAMBDA_TASK_ROOT}/src
 
