@@ -50,7 +50,11 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
             logger.error(error)
             raise FetchTokenDataException() from error
         except requests.JSONDecodeError as error:
-            logger.error(error)
+            logger.error(
+                f"Failed to fetch and decode token attributes: {error}\n"
+                f"Status code: {response.status_code}"
+                f"Reason: {response.reason}"
+            )
             raise json.JSONDecodeError from error
 
     def _transform_token_data(
