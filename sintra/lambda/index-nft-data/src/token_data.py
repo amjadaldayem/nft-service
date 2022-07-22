@@ -41,6 +41,7 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
         self.allow_redirects = allow_redirects
 
     async def get_token_data(self, metadata: NFTMetadata) -> NFTData:
+        token_data = None
         try:
             response: requests.Response = self.session.get(
                 url=metadata.uri,
@@ -52,7 +53,6 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
                     f"Response status code: {response.status_code}. Reason: {response.reason}."
                 )
             token_data = response.json()
-            return self._transform_token_data(metadata, token_data)
         except (Timeout, HTTPError) as error:
             logger.error(error)
             raise FetchTokenDataException() from error
@@ -63,6 +63,12 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
                 f"Reason: {response.reason}"
             )
             raise json.JSONDecodeError from error
+
+        try:
+            return self._transform_token_data(metadata, token_data)
+        except Exception as error:
+            logger.error(f"Failed to transform received token data JSON: {token_data}")
+            raise error
 
     def _transform_token_data(
         self, metadata: NFTMetadata, token_data: Dict[str, Any]
