@@ -101,8 +101,9 @@ class SolanaMetadataFetcher(MetadataFetcher):
             except ValueError as error:
                 raise UnableToFetchMetadataException(error) from error
         except SolanaRpcException as error:
-            logger.error(error)
-            raise UnableToFetchMetadataException(error) from error
+            error_message = f"Failed to fetch metadata from Solana RPC for program account key: {error}"
+            logger.error(error_message)
+            raise UnableToFetchMetadataException(error_message) from error
 
     def _unpack_data(self, data: str, encoding: str) -> NFTMetadata:
         """Decode encoded metadata.
