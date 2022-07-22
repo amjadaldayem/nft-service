@@ -150,16 +150,14 @@ def lambda_handler(event: Dict[str, Any], context):
                         transaction, signature_event.market_account
                     )
                     sme_batch.append(secondary_market_event)
-                except TransactionParserNotFoundException as error:
-                    logger.warning(error)
-                    continue
                 except (
                     TransactionInstructionMissingException,
                     UnknownTransactionException,
                     SecondaryMarketDataMissingException,
+                    TransactionParserNotFoundException,
                 ) as error:
                     logger.error(error)
-                    raise RuntimeError from error
+                    continue
 
             else:
                 logger.error(
