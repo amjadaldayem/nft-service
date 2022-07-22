@@ -57,7 +57,17 @@ def lambda_handler(event, context):
 
     for record in records:
         try:
-            metadata = base64.b64decode(record["kinesis"]["data"]).decode("utf-8")
+            metadata = None
+
+            try:
+                metadata = base64.b64decode(record["kinesis"]["data"]).decode("utf-8")
+            except Exception as error:
+                logger.error(
+                    f"Error occurred while decoding received data: {error}\n"
+                    f"Kinesis record: {record['kinesis']}"
+                )
+                continue
+
             logger.info(f"Received record: {metadata}")
 
             metadata_record = json.loads(metadata)
