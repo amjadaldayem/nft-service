@@ -82,7 +82,7 @@ def lambda_handler(event: Dict[str, Any], context):
 
     for record in records:
         try:
-            logger.info("Received record: " + str(record))
+            logger.info(f"Received record: {record}")
             signature_data = base64.b64decode(record["kinesis"]["data"]).decode("utf-8")
             signature_record = json.loads(signature_data)
             signature_event: SignatureEvent = SignatureEvent.from_dict(signature_record)
@@ -161,7 +161,7 @@ def lambda_handler(event: Dict[str, Any], context):
 
             else:
                 logger.error(
-                    "Unknown blockchain name: " + signature_event.blockchain_id
+                    f"Unknown blockchain name: {signature_event.blockchain_id}"
                 )
         except (json.JSONDecodeError, ValueError, TypeError, KeyError) as error:
             logger.error(error)
@@ -183,13 +183,13 @@ async def get_transaction(
 ) -> Dict[str, Any]:
     logger.info(f"Fetching transaction for signature: {event.signature}.")
     response = await client.get_confirmed_transaction(event.signature)
-    logger.info("Fetched transaction data: " + str(response))
+    logger.info(f"Fetched transaction data: {response}")
 
     transaction_dict = None
 
     if "error" in response:
         logger.error(
-            "Error occurred while fetching transaction data: " + str(response["error"])
+            f"Error occurred while fetching transaction data: {response['error']}"
         )
     elif "result" in response:
         transaction_dict = response["result"]
@@ -204,10 +204,9 @@ async def get_transaction_ethereum(
     logger.info(f"Fetching transaction for signature: {event.signature}.")
     transaction_details = client.eth.get_transaction(event.signature)
     transaction_receipt_event_logs = client.eth.getTransactionReceipt(event.signature)
-    logger.info("Fetched transaction details data: " + str(transaction_details))
+    logger.info(f"Fetched transaction details data: {transaction_details}")
     logger.info(
-        "Fetched transaction receipt event logs data: "
-        + str(transaction_receipt_event_logs)
+        f"Fetched transaction receipt event logs data: {transaction_receipt_event_logs}"
     )
 
     return transaction_details, transaction_receipt_event_logs
