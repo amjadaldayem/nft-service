@@ -86,7 +86,7 @@ def lambda_handler(event, context):
                     f"NFT Metadata from blockchain: {nft_metadata.blockchain_id} is not supported."
                 )
         except (json.JSONDecodeError, ValueError, TypeError, KeyError) as error:
-            logger.error(error)
+            logger.error(f"Failed to decode JSON metadata record: {metadata}")
             raise DecodingException("Failed to decode JSON record.") from error
 
     if len(nft_data_list) > 0:

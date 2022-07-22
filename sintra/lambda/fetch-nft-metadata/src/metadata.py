@@ -2,6 +2,7 @@ import base64
 import logging
 import os
 from abc import ABC, abstractmethod
+from json import JSONDecodeError
 from typing import List, Tuple, Union, Any, Dict
 
 import base58
@@ -157,6 +158,7 @@ class EthereumMetadataFetcher(MetadataFetcher):
             )
 
             data = response.json()
+
             if not data:
                 raise UnableToFetchMetadataException(
                     f"Unable to fetch metadata for token with token id: {token_id}."
@@ -167,8 +169,9 @@ class EthereumMetadataFetcher(MetadataFetcher):
             except ValueError as error:
                 raise UnableToFetchMetadataException(error) from error
         except ValueError as error:
-            logger.error(error)
-            raise UnableToFetchMetadataException(error) from error
+            error_message = f"Failed to decode metadata JSON for token with id {token_id}: {error}"
+            logger.error(error_message)
+            raise UnableToFetchMetadataException(error_message) from error
 
     def _unpack_data(self, data: Dict[str, Any]) -> NFTMetadata:
         try:
