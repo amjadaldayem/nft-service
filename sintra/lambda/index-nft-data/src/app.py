@@ -87,7 +87,7 @@ def lambda_handler(event, context):
                 )
         except (json.JSONDecodeError, ValueError, TypeError, KeyError) as error:
             logger.error(f"Failed to decode JSON metadata record: {metadata}")
-            raise DecodingException("Failed to decode JSON record.") from error
+            logger.error(f"JSON decoding failed with error: {error}")
 
     if len(nft_data_list) > 0:
         kinesis.produce_records(settings.kinesis.stream_name, nft_data_list)
