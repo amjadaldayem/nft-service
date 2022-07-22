@@ -57,6 +57,10 @@ def lambda_handler(event, context):
 
     for record in records:
         try:
+            kinesis_record_data = record["kinesis"]["data"];
+
+            logger.info(f"Received kinesis record data: {kinesis_record_data}")
+
             metadata = base64.b64decode(record["kinesis"]["data"]).decode("utf-8")
 
             logger.info(f"Received record: {metadata}")
