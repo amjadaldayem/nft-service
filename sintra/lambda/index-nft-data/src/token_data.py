@@ -17,6 +17,13 @@ from src.utils import base_curency_for_blockchain, blockchain_id_to_name
 logger = logging.getLogger(__name__)
 alchemy_api_key = os.getenv("ALCHEMY_API_KEY")
 
+if len(logging.getLogger().handlers) > 0:
+    # The Lambda environment pre-configures a handler logging to stderr. If a handler is already configured,
+    # `.basicConfig` does not execute. Thus we set the level directly.
+    logging.getLogger().setLevel(logging.INFO)
+else:
+    logging.basicConfig(level=logging.INFO)
+
 
 class TokenDataFetcher(ABC):
     @abstractmethod
