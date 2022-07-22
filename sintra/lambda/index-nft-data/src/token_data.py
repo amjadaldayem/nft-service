@@ -123,10 +123,16 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
             blockchain_name = None
 
         collection_data = token_data.get("collection", None)
+        collection_name_slug = None
         if collection_data:
             collection_name = collection_data["name"]
+            collection_name_slug = slugify.slugify(collection_name)
         else:
             collection_name = None
+
+        metadata_name_slug = None
+        if metadata.name:
+            metadata_name_slug = slugify.slugify(metadata.name)
 
         blocktime_datetime = datetime.utcfromtimestamp(metadata.blocktime)
         blocktime_formatted = blocktime_datetime.strftime("%Y-%m-%d %H:%M:%S")
@@ -138,13 +144,13 @@ class SolanaTokenDataFetcher(TokenDataFetcher):
             blockchain_name=blockchain_name,
             collection_id=f"bc-{blockchain_name}-{metadata.program_account_key}",
             collection_name=collection_name,
-            collection_name_slug=slugify.slugify(collection_name),
+            collection_name_slug=collection_name_slug,
             market_id=metadata.market_id,
             token_key=metadata.token_key,
             owner=metadata.owner,
             token_id=f"bc-{blockchain_name}-{metadata.token_key}",
             token_name=metadata.name,
-            token_name_slug=slugify.slugify(metadata.name),
+            token_name_slug=metadata_name_slug,
             description=token_data.get("description", ""),
             symbol=metadata.symbol,
             primary_sale_happened=metadata.primary_sale_happened,
