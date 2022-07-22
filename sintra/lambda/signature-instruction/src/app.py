@@ -118,7 +118,7 @@ def lambda_handler(event: Dict[str, Any], context):
                 ) as error:
                     logger.error(error)
                     raise RuntimeError from error
-            if signature_event.blockchain_id == int(
+            elif signature_event.blockchain_id == int(
                 settings.blockchain.address.ethereum, 0
             ):
 
