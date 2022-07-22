@@ -101,7 +101,7 @@ class SolanaMetadataFetcher(MetadataFetcher):
             except ValueError as error:
                 raise UnableToFetchMetadataException(error) from error
         except SolanaRpcException as error:
-            error_message = f"Failed to fetch metadata from Solana RPC for program account key: {error}"
+            error_message = f"Failed to fetch metadata from Solana RPC for program account key: {program_account_key}"
             logger.error(error_message)
             raise UnableToFetchMetadataException(error_message) from error
 
